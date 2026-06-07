@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useCart } from "@/lib/cart-store";
 import { products } from "@/data/products";
-import { ProductCard } from "@/components/public/ProductCard";
+import { ProductCard } from "@/modules/products/components/ProductCard";
 import { Heart } from "lucide-react";
 
 export default function AccountWishlistPage() {
@@ -15,7 +15,7 @@ export default function AccountWishlistPage() {
       {items.length === 0 ? (
         <div className="text-center py-16 bg-card border border-border rounded-xl">
           <Heart className="h-10 w-10 mx-auto text-muted-foreground" />
-          <p className="mt-3 font-semibold">No saved boots yet</p>
+          <p className="mt-3 font-semibold">No saved products yet</p>
           <p className="text-sm text-muted-foreground mt-1">Tap the heart icon on any product to save it here.</p>
           <Link href="/shop" className="mt-5 inline-block bg-primary text-primary-foreground rounded-full px-6 py-2.5 text-sm font-semibold">
             Browse shop

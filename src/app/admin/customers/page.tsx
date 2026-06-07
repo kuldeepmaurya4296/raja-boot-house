@@ -1,7 +1,7 @@
 "use client";
 
-import { DashboardPage } from "@/components/dashboard/DashboardLayout";
-import { DataTable, type Column } from "@/components/dashboard/DataTable";
+import { DashboardPage } from "@/modules/admin/dashboard/components/DashboardLayout";
+import { DataTable, type Column } from "@/modules/admin/shared/components/DataTable";
 import { customers, type User } from "@/data/users";
 import { formatINR, formatDate } from "@/lib/format";
 

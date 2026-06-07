@@ -33,8 +33,8 @@ export function Footer() {
       </div>
       <div className="border-t border-cream/10">
         <div className="container mx-auto px-6 py-5 text-xs text-cream/50 flex justify-between">
-          <span>© 1972–2026 Raja Boot House. All rights reserved.</span>
-          <span>Made in Mumbai</span>
+          <span>© 2025–2026 Raja Boot House. All rights reserved.</span>
+          <span>Made By Kuldeep Maurya</span>
         </div>
       </div>
     </footer>

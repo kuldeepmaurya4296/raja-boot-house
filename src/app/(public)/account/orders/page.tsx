@@ -2,7 +2,7 @@
 
 import { currentUser } from "@/data/users";
 import { ordersByUser } from "@/data/orders";
-import { StatusBadge } from "@/components/dashboard/DataTable";
+import { StatusBadge } from "@/modules/admin/shared/components/DataTable";
 import { formatINR, formatDate } from "@/lib/format";
 
 export default function AccountOrdersPage() {

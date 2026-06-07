@@ -1,6 +1,6 @@
 "use client";
 
-import { DashboardPage } from "@/components/dashboard/DashboardLayout";
+import { DashboardPage } from "@/modules/admin/dashboard/components/DashboardLayout";
 
 export default function AdminSettingsPage() {
   return (

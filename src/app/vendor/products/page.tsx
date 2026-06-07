@@ -1,7 +1,7 @@
 "use client";
 
-import { DashboardPage } from "@/components/dashboard/DashboardLayout";
-import { DataTable, type Column } from "@/components/dashboard/DataTable";
+import { DashboardPage } from "@/modules/admin/dashboard/components/DashboardLayout";
+import { DataTable, type Column } from "@/modules/admin/shared/components/DataTable";
 import { products, type Product } from "@/data/products";
 import { currentVendor } from "@/data/vendors";
 import { Plus } from "lucide-react";

@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { currentUser } from "@/data/users";
 import { ordersByUser } from "@/data/orders";
-import { StatusBadge } from "@/components/dashboard/DataTable";
+import { StatusBadge } from "@/modules/admin/shared/components/DataTable";
 import { formatINR, formatDate } from "@/lib/format";
 import { Package, Heart, MapPin, ArrowRight } from "lucide-react";
 

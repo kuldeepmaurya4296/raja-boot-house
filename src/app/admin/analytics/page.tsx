@@ -1,7 +1,7 @@
 "use client";
 
-import { DashboardPage } from "@/components/dashboard/DashboardLayout";
-import { StatCard } from "@/components/dashboard/StatCard";
+import { DashboardPage } from "@/modules/admin/dashboard/components/DashboardLayout";
+import { StatCard } from "@/modules/admin/dashboard/components/StatCard";
 import { IndianRupee, ShoppingCart, Users, TrendingUp } from "lucide-react";
 import { formatINR } from "@/lib/format";
 import { categories } from "@/data/categories";

@@ -1,12 +1,12 @@
 "use client";
 
-import { DashboardPage } from "@/components/dashboard/DashboardLayout";
-import { StatCard } from "@/components/dashboard/StatCard";
+import { DashboardPage } from "@/modules/admin/dashboard/components/DashboardLayout";
+import { StatCard } from "@/modules/admin/dashboard/components/StatCard";
 import { Package, IndianRupee, ShoppingCart, Star } from "lucide-react";
 import { currentVendor } from "@/data/vendors";
 import { ordersByVendor } from "@/data/orders";
 import { products } from "@/data/products";
-import { DataTable, StatusBadge, type Column } from "@/components/dashboard/DataTable";
+import { DataTable, StatusBadge, type Column } from "@/modules/admin/shared/components/DataTable";
 import type { Order } from "@/data/orders";
 import { formatINR, formatDate } from "@/lib/format";
 

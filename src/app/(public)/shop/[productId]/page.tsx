@@ -5,18 +5,20 @@ import { findProduct, products } from "@/data/products";
 import { reviewsByProduct } from "@/data/reviews";
 import { Heart, ShoppingBag, Star } from "lucide-react";
 import { useCart } from "@/lib/cart-store";
-import { ProductCard } from "@/components/public/ProductCard";
+import { ProductCard } from "@/modules/products/components/ProductCard";
 import { formatINR } from "@/lib/format";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 
 // Sub-components
-import { ProductGallery } from "@/components/public/ProductGallery";
-import { SizeSelector } from "@/components/public/SizeSelector";
-import { ColorSelector } from "@/components/public/ColorSelector";
+import { ProductGallery } from "@/modules/products/components/ProductGallery";
+import { SizeSelector } from "@/modules/products/components/SizeSelector";
+import { ColorSelector } from "@/modules/products/components/ColorSelector";
 import { TrustBadges } from "@/components/public/TrustBadges";
-import { ReviewsSection } from "@/components/public/ReviewsSection";
+import { ReviewsSection } from "@/modules/reviews/components/ReviewsSection";
 import { QuantitySelector } from "@/components/shared/QuantitySelector";
+
+import { useEffect } from "react";
 
 interface PageProps {
   params: Promise<{ productId: string }>;
@@ -24,12 +26,30 @@ interface PageProps {
 
 export default function ProductPage({ params }: PageProps) {
   const { productId } = React.use(params);
-  const product = findProduct(productId);
+  const [product, setProduct] = useState<any>(() => findProduct(productId) || null);
+
+  useEffect(() => {
+    fetch(`/api/products/${productId}`)
+      .then((res) => res.json())
+      .then((data) => {
+        if (data && !data.error) {
+          setProduct(data);
+        }
+      })
+      .catch((err) => console.error("Error loading live product details from API:", err));
+  }, [productId]);
+
   const router = useRouter();
   const { add, wishlist, toggleWish } = useCart();
   const [size, setSize] = useState<number | null>(null);
   const [color, setColor] = useState(product?.colors[0] || "");
   const [qty, setQty] = useState(1);
+
+  useEffect(() => {
+    if (product && !color) {
+      setColor(product.colors[0] || "");
+    }
+  }, [product, color]);
 
   if (!product) {
     return (
@@ -110,7 +130,7 @@ export default function ProductPage({ params }: PageProps) {
           <div className="border-t border-border pt-6 space-y-3">
             <h3 className="font-semibold text-sm">Crafted with</h3>
             <ul className="text-sm text-muted-foreground space-y-1.5">
-              {product.details.map(d => <li key={d} className="flex gap-2"><span className="text-cognac">·</span>{d}</li>)}
+              {product.details.map((d: any) => <li key={d} className="flex gap-2"><span className="text-cognac">·</span>{d}</li>)}
             </ul>
           </div>
 

@@ -2,8 +2,8 @@
 
 import Link from "next/link";
 import { useCart, lineKey } from "@/lib/cart-store";
-import { CartItemRow } from "@/components/public/CartItemRow";
-import { EmptyCartState } from "@/components/public/EmptyCartState";
+import { CartItemRow } from "@/modules/cart/components/CartItemRow";
+import { EmptyCartState } from "@/modules/cart/components/EmptyCartState";
 import { OrderSummary } from "@/components/shared/OrderSummary";
 
 export default function CartPage() {

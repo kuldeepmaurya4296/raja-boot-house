@@ -1,6 +1,6 @@
 "use client";
 
-import { DashboardPage } from "@/components/dashboard/DashboardLayout";
+import { DashboardPage } from "@/modules/admin/dashboard/components/DashboardLayout";
 import { currentVendor } from "@/data/vendors";
 
 export default function VendorSettingsPage() {

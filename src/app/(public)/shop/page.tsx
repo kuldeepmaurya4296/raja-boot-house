@@ -1,31 +1,51 @@
 "use client";
 
-import { ProductCard } from "@/components/public/ProductCard";
+import { ProductCard } from "@/modules/products/components/ProductCard";
 import { products } from "@/data/products";
 import { categories } from "@/data/categories";
-import { useState, useMemo } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { SlidersHorizontal } from "lucide-react";
 
 export default function ShopPage() {
   const [cat, setCat] = useState<string>("all");
   const [sort, setSort] = useState<"new" | "low" | "high" | "rating">("new");
+  const [productList, setProductList] = useState<any[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+
+  useEffect(() => {
+    setLoading(true);
+    const params = new URLSearchParams({ category: cat, sort });
+    fetch(`/api/products?${params}`)
+      .then((res) => res.json())
+      .then((data) => {
+        if (Array.isArray(data)) {
+          setProductList(data);
+        }
+      })
+      .catch((err) => console.error("Error loading shop products:", err))
+      .finally(() => setLoading(false));
+  }, [cat, sort]);
 
   const filtered = useMemo(() => {
-    let list = cat === "all" ? products : products.filter(p => p.category === cat);
+    if (productList.length > 0) {
+      return productList;
+    }
+    // Static fallback
+    let list = cat === "all" ? products : products.filter((p) => p.category === cat);
     return [...list].sort((a, b) => {
       if (sort === "low") return a.price - b.price;
       if (sort === "high") return b.price - a.price;
       if (sort === "rating") return b.rating - a.rating;
       return b.createdAt.localeCompare(a.createdAt);
     });
-  }, [cat, sort]);
+  }, [productList, cat, sort]);
 
   return (
     <div className="container mx-auto px-4 md:px-6 py-8 md:py-12">
       <div className="mb-8">
         <p className="text-[11px] uppercase tracking-[0.3em] text-cognac font-semibold">The Collection</p>
-        <h1 className="font-serif text-4xl md:text-6xl font-bold mt-2">All Boots</h1>
-        <p className="text-muted-foreground mt-2">{filtered.length} pairs · crafted in Mumbai</p>
+        <h1 className="font-serif text-4xl md:text-6xl font-bold mt-2">Footwear Collection</h1>
+        <p className="text-muted-foreground mt-2">{filtered.length} products · Raja Boot House</p>
       </div>
 
       {/* Filter row */}

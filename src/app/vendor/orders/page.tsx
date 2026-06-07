@@ -1,7 +1,7 @@
 "use client";
 
-import { DashboardPage } from "@/components/dashboard/DashboardLayout";
-import { DataTable, StatusBadge, type Column } from "@/components/dashboard/DataTable";
+import { DashboardPage } from "@/modules/admin/dashboard/components/DashboardLayout";
+import { DataTable, StatusBadge, type Column } from "@/modules/admin/shared/components/DataTable";
 import { ordersByVendor, type Order } from "@/data/orders";
 import { currentVendor } from "@/data/vendors";
 import { customers } from "@/data/users";

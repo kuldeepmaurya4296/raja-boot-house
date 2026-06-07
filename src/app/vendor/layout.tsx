@@ -1,6 +1,6 @@
 "use client";
 
-import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
+import { DashboardLayout } from "@/modules/admin/dashboard/components/DashboardLayout";
 import { LayoutDashboard, Package, ShoppingCart, Wallet, Settings } from "lucide-react";
 
 const items = [

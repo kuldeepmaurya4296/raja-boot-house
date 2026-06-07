@@ -1,15 +1,36 @@
 "use client";
 import Link from "next/link";
 import { Hero } from "@/components/public/Hero";
-import { CategoryGrid } from "@/components/public/CategoryGrid";
-import { ProductCard } from "@/components/public/ProductCard";
-import { featuredProducts, products } from "@/data/products";
+import { CategoryGrid } from "@/modules/products/components/CategoryGrid";
+import { ProductCard } from "@/modules/products/components/ProductCard";
+import { featuredProducts, products as mockProducts } from "@/data/products";
 import { motion } from "framer-motion";
 import { Truck, Award, RotateCcw, Hammer } from "lucide-react";
+import { useState, useEffect } from "react";
 
 export default function Home() {
-  const featured = featuredProducts();
-  const newest = [...products].sort((a, b) => b.createdAt.localeCompare(a.createdAt)).slice(0, 4);
+  const [productList, setProductList] = useState<any[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+
+  useEffect(() => {
+    fetch("/api/products")
+      .then((res) => res.json())
+      .then((data) => {
+        if (Array.isArray(data)) {
+          setProductList(data);
+        }
+      })
+      .catch((err) => console.error("Error loading homepage products:", err))
+      .finally(() => setLoading(false));
+  }, []);
+
+  const featured = productList.length > 0 
+    ? productList.filter((p) => p.isFeatured).slice(0, 4)
+    : featuredProducts();
+
+  const newest = productList.length > 0
+    ? [...productList].slice(0, 4)
+    : [...mockProducts].sort((a, b) => b.createdAt.localeCompare(a.createdAt)).slice(0, 4);
 
   return (
     <>
