@@ -19,10 +19,10 @@ export default function Home() {
       <section className="border-y border-border bg-cream/60">
         <div className="container mx-auto px-4 md:px-6 py-6 grid grid-cols-2 md:grid-cols-4 gap-4 text-center md:text-left">
           {[
-            { icon: Hammer, t: "Hand-stitched", s: "By cobblers in Mumbai" },
-            { icon: Award, t: "Goodyear welt", s: "Resoleable for life" },
+            { icon: Award, t: "Reputed Brands", s: "Lakhani, Touch, Paragon, Goldstar" },
+            { icon: Hammer, t: "Gupta Brothers", s: " Prince & Bipin Gupta" },
             { icon: Truck, t: "Free shipping", s: "Over ₹2000" },
-            { icon: RotateCcw, t: "30-day returns", s: "No questions asked" },
+            { icon: RotateCcw, t: "Quality footwear", s: "For men, women & kids" },
           ].map(({ icon: I, t, s }) => (
             <div key={t} className="flex items-center gap-3 justify-center md:justify-start">
               <I className="h-5 w-5 text-cognac" />
@@ -65,16 +65,16 @@ export default function Home() {
         >
           <div className="absolute inset-0 grain opacity-20" />
           <div className="relative">
-            <p className="text-[11px] uppercase tracking-[0.3em] text-brass font-semibold mb-3">Three generations</p>
+            <p className="text-[11px] uppercase tracking-[0.3em] text-brass font-semibold mb-3">Gupta Brothers Enterprise</p>
             <h3 className="font-serif text-3xl md:text-5xl font-bold leading-tight">
-              A craft passed down<br />
-              <em className="text-brass not-italic">in leather and time.</em>
+              Quality footwear<br />
+              <em className="text-brass not-italic">for every occasion.</em>
             </h3>
             <p className="mt-5 text-cream/70 max-w-md">
-              Every Raja boot passes through 184 steps and seven pairs of hands. Cut. Lasted. Stitched. Burnished. Buffed. Boxed. Sent.
+              Established in 2025 by Prince Gupta and Bipin Gupta, Raja Boot House offers premium, comfortable sandals, shoes, slippers, and special wedding footwear for all age groups.
             </p>
             <Link href="/shop" className="mt-7 inline-flex bg-cream text-charcoal px-6 py-3 rounded-full text-sm font-semibold">
-              Inside the workshop
+              Explore catalog
             </Link>
           </div>
           <div className="relative grid grid-cols-2 gap-3">

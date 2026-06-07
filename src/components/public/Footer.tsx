@@ -7,7 +7,7 @@ export function Footer() {
       <div className="container mx-auto px-6 py-16 grid grid-cols-2 md:grid-cols-5 gap-10">
         <div className="col-span-2">
           <Logo size={44} />
-          <p className="mt-4 text-sm text-cream/60 max-w-xs">Crafting leather boots in our Mumbai atelier since 1972. Three generations of cobblers, one obsession.</p>
+          <p className="mt-4 text-sm text-cream/60 max-w-xs">Footwear retail brand established in 2025 by the Gupta brothers. Offering a wide range of footwear from reputed brands like Lakhani, Touch, Paragon, and Goldstar for all age groups.</p>
         </div>
         <div>
           <h4 className="text-sm font-semibold mb-3 uppercase tracking-wider">Shop</h4>

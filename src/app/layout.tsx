@@ -3,8 +3,8 @@ import { Providers } from "./providers";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Raja Boot House — Handcrafted Leather Boots Since 1972",
-  description: "Hand-stitched leather boots from our Mumbai atelier. Chelsea, work, dress, riding & women's. Goodyear-welted, built to outlast.",
+  title: "Raja Boot House — Reputed Footwear Retail Store",
+  description: "Footwear retail brand established in 2025 by the Gupta brothers. Offers a wide range of footwear for men, women, and children from Lakhani, Touch, Paragon, Goldstar, and more.",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
