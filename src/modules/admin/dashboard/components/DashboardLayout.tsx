@@ -3,8 +3,9 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState, type ReactNode } from "react";
 import { Logo } from "@/components/shared/Logo";
-import { Menu, X, Bell, ChevronDown, LogOut } from "lucide-react";
+import { Menu, X, Bell, ChevronDown, LogOut, ChevronLeft } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
+import { signOut } from "next-auth/react";
 
 export interface NavItem {
   to: string;
@@ -69,13 +70,19 @@ export function DashboardLayout({
             );
           })}
         </nav>
-        <div className="absolute bottom-0 inset-x-0 p-4 border-t border-sidebar-border">
+        <div className="absolute bottom-0 inset-x-0 p-4 border-t border-sidebar-border flex flex-col gap-3">
           <Link
             href="/"
             className="flex items-center gap-2 text-xs text-sidebar-foreground/60 hover:text-sidebar-foreground"
           >
-            <LogOut className="h-3.5 w-3.5" /> Back to store
+            <ChevronLeft className="h-3.5 w-3.5" /> Back to store
           </Link>
+          <button
+            onClick={() => signOut({ callbackUrl: "/" })}
+            className="flex items-center gap-2 text-xs text-sidebar-foreground/60 hover:text-red-400 text-left w-full cursor-pointer transition-colors"
+          >
+            <LogOut className="h-3.5 w-3.5" /> Logout
+          </button>
         </div>
       </aside>
 

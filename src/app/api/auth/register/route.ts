@@ -31,20 +31,10 @@ export async function POST(request: Request) {
     const db = await connectToDatabase();
     const normalizedEmail = email.toLowerCase().trim();
 
-    // If database is offline (e.g., dynamic IP whitelist blocked), fallback to simulated registration
-    if (!db || mongoose.connection.readyState !== 1) {
-      console.warn("Database offline during signup. Simulating registration success.");
+    if (!db) {
       return NextResponse.json(
-        {
-          success: true,
-          message: "User registered successfully (Simulated - Database Offline)",
-          user: {
-            id: `mock-user-${Date.now()}`,
-            name,
-            email: normalizedEmail,
-          },
-        },
-        { status: 201 }
+        { error: "Database connection failed. Please try again later." },
+        { status: 500 }
       );
     }
 

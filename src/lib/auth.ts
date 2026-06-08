@@ -5,7 +5,6 @@ import { connectToDatabase } from "@/lib/db";
 import User from "@/lib/models/User";
 import bcrypt from "bcryptjs";
 import mongoose from "mongoose";
-import { customers as fallbackCustomers } from "@/data/users";
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
   providers: [
@@ -27,31 +26,10 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         const db = await connectToDatabase();
         const email = (credentials.email as string).toLowerCase().trim();
 
-        // Graceful database offline fallback
-        if (!db || mongoose.connection.readyState !== 1) {
-          console.warn("Database offline. Authenticating via local mock session fallback.");
-          
-          if (email === "admin@rajaboothouse.in" && credentials.password === "RajaBoots@2025") {
-            return {
-              id: "admin-mock-id",
-              name: "Bipin Gupta (Mock)",
-              email: "admin@rajaboothouse.in",
-              role: "admin",
-            };
-          }
-
-          const matchedMock = fallbackCustomers.find((c) => c.email === email);
-          if (matchedMock) {
-            return {
-              id: matchedMock.id,
-              name: matchedMock.name,
-              email: matchedMock.email,
-              role: matchedMock.role === "admin" ? "admin" : "customer",
-            };
-          }
-          throw new Error("Database offline. Invalid credentials for mock sign in.");
+        if (!db) {
+          throw new Error("Database connection failed. Please try again later.");
         }
-        
+
         const user = await User.findOne({ email });
 
         if (!user) {
@@ -91,11 +69,8 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         const db = await connectToDatabase();
         const email = token.email?.toLowerCase().trim();
 
-        if (!db || mongoose.connection.readyState !== 1) {
-          console.warn("Database offline. Google provider fallback.");
-          token.id = "google-mock-id";
-          token.role = "customer";
-          return token;
+        if (!db) {
+          throw new Error("Database connection failed. Google sign-in unavailable.");
         }
 
         // Dynamic lookup or registration for google OAuth users

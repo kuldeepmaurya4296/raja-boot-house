@@ -9,9 +9,13 @@ import { Logo } from "@/components/shared/Logo";
 import { motion, AnimatePresence } from "framer-motion";
 import { categories as fallbackCategories } from "@/data/categories";
 import { formatINR } from "@/lib/format";
+import { useSession } from "next-auth/react";
 
 export function Navbar() {
   const { count } = useCart();
+  const { data: session } = useSession();
+  const role = (session?.user as any)?.role || "customer";
+  const accountLink = role === "admin" ? "/admin" : role === "vendor" ? "/vendor" : "/account";
   const path = usePathname();
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -175,7 +179,7 @@ export function Navbar() {
               <Search className="h-5 w-5" />
             </button>
             <Link
-              href="/account"
+              href={accountLink}
               className="hidden md:inline-flex p-2 hover:bg-muted rounded-full transition"
               aria-label="Account"
             >

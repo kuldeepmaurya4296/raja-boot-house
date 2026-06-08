@@ -86,7 +86,7 @@ export function Hero() {
 
   // Assign image fallbacks for dynamic banners that might not specify images
   const slides = banners.map((b, idx) => {
-    let img = b.image;
+    let img = b.image || b.imageUrl;
     if (!img) {
       if (idx === 0) img = heroImg.src;
       else if (idx === 1) img = slide2Img.src;
@@ -95,6 +95,8 @@ export function Hero() {
     return {
       ...b,
       image: img,
+      href: b.href || b.linkUrl || "/shop",
+      cta: b.cta || "Shop Now",
       tagline: b.tagline || "Raja Boot House · Established 2025",
       badgeTitle: b.badgeTitle || "Premium Quality",
       badgePrice: b.badgePrice || "Best Price Assured",

@@ -1,18 +1,32 @@
 import mongoose from "mongoose";
-import dns from "dns";
-import { promisify } from "util";
+
+// Only import dns and use it if we are in a Node.js environment and not in the Edge runtime
+let dns: any;
+if (typeof window === "undefined" && process.env.NEXT_RUNTIME !== "edge") {
+  try {
+    dns = require("dns");
+  } catch (e) {
+    console.warn("Could not load dns module");
+  }
+}
+
+const { promisify } = require("util");
 
 // Force IPv4 DNS resolution order to prevent querySrv ECONNREFUSED in Next.js runtime
-if (typeof dns.setDefaultResultOrder === "function") {
+if (dns && typeof dns.setDefaultResultOrder === "function") {
   dns.setDefaultResultOrder("ipv4first");
 }
-try {
-  dns.setServers(["8.8.8.8", "8.8.4.4"]);
-} catch (e) {
-  console.warn("Could not set custom DNS servers in DB connection module:", e);
+if (dns) {
+  try {
+    dns.setServers(["8.8.8.8", "8.8.4.4"]);
+  } catch (e) {
+    console.warn("Could not set custom DNS servers in DB connection module:", e);
+  }
 }
 
-const resolveSrv = promisify(dns.resolveSrv);
+const resolveSrv = dns ? promisify(dns.resolveSrv) : async () => {
+  throw new Error("DNS resolution not available in this runtime");
+};
 
 async function resolveMongoSrv(srvUri: string): Promise<string> {
   // Check if it's an SRV connection string
@@ -32,11 +46,12 @@ async function resolveMongoSrv(srvUri: string): Promise<string> {
   const srvDomain = `_mongodb._tcp.${host}`;
 
   try {
+    if (!dns) throw new Error("DNS not available");
     console.log(`Resolving MongoDB SRV records for: ${srvDomain}`);
     const records = await resolveSrv(srvDomain);
     if (records.length === 0) throw new Error("No SRV records returned");
 
-    const shardList = records.map((r) => `${r.name}:${r.port}`).join(",");
+    const shardList = records.map((r: any) => `${r.name}:${r.port}`).join(",");
     const sslParam = params ? (params.includes("ssl=") || params.includes("tls=") ? "" : "&ssl=true") : "?ssl=true";
     const directUri = `mongodb://${user}:${pass}@${shardList}${rest || "/"}${params || ""}${sslParam}&authSource=admin`;
     return directUri;

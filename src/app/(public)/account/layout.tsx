@@ -2,8 +2,9 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { User, Package, Heart, MapPin, Settings } from "lucide-react";
+import { User, Package, Heart, MapPin, Settings, LogOut } from "lucide-react";
 import { currentUser } from "@/data/users";
+import { signOut } from "next-auth/react";
 
 const items = [
   { href: "/account", label: "Overview", icon: User, exact: true },
@@ -34,6 +35,12 @@ export default function AccountLayout({ children }: { children: React.ReactNode 
                 </Link>
               );
             })}
+            <button
+              onClick={() => signOut({ callbackUrl: '/' })}
+              className="flex items-center gap-2.5 px-4 py-2.5 rounded-lg text-sm font-medium whitespace-nowrap text-foreground hover:bg-red-50 hover:text-red-600 text-left w-full cursor-pointer transition-colors mt-2"
+            >
+              <LogOut className="h-4 w-4" /> Logout
+            </button>
           </nav>
         </aside>
         <div className="min-w-0">{children}</div>

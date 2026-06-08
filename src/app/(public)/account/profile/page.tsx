@@ -1,6 +1,7 @@
 "use client";
 
 import { currentUser } from "@/data/users";
+import { signOut } from "next-auth/react";
 
 export default function AccountProfilePage() {
   return (
@@ -22,7 +23,15 @@ export default function AccountProfilePage() {
             <input defaultValue={v} className="mt-1.5 w-full bg-background border border-input rounded-lg px-3 py-2.5 text-sm" />
           </label>
         ))}
-        <button className="bg-primary text-primary-foreground rounded-full px-6 py-2.5 text-sm font-semibold cursor-pointer">Save changes</button>
+        <div className="flex gap-3">
+          <button className="bg-primary text-primary-foreground rounded-full px-6 py-2.5 text-sm font-semibold cursor-pointer">Save changes</button>
+          <button
+            onClick={() => signOut({ callbackUrl: '/' })}
+            className="bg-background border border-input text-foreground hover:bg-muted rounded-full px-6 py-2.5 text-sm font-semibold cursor-pointer transition-colors"
+          >
+            Sign out
+          </button>
+        </div>
       </div>
     </div>
   );
