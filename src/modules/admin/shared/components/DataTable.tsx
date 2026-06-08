@@ -3,6 +3,7 @@
 import type { ReactNode } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { ArrowDown, ArrowUp, ArrowUpDown } from "lucide-react";
+import { useDragScroll } from "@/lib/useDragScroll";
 
 export interface Column<T> { 
   key: string; 
@@ -16,6 +17,7 @@ function DataTableInner<T extends { id: string }>({ columns, rows, empty = "No r
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
+  const dragScroll = useDragScroll();
   
   const currentSort = searchParams.get("sort") || "";
   const currentOrder = searchParams.get("order") || "desc";
@@ -38,7 +40,15 @@ function DataTableInner<T extends { id: string }>({ columns, rows, empty = "No r
 
   return (
     <div className="bg-card rounded-xl border border-border overflow-hidden shadow-card">
-      <div className="overflow-x-auto">
+      <div 
+        ref={dragScroll.ref}
+        onMouseDown={dragScroll.onMouseDown}
+        onMouseLeave={dragScroll.onMouseLeave}
+        onMouseUp={dragScroll.onMouseUp}
+        onMouseMove={dragScroll.onMouseMove}
+        style={dragScroll.style}
+        className="overflow-x-auto"
+      >
         <table className="w-full text-sm min-w-[640px]">
           <thead className="bg-muted/60">
             <tr>
@@ -89,6 +99,7 @@ export function StatusBadge({ status }: { status: string }) {
   const map: Record<string, string> = {
     delivered: "bg-emerald-100 text-emerald-800",
     returned: "bg-orange-100 text-orange-800",
+    "return requested": "bg-yellow-100 text-yellow-800",
     shipped: "bg-blue-100 text-blue-800",
     "out for delivery": "bg-indigo-100 text-indigo-800",
     processing: "bg-amber-100 text-amber-900",
@@ -97,6 +108,7 @@ export function StatusBadge({ status }: { status: string }) {
     placed: "bg-sky-100 text-sky-800",
     pending: "bg-muted text-muted-foreground",
     cancelled: "bg-destructive/15 text-destructive",
+    refunded: "bg-teal-100 text-teal-800",
     active: "bg-emerald-100 text-emerald-800",
   };
   return <span className={`inline-flex px-2.5 py-1 rounded-full text-[10px] font-semibold uppercase tracking-wider ${map[normalized] ?? "bg-muted"}`}>{normalized}</span>;

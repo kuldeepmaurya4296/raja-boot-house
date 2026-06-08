@@ -8,6 +8,7 @@ export interface IOrderItem {
   color: string;
   price: number;
   qty: number;
+  returnDays?: number;
 }
 
 export interface IOrderHistory {
@@ -46,8 +47,13 @@ export interface IOrder extends Document {
     razorpayPaymentId?: string;
     status: "PENDING" | "PAID" | "FAILED" | "REFUNDED";
   };
-  status: "PLACED" | "CONFIRMED" | "PACKED" | "SHIPPED" | "OUT_FOR_DELIVERY" | "DELIVERED" | "CANCELLED" | "RETURNED";
+  status: "PLACED" | "CONFIRMED" | "PACKED" | "SHIPPED" | "OUT_FOR_DELIVERY" | "DELIVERED" | "CANCELLED" | "RETURN_REQUESTED" | "RETURNED" | "REFUNDED";
   statusHistory: IOrderHistory[];
+  refundDetails?: {
+    method: "ONLINE" | "CASH";
+    transactionId?: string;
+    refundedAt: Date;
+  };
   shipping?: {
     courier?: string;
     trackingNumber?: string;
@@ -65,6 +71,7 @@ const OrderItemSchema = new Schema({
   color: { type: String, required: true },
   price: { type: Number, required: true },
   qty: { type: Number, required: true },
+  returnDays: { type: Number, default: 7 },
 });
 
 const StatusHistorySchema = new Schema({
@@ -106,11 +113,16 @@ const OrderSchema: Schema = new Schema(
     },
     status: {
       type: String,
-      enum: ["PLACED", "CONFIRMED", "PACKED", "SHIPPED", "OUT_FOR_DELIVERY", "DELIVERED", "CANCELLED", "RETURNED"],
+      enum: ["PLACED", "CONFIRMED", "PACKED", "SHIPPED", "OUT_FOR_DELIVERY", "DELIVERED", "CANCELLED", "RETURN_REQUESTED", "RETURNED", "REFUNDED"],
       default: "PLACED",
       index: true,
     },
     statusHistory: [StatusHistorySchema],
+    refundDetails: {
+      method: { type: String, enum: ["ONLINE", "CASH"] },
+      transactionId: { type: String },
+      refundedAt: { type: Date },
+    },
     shipping: {
       courier: { type: String },
       trackingNumber: { type: String },

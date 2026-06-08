@@ -6,10 +6,13 @@ import { CartItemRow } from "@/modules/cart/components/CartItemRow";
 import { EmptyCartState } from "@/modules/cart/components/EmptyCartState";
 import { OrderSummary } from "@/components/shared/OrderSummary";
 
+import { useSettings } from "@/lib/settings-context";
+
 export default function CartPage() {
   const { lines, remove, setQty, subtotal } = useCart();
+  const settings = useSettings();
   const shipping = 0;
-  const tax = Math.round(subtotal * 0.08);
+  const tax = Math.round(subtotal * (settings.taxRate / 100));
 
   if (lines.length === 0) {
     return <EmptyCartState />;

@@ -1,4 +1,6 @@
 import nodemailer from "nodemailer";
+import { connectToDatabase } from "@/lib/db";
+import Settings from "@/lib/models/Settings";
 
 export async function sendEmail({
   to,
@@ -22,8 +24,19 @@ export async function sendEmail({
     },
   });
 
+  let storeName = "Raja Boot House";
+  try {
+    await connectToDatabase();
+    const generalDoc = await Settings.findOne({ key: "general" }).lean();
+    if (generalDoc && generalDoc.value && (generalDoc.value as any).storeName) {
+      storeName = (generalDoc.value as any).storeName;
+    }
+  } catch (err) {
+    console.error("Failed to load settings in mail utility, using fallback storeName:", err);
+  }
+
   const mailOptions = {
-    from: `"Raja Boot House Support" <${process.env.SMTP_USER}>`,
+    from: `"${storeName} Support" <${process.env.SMTP_USER}>`,
     to,
     subject,
     html,

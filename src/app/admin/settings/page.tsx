@@ -1,20 +1,322 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { DashboardPage } from "@/modules/admin/dashboard/components/DashboardLayout";
+import { useSettings } from "@/lib/settings-context";
+import { toast } from "sonner";
+import { Plus, Trash2, Save } from "lucide-react";
 
 export default function AdminSettingsPage() {
+  const { 
+    storeName, 
+    supportEmail, 
+    taxRate, 
+    defaultReturnDays,
+    shippingMethods, 
+    loading: settingsLoading, 
+    refreshSettings 
+  } = useSettings();
+
+  const [activeTab, setActiveTab] = useState<"general" | "shipping">("general");
+  
+  // Form State
+  const [localStoreName, setLocalStoreName] = useState("");
+  const [localSupportEmail, setLocalSupportEmail] = useState("");
+  const [localTaxRate, setLocalTaxRate] = useState(8);
+  const [localDefaultReturnDays, setLocalDefaultReturnDays] = useState(7);
+  const [localShipping, setLocalShipping] = useState<any[]>([]);
+  const [saving, setSaving] = useState(false);
+
+  // Load settings into local state once fetched
+  useEffect(() => {
+    if (!settingsLoading) {
+      setLocalStoreName(storeName || "");
+      setLocalSupportEmail(supportEmail || "");
+      setLocalTaxRate(taxRate ?? 8);
+      setLocalDefaultReturnDays(defaultReturnDays ?? 7);
+      setLocalShipping(
+        (shippingMethods || []).map(m => ({
+          ...m,
+          priceINR: Math.round(m.price * 84)
+        }))
+      );
+    }
+  }, [settingsLoading, storeName, supportEmail, taxRate, defaultReturnDays, shippingMethods]);
+
+  const handleAddShippingMethod = () => {
+    setLocalShipping(prev => [
+      ...prev,
+      {
+        id: `ship_${Math.random().toString(36).substring(2, 9)}`,
+        name: "",
+        desc: "",
+        priceINR: 0
+      }
+    ]);
+  };
+
+  const handleRemoveShippingMethod = (id: string) => {
+    setLocalShipping(prev => prev.filter(m => m.id !== id));
+  };
+
+  const handleShippingChange = (id: string, field: string, value: any) => {
+    setLocalShipping(prev => 
+      prev.map(m => m.id === id ? { ...m, [field]: value } : m)
+    );
+  };
+
+  const handleSaveSettings = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSaving(true);
+
+    try {
+      // Basic validations
+      if (!localStoreName.trim()) throw new Error("Store name is required");
+      if (!localSupportEmail.trim()) throw new Error("Support email is required");
+      if (isNaN(localTaxRate) || localTaxRate < 0) throw new Error("Tax rate must be a valid positive number");
+      if (isNaN(localDefaultReturnDays) || localDefaultReturnDays < 0) throw new Error("Default return period must be a valid positive number");
+
+      // Validate shipping methods
+      for (const m of localShipping) {
+        if (!m.name.trim()) throw new Error("All shipping methods must have a name");
+        if (!m.desc.trim()) throw new Error("All shipping methods must have a delivery description");
+        if (isNaN(m.priceINR) || m.priceINR < 0) throw new Error("Shipping prices must be valid positive numbers");
+      }
+
+      // Format shipping methods back to base currency
+      const formattedShipping = localShipping.map(m => ({
+        id: m.id,
+        name: m.name.trim(),
+        desc: m.desc.trim(),
+        price: Math.round((Number(m.priceINR) / 84) * 100) / 100
+      }));
+
+      const res = await fetch("/api/settings", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          storeName: localStoreName.trim(),
+          supportEmail: localSupportEmail.trim(),
+          taxRate: Number(localTaxRate),
+          defaultReturnDays: Number(localDefaultReturnDays),
+          shippingMethods: formattedShipping
+        })
+      });
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Failed to update settings");
+
+      toast.success("Configuration saved successfully!");
+      await refreshSettings();
+    } catch (err: any) {
+      console.error(err);
+      toast.error(err.message || "An error occurred while saving settings.");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  if (settingsLoading && localStoreName === "") {
+    return (
+      <DashboardPage eyebrow="Configuration" title="Settings">
+        <div className="flex items-center justify-center min-h-[300px]">
+          <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary"></div>
+        </div>
+      </DashboardPage>
+    );
+  }
+
   return (
     <DashboardPage eyebrow="Configuration" title="Settings">
-      <div className="bg-card border border-border rounded-xl p-6 max-w-2xl space-y-5">
-        {[["Store name", "Raja Boot House"], ["Support email", "care@rajaboothouse.com"], ["Currency", "INR — ₹"], ["Tax rate", "8%"]].map(([l, v]) => (
-          <label key={l} className="block">
-            <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">{l}</span>
-            <input defaultValue={v} className="mt-1.5 w-full bg-background border border-input rounded-lg px-3 py-2.5 text-sm" />
-          </label>
-        ))}
-        <button className="bg-primary text-primary-foreground rounded-full px-6 py-2.5 text-sm font-semibold cursor-pointer">
-          Save
-        </button>
+      <div className="max-w-4xl space-y-6">
+        
+        {/* Modern Tabs Navigation */}
+        <div className="flex border-b border-border gap-2 pb-px">
+          <button
+            onClick={() => setActiveTab("general")}
+            className={`px-5 py-2.5 text-sm font-semibold border-b-2 transition-all duration-200 whitespace-nowrap -mb-px cursor-pointer ${
+              activeTab === "general"
+                ? "border-primary text-primary"
+                : "border-transparent text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            General Settings
+          </button>
+          <button
+            onClick={() => setActiveTab("shipping")}
+            className={`px-5 py-2.5 text-sm font-semibold border-b-2 transition-all duration-200 whitespace-nowrap -mb-px cursor-pointer ${
+              activeTab === "shipping"
+                ? "border-primary text-primary"
+                : "border-transparent text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            Shipping Methods
+          </button>
+        </div>
+
+        <form onSubmit={handleSaveSettings} className="space-y-6">
+          
+          {/* General Tab */}
+          {activeTab === "general" && (
+            <div className="bg-card border border-border rounded-2xl p-6 md:p-8 space-y-5 shadow-sm">
+              <h3 className="font-serif text-lg font-bold border-b border-border pb-3">Store Configuration</h3>
+              
+              <div className="grid md:grid-cols-2 gap-5">
+                <label className="block space-y-1.5">
+                  <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Store Name</span>
+                  <input
+                    type="text"
+                    value={localStoreName}
+                    onChange={e => setLocalStoreName(e.target.value)}
+                    required
+                    className="w-full bg-background border border-input rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary transition"
+                  />
+                </label>
+
+                <label className="block space-y-1.5">
+                  <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Support Email</span>
+                  <input
+                    type="email"
+                    value={localSupportEmail}
+                    onChange={e => setLocalSupportEmail(e.target.value)}
+                    required
+                    className="w-full bg-background border border-input rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary transition"
+                  />
+                </label>
+
+                <label className="block space-y-1.5">
+                  <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Est. Tax Rate (%)</span>
+                  <div className="relative">
+                    <input
+                      type="number"
+                      value={localTaxRate}
+                      onChange={e => setLocalTaxRate(Number(e.target.value))}
+                      min="0"
+                      max="100"
+                      step="0.1"
+                      required
+                      className="w-full bg-background border border-input rounded-xl pl-4 pr-10 py-2.5 text-sm focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary transition"
+                    />
+                    <span className="absolute right-4 top-1/2 -translate-y-1/2 text-sm font-semibold text-muted-foreground">%</span>
+                  </div>
+                </label>
+
+                <label className="block space-y-1.5">
+                  <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Default Return Period (Days)</span>
+                  <input
+                    type="number"
+                    value={localDefaultReturnDays}
+                    onChange={e => setLocalDefaultReturnDays(Number(e.target.value))}
+                    min="0"
+                    max="365"
+                    required
+                    className="w-full bg-background border border-input rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary transition"
+                  />
+                </label>
+                
+                <div className="bg-muted/30 border border-border rounded-xl p-4 flex flex-col justify-center text-xs text-muted-foreground leading-relaxed md:col-span-2">
+                  <p className="font-semibold text-foreground mb-1">Configuration Calculations</p>
+                  Taxes are calculated based on the Est. Tax Rate (%). If a specific product does not specify its own Return Policy, the store-wide Default Return Period (Days) is applied.
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Shipping Methods Tab */}
+          {activeTab === "shipping" && (
+            <div className="bg-card border border-border rounded-2xl p-6 md:p-8 space-y-5 shadow-sm">
+              <div className="flex justify-between items-center border-b border-border pb-3">
+                <h3 className="font-serif text-lg font-bold">Shipping Delivery Methods</h3>
+                <button
+                  type="button"
+                  onClick={handleAddShippingMethod}
+                  className="flex items-center gap-1.5 text-xs bg-primary/10 text-primary hover:bg-primary/20 px-3.5 py-2 rounded-full font-semibold transition cursor-pointer"
+                >
+                  <Plus className="h-3.5 w-3.5" />
+                  Add Option
+                </button>
+              </div>
+
+              {localShipping.length === 0 ? (
+                <div className="text-center py-8 text-muted-foreground text-sm border border-dashed border-border rounded-xl">
+                  No shipping methods configured. Customers will not be able to checkout. Click "Add Option" to configure.
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {localShipping.map((method, idx) => (
+                    <div 
+                      key={method.id}
+                      className="bg-muted/10 border border-border rounded-xl p-4 md:p-5 flex flex-col md:flex-row gap-4 items-start md:items-center justify-between"
+                    >
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 flex-1 w-full">
+                        <label className="block space-y-1">
+                          <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Method Name *</span>
+                          <input
+                            type="text"
+                            value={method.name}
+                            onChange={e => handleShippingChange(method.id, "name", e.target.value)}
+                            placeholder="e.g. Express Delivery"
+                            required
+                            className="w-full bg-background border border-input rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary transition"
+                          />
+                        </label>
+                        
+                        <label className="block space-y-1">
+                          <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Estimated Delivery *</span>
+                          <input
+                            type="text"
+                            value={method.desc}
+                            onChange={e => handleShippingChange(method.id, "desc", e.target.value)}
+                            placeholder="e.g. 2–3 business days"
+                            required
+                            className="w-full bg-background border border-input rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary transition"
+                          />
+                        </label>
+
+                        <label className="block space-y-1">
+                          <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Cost (INR ₹) *</span>
+                          <div className="relative">
+                            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">₹</span>
+                            <input
+                              type="number"
+                              value={method.priceINR}
+                              onChange={e => handleShippingChange(method.id, "priceINR", Number(e.target.value))}
+                              min="0"
+                              placeholder="0 for Free"
+                              required
+                              className="w-full bg-background border border-input rounded-lg pl-6 pr-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary transition"
+                            />
+                          </div>
+                        </label>
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveShippingMethod(method.id)}
+                        className="text-destructive hover:bg-destructive/10 p-2.5 rounded-full transition cursor-pointer self-end md:self-auto"
+                        title="Delete shipping method"
+                      >
+                        <Trash2 className="h-4.5 w-4.5" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Form Actions */}
+          <div className="flex justify-end gap-3">
+            <button
+              type="submit"
+              disabled={saving}
+              className="flex items-center gap-2 bg-primary text-primary-foreground hover:bg-primary/95 rounded-full px-7 py-3 text-sm font-semibold cursor-pointer disabled:opacity-50 transition shadow"
+            >
+              <Save className="h-4 w-4" />
+              {saving ? "Saving configurations..." : "Save changes"}
+            </button>
+          </div>
+        </form>
       </div>
     </DashboardPage>
   );

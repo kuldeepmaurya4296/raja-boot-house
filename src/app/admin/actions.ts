@@ -85,6 +85,7 @@ const productSchema = z.object({
   variants: z.array(variantSchema).min(1, "At least one variant is required"),
   price: z.number().min(0, "Price must be positive"),
   salePrice: z.number().min(0, "Sale price must be positive"),
+  returnDays: z.number().min(0, "Return days cannot be negative").default(7),
   isFeatured: z.boolean().default(false),
   isNewArrival: z.boolean().default(false),
   isActive: z.boolean().default(true),

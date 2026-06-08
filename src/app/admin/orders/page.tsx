@@ -35,15 +35,28 @@ export default async function AdminOrdersPage({ searchParams }: { searchParams: 
     sortObj[sortKey] = sortOrder;
   }
 
-  const [ordersRaw, totalItems] = await Promise.all([
+  const [ordersRaw, totalItems, statusCountsRaw] = await Promise.all([
     Order.find(query)
       .populate({ path: "userId", model: User, select: "name email" })
       .sort(sortObj)
       .skip((page - 1) * limit)
       .limit(limit)
       .lean(),
-    Order.countDocuments(query)
+    Order.countDocuments(query),
+    Order.aggregate([
+      { $group: { _id: "$status", count: { $sum: 1 } } }
+    ])
   ]);
+
+  const statusCounts: Record<string, number> = {};
+  let totalCount = 0;
+  statusCountsRaw.forEach((c: any) => {
+    if (c._id) {
+      statusCounts[c._id.toUpperCase()] = c.count;
+      totalCount += c.count;
+    }
+  });
+  statusCounts["ALL"] = totalCount;
     
   const orders = ordersRaw.map((o: any) => ({
     id: o._id.toString(),
@@ -58,7 +71,7 @@ export default async function AdminOrdersPage({ searchParams }: { searchParams: 
 
   return (
     <DashboardPage eyebrow="Fulfilment" title="Orders">
-      <OrdersClient orders={orders} totalItems={totalItems} />
+      <OrdersClient orders={orders} totalItems={totalItems} statusCounts={statusCounts} />
     </DashboardPage>
   );
 }

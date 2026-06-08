@@ -22,6 +22,7 @@ export interface IProduct extends Document {
   price: number;
   salePrice: number;
   discount: number; // percentage
+  returnDays?: number;
   rating: {
     average: number;
     count: number;
@@ -65,6 +66,7 @@ const ProductSchema: Schema = new Schema(
     price: { type: Number, required: true }, // MRP
     salePrice: { type: Number, required: true }, // Actual selling price
     discount: { type: Number, default: 0 }, // Discount % auto-calculated or stored
+    returnDays: { type: Number, default: 7 },
     rating: {
       average: { type: Number, default: 0 },
       count: { type: Number, default: 0 },

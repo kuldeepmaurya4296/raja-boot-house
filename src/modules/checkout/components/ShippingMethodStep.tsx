@@ -2,7 +2,7 @@ export function ShippingMethodStep() {
   const methods = [
     { name: "Standard", desc: "5–7 days", price: "Free" },
     { name: "Express", desc: "2–3 days", price: "₹399" },
-    { name: "Same-day (Mumbai)", desc: "Today", price: "₹699" },
+    { name: "Same-day (Jawa Rewa)", desc: "Today", price: "₹699" },
   ];
 
   return (

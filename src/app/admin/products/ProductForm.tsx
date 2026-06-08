@@ -34,6 +34,7 @@ const schema = z.object({
   variants: z.array(variantSchema).min(1, "At least one variant is required"),
   price: z.coerce.number().min(0, "Price must be positive"),
   salePrice: z.coerce.number().min(0, "Sale price must be positive"),
+  returnDays: z.coerce.number().min(0, "Return days cannot be negative"),
   isFeatured: z.boolean(),
   isNewArrival: z.boolean(),
   isActive: z.boolean(),
@@ -68,6 +69,7 @@ export function ProductForm({
       variants: initialData?.variants || [{ size: 7, color: "Black", colorHex: "#000000", stock: 10, sku: "" }],
       price: initialData?.price || 0,
       salePrice: initialData?.salePrice || 0,
+      returnDays: initialData?.returnDays ?? 7,
       isFeatured: initialData?.isFeatured ?? false,
       isNewArrival: initialData?.isNewArrival ?? false,
       isActive: initialData?.isActive ?? true,
@@ -146,7 +148,7 @@ export function ProductForm({
 
         <div className="bg-card border border-border rounded-xl p-6 shadow-card">
           <h2 className="font-serif font-bold text-xl mb-6">Pricing & Classifications</h2>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
             <div>
               <label className="block text-sm font-medium mb-1">Price (MRP)</label>
               <input type="number" {...register("price")} className="w-full px-3 py-2 border border-border rounded-md bg-background focus:outline-none focus:ring-2 focus:ring-primary/20" />
@@ -154,6 +156,11 @@ export function ProductForm({
             <div>
               <label className="block text-sm font-medium mb-1">Sale Price</label>
               <input type="number" {...register("salePrice")} className="w-full px-3 py-2 border border-border rounded-md bg-background focus:outline-none focus:ring-2 focus:ring-primary/20" />
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1">Return Policy (Days)</label>
+              <input type="number" {...register("returnDays")} min="0" className="w-full px-3 py-2 border border-border rounded-md bg-background focus:outline-none focus:ring-2 focus:ring-primary/20" />
+              {errors.returnDays && <p className="text-red-500 text-xs mt-1">{errors.returnDays.message}</p>}
             </div>
             <div>
               <label className="block text-sm font-medium mb-1">Gender</label>

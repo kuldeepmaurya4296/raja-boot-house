@@ -4,9 +4,11 @@ import Link from "next/link";
 import Script from "next/script";
 import { useCart } from "@/lib/cart-store";
 import { formatINR } from "@/lib/format";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import { toast } from "sonner";
+import { Plus } from "lucide-react";
+import { useSettings } from "@/lib/settings-context";
 
 // Shared and sub-components
 import { OrderSummary } from "@/components/shared/OrderSummary";
@@ -17,27 +19,107 @@ import { Input } from "@/components/shared/Input";
 export default function CheckoutPage() {
   const { data: session } = useSession();
   const { lines, subtotal, clear } = useCart();
+  const settings = useSettings();
   const [step, setStep] = useState<1 | 2 | 3>(1);
   const [done, setDone] = useState(false);
   const [loading, setLoading] = useState(false);
 
+  // Saved Addresses State
+  const [savedAddresses, setSavedAddresses] = useState<any[]>([]);
+  const [selectedAddressId, setSelectedAddressId] = useState<string | null>(null);
+
   // Address State
-  const [fullName, setFullName] = useState(session?.user?.name || "Aarav Sharma");
-  const [phone, setPhone] = useState("+91 98200 12345");
-  const [line1, setLine1] = useState("12 Marine Drive, Apt 4B");
+  const [fullName, setFullName] = useState("");
+  const [phone, setPhone] = useState("");
+  const [line1, setLine1] = useState("");
   const [line2, setLine2] = useState("");
-  const [city, setCity] = useState("Mumbai");
-  const [state, setState] = useState("Maharashtra");
-  const [zip, setZip] = useState("400020");
+  const [city, setCity] = useState("");
+  const [state, setState] = useState("");
+  const [zip, setZip] = useState("");
+
+  useEffect(() => {
+    if (!session?.user?.id) {
+      setFullName("");
+      setPhone("");
+      setLine1("");
+      setLine2("");
+      setCity("");
+      setState("");
+      setZip("");
+      return;
+    }
+
+    fetch("/api/user/addresses")
+      .then(res => res.json())
+      .then(data => {
+        if (Array.isArray(data)) {
+          setSavedAddresses(data);
+          const def = data.find(a => a.isDefault);
+          if (def) {
+            setSelectedAddressId(def._id);
+            setFullName(def.fullName || "");
+            setPhone(def.phone || "");
+            setLine1(def.line1 || "");
+            setLine2(def.line2 || "");
+            setCity(def.city || "");
+            setState(def.state || "");
+            setZip(def.pin || "");
+          } else if (data.length > 0) {
+            setSelectedAddressId(data[0]._id);
+            setFullName(data[0].fullName || "");
+            setPhone(data[0].phone || "");
+            setLine1(data[0].line1 || "");
+            setLine2(data[0].line2 || "");
+            setCity(data[0].city || "");
+            setState(data[0].state || "");
+            setZip(data[0].pin || "");
+          } else {
+            setFullName(session.user.name || "");
+          }
+        }
+      })
+      .catch(console.error);
+  }, [session?.user?.id, session?.user?.name]);
+
+  const handleSelectAddress = (addr: any) => {
+    if (addr === "new") {
+      setSelectedAddressId("new");
+      setFullName("");
+      setPhone("");
+      setLine1("");
+      setLine2("");
+      setCity("");
+      setState("");
+      setZip("");
+    } else {
+      setSelectedAddressId(addr._id);
+      setFullName(addr.fullName || "");
+      setPhone(addr.phone || "");
+      setLine1(addr.line1 || "");
+      setLine2(addr.line2 || "");
+      setCity(addr.city || "");
+      setState(addr.state || "");
+      setZip(addr.pin || "");
+    }
+  };
 
   // Shipping State
   const [shippingMethod, setShippingMethod] = useState("Standard");
   const [shippingCost, setShippingCost] = useState(0);
 
-  // Payment State
-  const [paymentMethod, setPaymentMethod] = useState<"Card" | "UPI" | "COD">("Card");
+  // Update default shipping method once settings are loaded
+  useEffect(() => {
+    if (settings?.shippingMethods?.length > 0) {
+      const firstMethod = settings.shippingMethods[0];
+      setShippingMethod(firstMethod.name);
+      setShippingCost(firstMethod.price);
+    }
+  }, [settings]);
 
-  const tax = Math.round(subtotal * 0.08);
+  // Payment State
+  const [paymentMethod, setPaymentMethod] = useState<"Online" | "COD">("Online");
+
+  const tax = Math.round(subtotal * (settings.taxRate / 100));
   const total = subtotal + shippingCost + tax;
 
   const handleShippingChange = (name: string, price: number) => {
@@ -46,6 +128,7 @@ export default function CheckoutPage() {
   };
 
   const handlePlaceOrder = async () => {
+    if (loading) return;
     if (!fullName || !phone || !line1 || !city || !state || !zip) {
       toast.error("Please fill in all address details");
       setStep(1);
@@ -114,7 +197,7 @@ export default function CheckoutPage() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          amount: total,
+          amount: Math.round(total * 84), // Convert base currency (USD-equivalent) to INR
           receipt: orderId,
         }),
       });
@@ -126,7 +209,7 @@ export default function CheckoutPage() {
 
       // 2B. Trigger Razorpay checkout flow
       const razorpayKey = process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || rzpOrderData.key_id || "rzp_test_dummykey";
-      
+
       if (typeof window !== "undefined" && (window as any).Razorpay) {
         const options = {
           key: razorpayKey,
@@ -231,10 +314,10 @@ export default function CheckoutPage() {
   return (
     <>
       <Script src="https://checkout.razorpay.com/v1/checkout.js" strategy="lazyOnload" />
-      
+
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-16 lg:py-24">
         <h1 className="font-serif text-3xl md:text-5xl font-bold mb-2">Checkout</h1>
-        
+
         {/* Wizard Steps Header */}
         <CheckoutStepsHeader step={step} />
 
@@ -243,6 +326,59 @@ export default function CheckoutPage() {
             {step === 1 && (
               <>
                 <h2 className="font-serif text-xl font-bold">Shipping address</h2>
+
+                {savedAddresses.length > 0 && (
+                  <div className="mb-6">
+                    <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">
+                      Select a saved address
+                    </p>
+                    <div className="grid sm:grid-cols-2 gap-3">
+                      {savedAddresses.map((a) => (
+                        <div
+                          key={a._id}
+                          onClick={() => handleSelectAddress(a)}
+                          className={`border rounded-xl p-4 cursor-pointer hover:border-primary transition ${selectedAddressId === a._id
+                              ? "border-primary bg-primary/5 ring-1 ring-primary"
+                              : "border-border bg-card"
+                            }`}
+                        >
+                          <div className="flex items-center justify-between mb-1.5">
+                            <span className="font-semibold text-xs text-cognac uppercase tracking-wider">
+                              {a.label}
+                            </span>
+                            {a.isDefault && (
+                              <span className="text-[9px] font-bold bg-primary/10 text-primary px-2 py-0.5 rounded-full uppercase">
+                                Default
+                              </span>
+                            )}
+                          </div>
+                          <p className="font-semibold text-xs mb-0.5 text-foreground">{a.fullName}</p>
+                          <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed">
+                            {a.line1}{a.line2 ? `, ${a.line2}` : ""}, {a.city}, {a.state} - {a.pin}
+                          </p>
+                        </div>
+                      ))}
+
+                      <div
+                        onClick={() => handleSelectAddress("new")}
+                        className={`border border-dashed rounded-xl p-4 cursor-pointer hover:border-primary flex flex-col justify-center items-center text-center transition min-h-[96px] ${selectedAddressId === "new"
+                            ? "border-primary bg-primary/5 ring-1 ring-primary"
+                            : "border-border bg-card"
+                          }`}
+                      >
+                        <Plus className="h-4 w-4 text-muted-foreground mb-1" />
+                        <span className="font-semibold text-xs text-muted-foreground">Deliver to a new address</span>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {savedAddresses.length > 0 && (
+                  <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mt-4 mb-2">
+                    {selectedAddressId === "new" ? "Enter address details" : "Confirm or edit details"}
+                  </p>
+                )}
+
                 <div className="grid md:grid-cols-2 gap-4">
                   <Input label="Full name" value={fullName} onChange={(e) => setFullName(e.target.value)} />
                   <Input label="Phone" value={phone} onChange={(e) => setPhone(e.target.value)} />
@@ -259,11 +395,7 @@ export default function CheckoutPage() {
               <>
                 <h2 className="font-serif text-xl font-bold">Shipping method</h2>
                 <div className="space-y-2">
-                  {[
-                    { name: "Standard", desc: "5–7 days", price: 0, labelPrice: "Free" },
-                    { name: "Express", desc: "2–3 days", price: 399, labelPrice: "₹399" },
-                    { name: "Same-day (Mumbai)", desc: "Today", price: 699, labelPrice: "₹699" },
-                  ].map(({ name, desc, price, labelPrice }) => (
+                  {settings.shippingMethods.map(({ name, desc, price }) => (
                     <label
                       key={name}
                       className="flex items-center justify-between border border-border rounded-lg p-4 cursor-pointer hover:border-primary transition"
@@ -280,7 +412,7 @@ export default function CheckoutPage() {
                           <div className="text-xs text-muted-foreground">{desc}</div>
                         </div>
                       </div>
-                      <span className="font-semibold">{labelPrice}</span>
+                      <span className="font-semibold">{price === 0 ? "Free" : formatINR(price)}</span>
                     </label>
                   ))}
                 </div>
@@ -292,8 +424,7 @@ export default function CheckoutPage() {
                 <h2 className="font-serif text-xl font-bold">Payment</h2>
                 <div className="space-y-2 mb-4">
                   {[
-                    { key: "Card", name: "Credit / Debit card" },
-                    { key: "UPI", name: "UPI (GooglePay, PhonePe)" },
+                    { key: "Online", name: "Pay Online (Card, UPI, Net Banking, Wallet)" },
                     { key: "COD", name: "Cash on delivery" },
                   ].map(({ key, name }) => (
                     <label
@@ -317,7 +448,7 @@ export default function CheckoutPage() {
                 )}
               </>
             )}
-            
+
             <div className="flex justify-between pt-4 border-t border-border mt-6">
               <button
                 disabled={step === 1 || loading}
@@ -326,7 +457,7 @@ export default function CheckoutPage() {
               >
                 ← Back
               </button>
-              
+
               <button
                 disabled={loading}
                 onClick={() => {
