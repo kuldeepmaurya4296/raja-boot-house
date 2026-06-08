@@ -19,10 +19,12 @@ export interface IUser extends Document {
   googleId?: string;
   avatar?: string;
   phone?: string;
-  role: "customer" | "admin";
+  role: "customer" | "admin" | "vendor";
   isActive: boolean;
   isEmailVerified: boolean;
   addresses: IAddress[];
+  resetPasswordToken?: string;
+  resetPasswordExpire?: Date;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -51,6 +53,8 @@ const UserSchema: Schema = new Schema(
     isActive: { type: Boolean, default: true },
     isEmailVerified: { type: Boolean, default: false },
     addresses: [AddressSchema],
+    resetPasswordToken: { type: String },
+    resetPasswordExpire: { type: Date },
   },
   { timestamps: true }
 );

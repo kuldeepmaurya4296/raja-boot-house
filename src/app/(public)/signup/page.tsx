@@ -5,18 +5,37 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Logo } from "@/components/shared/Logo";
 import { toast } from "sonner";
+import { Eye, EyeOff } from "lucide-react";
 
 export default function SignupPage() {
   const router = useRouter();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name || !email || !password) {
-      toast.error("All fields are required");
+    
+    // Client-side validations
+    if (!name.trim() || !email.trim() || !password) {
+      toast.error("All fields are required.");
+      return;
+    }
+
+    if (name.trim().length < 2) {
+      toast.error("Name must be at least 2 characters long.");
+      return;
+    }
+
+    if (!/\S+@\S+\.\S+/.test(email)) {
+      toast.error("Please enter a valid email address.");
+      return;
+    }
+
+    if (password.length < 6) {
+      toast.error("Password must be at least 6 characters long.");
       return;
     }
 
@@ -75,14 +94,27 @@ export default function SignupPage() {
           </label>
           <label className="block">
             <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Password</span>
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="mt-1.5 w-full bg-background border border-input rounded-lg px-3 py-2.5 text-sm"
-              placeholder="••••••••"
-              required
-            />
+            <div className="relative mt-1.5">
+              <input
+                type={showPassword ? "text" : "password"}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="w-full bg-background border border-input rounded-lg pl-3 pr-10 py-2.5 text-sm"
+                placeholder="••••••••"
+                required
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute inset-y-0 right-0 pr-3 flex items-center text-muted-foreground hover:text-foreground cursor-pointer"
+              >
+                {showPassword ? (
+                  <EyeOff className="h-4 w-4" />
+                ) : (
+                  <Eye className="h-4 w-4" />
+                )}
+              </button>
+            </div>
           </label>
           <button
             type="submit"
