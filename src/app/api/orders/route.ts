@@ -2,10 +2,15 @@ import { NextResponse } from "next/server";
 import { connectToDatabase } from "@/lib/db";
 import Order from "@/lib/models/Order";
 import Product from "@/lib/models/Product";
-
+import { auth } from "@/lib/auth";
 
 export async function GET(request: Request) {
   try {
+    const session = await auth();
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
     const { searchParams } = new URL(request.url);
     const userId = searchParams.get("userId");
 
@@ -15,7 +20,9 @@ export async function GET(request: Request) {
     }
 
     let query: any = {};
-    if (userId) {
+    if (session.user.role !== "admin" && session.user.role !== "vendor") {
+      query.userId = session.user.id;
+    } else if (userId) {
       query.userId = userId;
     }
 
@@ -29,8 +36,13 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   try {
+    const session = await auth();
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
     const body = await request.json();
-    const { userId, items, shippingAddress, pricing, coupon, payment } = body;
+    const { items, shippingAddress, pricing, coupon, payment } = body;
 
     if (!items || items.length === 0 || !shippingAddress) {
       return NextResponse.json({ error: "Missing required order details" }, { status: 400 });
@@ -41,6 +53,8 @@ export async function POST(request: Request) {
       throw new Error("Database offline");
     }
 
+    const userId = session.user.id;
+
     // Generate unique orderId
     const dateStr = new Date().toISOString().slice(0, 10).replace(/-/g, "");
     const randomSuffix = Math.floor(1000 + Math.random() * 9000);
@@ -49,7 +63,7 @@ export async function POST(request: Request) {
     // Create Order Document
     const order = await Order.create({
       orderId,
-      userId: userId || null,
+      userId,
       items,
       shippingAddress,
       pricing,
@@ -87,3 +101,4 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: error.message || "Order placement failed" }, { status: 500 });
   }
 }
+

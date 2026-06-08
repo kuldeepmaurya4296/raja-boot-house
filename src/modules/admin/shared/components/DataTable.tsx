@@ -85,13 +85,20 @@ export function DataTable<T extends { id: string }>(props: { columns: Column<T>[
 }
 
 export function StatusBadge({ status }: { status: string }) {
+  const normalized = (status || "").toLowerCase().replace(/_/g, " ");
   const map: Record<string, string> = {
     delivered: "bg-emerald-100 text-emerald-800",
+    returned: "bg-orange-100 text-orange-800",
     shipped: "bg-blue-100 text-blue-800",
+    "out for delivery": "bg-indigo-100 text-indigo-800",
     processing: "bg-amber-100 text-amber-900",
+    packed: "bg-purple-100 text-purple-800",
+    confirmed: "bg-cyan-100 text-cyan-800",
+    placed: "bg-sky-100 text-sky-800",
     pending: "bg-muted text-muted-foreground",
     cancelled: "bg-destructive/15 text-destructive",
     active: "bg-emerald-100 text-emerald-800",
   };
-  return <span className={`inline-flex px-2.5 py-1 rounded-full text-[10px] font-semibold uppercase tracking-wider ${map[status] ?? "bg-muted"}`}>{status}</span>;
+  return <span className={`inline-flex px-2.5 py-1 rounded-full text-[10px] font-semibold uppercase tracking-wider ${map[normalized] ?? "bg-muted"}`}>{normalized}</span>;
 }
+
