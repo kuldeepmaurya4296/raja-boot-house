@@ -3,11 +3,20 @@
 import { useState } from "react";
 import { Plus, Trash2, Edit } from "lucide-react";
 import { saveBanner, deleteBanner, saveSetting } from "./actions";
+import { updateCategory } from "@/app/admin/actions";
 import { toast } from "sonner";
 import { DataTable, type Column } from "@/modules/admin/shared/components/DataTable";
 
-export function CmsClient({ banners, settings }: { banners: any[], settings: any[] }) {
-  const [tab, setTab] = useState<"banners" | "settings">("banners");
+export function CmsClient({ 
+  banners, 
+  settings, 
+  categories = [] 
+}: { 
+  banners: any[], 
+  settings: any[], 
+  categories?: any[] 
+}) {
+  const [tab, setTab] = useState<"banners" | "categories" | "settings">("banners");
 
   return (
     <div className="space-y-6">
@@ -20,6 +29,12 @@ export function CmsClient({ banners, settings }: { banners: any[], settings: any
           Banners
         </button>
         <button
+          onClick={() => setTab("categories")}
+          className={`px-4 py-2 font-medium text-sm border-b-2 transition-colors ${tab === "categories" ? "border-primary text-foreground" : "border-transparent text-muted-foreground hover:text-foreground"}`}
+        >
+          By Silhouette (Categories)
+        </button>
+        <button
           onClick={() => setTab("settings")}
           className={`px-4 py-2 font-medium text-sm border-b-2 transition-colors ${tab === "settings" ? "border-primary text-foreground" : "border-transparent text-muted-foreground hover:text-foreground"}`}
         >
@@ -28,11 +43,9 @@ export function CmsClient({ banners, settings }: { banners: any[], settings: any
       </div>
 
       {/* Tab Content */}
-      {tab === "banners" ? (
-        <BannersTab banners={banners} />
-      ) : (
-        <SettingsTab settings={settings} />
-      )}
+      {tab === "banners" && <BannersTab banners={banners} />}
+      {tab === "categories" && <CategoriesTab categories={categories} />}
+      {tab === "settings" && <SettingsTab settings={settings} />}
     </div>
   );
 }
@@ -178,5 +191,117 @@ function SettingsTab({ settings }: { settings: any[] }) {
         <button type="submit" disabled={isSubmitting} className="px-6 py-2 bg-primary text-primary-foreground rounded font-medium disabled:opacity-50">Save Settings</button>
       </div>
     </form>
+  );
+}
+
+function CategoriesTab({ categories }: { categories: any[] }) {
+  const [showForm, setShowForm] = useState(false);
+  const [formData, setFormData] = useState({ id: "", name: "", slug: "", description: "", imageUrl: "", isActive: true });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const cols: Column<any>[] = [
+    { key: "img", header: "Image", render: c => (
+      <div className="h-10 w-10 rounded overflow-hidden bg-muted border border-border flex items-center justify-center">
+        {c.imageUrl ? (
+          <img src={c.imageUrl} alt={c.name} className="h-full w-full object-cover" />
+        ) : (
+          <span className="text-[10px] text-muted-foreground uppercase font-semibold">No Img</span>
+        )}
+      </div>
+    )},
+    { key: "name", header: "Name", render: c => (
+      <div>
+        <span className="font-semibold text-sm">{c.name}</span>
+        <p className="text-xs text-muted-foreground">/{c.slug}</p>
+      </div>
+    )},
+    { key: "description", header: "Description", render: c => <span className="text-sm line-clamp-1 max-w-xs">{c.description || "—"}</span> },
+    { key: "styles", header: "Styles Count", render: c => <span className="text-sm">{c.productCount}</span> },
+    { key: "status", header: "Status", render: c => (
+      <span className={`inline-flex px-2 py-1 rounded text-xs font-semibold ${c.isActive ? "bg-emerald-100 text-emerald-800" : "bg-muted text-muted-foreground"}`}>
+        {c.isActive ? "Active" : "Inactive"}
+      </span>
+    )},
+    { key: "actions", header: "", className: "text-right", render: c => (
+      <div className="flex justify-end gap-2">
+        <button onClick={() => { setFormData(c); setShowForm(true); }} className="text-muted-foreground hover:text-foreground">
+          <Edit className="h-4 w-4" />
+        </button>
+      </div>
+    )}
+  ];
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+    const res = await updateCategory(formData.id, {
+      name: formData.name,
+      slug: formData.slug,
+      description: formData.description,
+      isActive: formData.isActive,
+      imageUrl: formData.imageUrl,
+    });
+    setIsSubmitting(false);
+    if (res.success) {
+      toast.success("Category updated successfully");
+      setShowForm(false);
+      window.location.reload();
+    } else {
+      toast.error(res.error || "Failed to update category");
+    }
+  };
+
+  if (showForm) {
+    return (
+      <div className="bg-card p-6 rounded-xl border border-border">
+        <h3 className="text-lg font-semibold mb-4">Edit Silhouette Category</h3>
+        <form onSubmit={handleSubmit} className="space-y-4 max-w-xl">
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium mb-1">Name *</label>
+              <input required type="text" value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} className="w-full p-2 border border-border rounded bg-background" />
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1">Slug *</label>
+              <input required type="text" value={formData.slug} onChange={e => setFormData({...formData, slug: e.target.value})} className="w-full p-2 border border-border rounded bg-background" />
+            </div>
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-1">Image URL</label>
+            <input type="url" value={formData.imageUrl} onChange={e => setFormData({...formData, imageUrl: e.target.value})} className="w-full p-2 border border-border rounded bg-background" placeholder="https://images.unsplash.com/..." />
+            {formData.imageUrl && (
+              <div className="mt-2">
+                <p className="text-xs text-muted-foreground mb-1">Preview:</p>
+                <img src={formData.imageUrl} alt="preview" className="h-20 w-20 object-cover rounded border border-border" />
+              </div>
+            )}
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-1">Description</label>
+            <textarea rows={3} value={formData.description} onChange={e => setFormData({...formData, description: e.target.value})} className="w-full p-2 border border-border rounded bg-background" />
+          </div>
+          <label className="flex items-center gap-2">
+            <input type="checkbox" checked={formData.isActive} onChange={e => setFormData({...formData, isActive: e.target.checked})} />
+            <span className="text-sm font-medium">Is Active (Visible on home page grid)</span>
+          </label>
+          <div className="flex gap-2 pt-4">
+            <button type="button" onClick={() => setShowForm(false)} className="px-4 py-2 bg-muted text-foreground rounded font-medium">Cancel</button>
+            <button type="submit" disabled={isSubmitting} className="px-4 py-2 bg-primary text-primary-foreground rounded font-medium disabled:opacity-50">Save Changes</button>
+          </div>
+        </form>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-4">
+      <div className="flex justify-between items-center">
+        <div>
+          <h3 className="font-semibold text-base">Homepage Categories ("By Silhouette")</h3>
+          <p className="text-xs text-muted-foreground">Manage the shoe silhouettes displayed on the homepage category grid.</p>
+        </div>
+      </div>
+      <DataTable columns={cols} rows={categories} empty="No categories configured." />
+    </div>
   );
 }

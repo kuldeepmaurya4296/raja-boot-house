@@ -13,6 +13,7 @@ const categorySchema = z.object({
   slug: z.string().min(2, "Slug is required"),
   description: z.string().optional(),
   isActive: z.boolean().default(true),
+  imageUrl: z.string().url("Must be a valid URL").or(z.literal("")).optional(),
 });
 
 export async function createCategory(data: z.infer<typeof categorySchema>) {

@@ -15,6 +15,7 @@ const schema = z.object({
   slug: z.string().min(2, "Slug is required"),
   description: z.string().optional(),
   isActive: z.boolean(),
+  imageUrl: z.string().url("Must be a valid URL").or(z.literal("")).optional(),
 });
 
 type FormData = z.infer<typeof schema>;
@@ -30,8 +31,11 @@ export function CategoryForm({ initialData, id }: { initialData?: Partial<FormDa
       slug: initialData?.slug || "",
       description: initialData?.description || "",
       isActive: initialData?.isActive ?? true,
+      imageUrl: initialData?.imageUrl || "",
     }
   });
+
+  const imageUrlValue = watch("imageUrl");
 
   // Auto-generate slug from name if slug is empty
   const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -99,6 +103,32 @@ export function CategoryForm({ initialData, id }: { initialData?: Partial<FormDa
               rows={4}
               placeholder="Short description about the category"
             />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium mb-1">Image URL</label>
+            <input 
+              {...register("imageUrl")}
+              className="w-full px-3 py-2 border border-border rounded-md bg-background focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+              placeholder="e.g. https://images.unsplash.com/... or /assets/..."
+            />
+            {errors.imageUrl && <p className="text-red-500 text-xs mt-1">{errors.imageUrl.message}</p>}
+            
+            {imageUrlValue && (
+              <div className="mt-3">
+                <p className="text-xs text-muted-foreground mb-1">Preview:</p>
+                <div className="relative aspect-[4/3] w-40 rounded-lg overflow-hidden border border-border bg-muted">
+                  <img 
+                    src={imageUrlValue} 
+                    alt="Preview" 
+                    className="h-full w-full object-cover"
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).style.display = 'none';
+                    }}
+                  />
+                </div>
+              </div>
+            )}
           </div>
 
           <div className="flex items-center gap-2 mt-2">

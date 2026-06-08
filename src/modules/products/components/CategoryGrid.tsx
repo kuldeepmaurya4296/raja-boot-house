@@ -5,6 +5,16 @@ import { motion } from "framer-motion";
 import { useState, useEffect } from "react";
 import { categories as fallbackCategories } from "@/data/categories";
 
+const fallbacks: Record<string, string> = {
+  men: "https://images.unsplash.com/photo-1539185441755-769473a23570?q=80&w=800&auto=format&fit=crop",
+  mens: "https://images.unsplash.com/photo-1539185441755-769473a23570?q=80&w=800&auto=format&fit=crop",
+  women: "https://images.unsplash.com/photo-1543163521-1bf539c55dd2?q=80&w=800&auto=format&fit=crop",
+  womens: "https://images.unsplash.com/photo-1543163521-1bf539c55dd2?q=80&w=800&auto=format&fit=crop",
+  kids: "https://images.unsplash.com/photo-1514989940723-e8e51635b782?q=80&w=800&auto=format&fit=crop",
+  bridal: "https://images.unsplash.com/photo-1596568300556-a3b043c53e3b?q=80&w=800&auto=format&fit=crop",
+  sports: "https://images.unsplash.com/photo-1542291026-7eec264c27ff?q=80&w=800&auto=format&fit=crop"
+};
+
 export function CategoryGrid() {
   const [categoriesList, setCategoriesList] = useState<any[]>([]);
 
@@ -35,30 +45,51 @@ export function CategoryGrid() {
         </Link>
       </div>
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-6">
-        {categoriesList.map((c, i) => (
-          <motion.div
-            key={c.id || c._id}
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.5, delay: i * 0.06 }}
-          >
-            <Link href={`/shop?category=${c.slug}`} className="block group cursor-pointer">
-              <div className="aspect-[4/5] md:aspect-[3/4] rounded-xl bg-gradient-to-br from-muted via-secondary to-cream relative overflow-hidden border border-border">
-                <div className="absolute inset-0 grain opacity-50" />
-                <div className="absolute inset-0 p-4 md:p-6 flex flex-col justify-end">
-                  <h3 className="font-serif text-base md:text-xl font-bold text-charcoal">{c.name}</h3>
-                  <p className="text-[10px] uppercase tracking-wider text-muted-foreground mt-1">
-                    {c.productCount || 0} styles
-                  </p>
+        {categoriesList.map((c, i) => {
+          const imgUrl = c.imageUrl || fallbacks[c.slug] || fallbacks[c.slug?.replace("s", "")];
+          return (
+            <motion.div
+              key={c.id || c._id}
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.5, delay: i * 0.06 }}
+            >
+              <Link href={`/shop?category=${c.slug}`} className="block group cursor-pointer">
+                <div className="aspect-[4/5] md:aspect-[3/4] rounded-xl bg-gradient-to-br from-muted via-secondary to-cream relative overflow-hidden border border-border group-hover:shadow-lg transition-all duration-300">
+                  {imgUrl ? (
+                    <>
+                      <img
+                        src={imgUrl}
+                        alt={c.name}
+                        className="absolute inset-0 w-full h-full object-cover transition-transform duration-750 ease-out group-hover:scale-110"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-charcoal/90 via-charcoal/30 to-transparent" />
+                    </>
+                  ) : (
+                    <div className="absolute inset-0 bg-gradient-to-br from-muted via-secondary to-cream" />
+                  )}
+                  <div className="absolute inset-0 grain opacity-40" />
+                  <div className="absolute inset-0 p-4 md:p-6 flex flex-col justify-end z-10">
+                    <h3 className={`font-serif text-base md:text-xl font-bold transition-colors duration-300 ${imgUrl ? "text-cream group-hover:text-brass" : "text-charcoal group-hover:text-primary"}`}>
+                      {c.name}
+                    </h3>
+                    <p className={`text-[10px] uppercase tracking-wider mt-1 transition-colors duration-300 ${imgUrl ? "text-cream/80" : "text-muted-foreground"}`}>
+                      {c.productCount || 0} styles
+                    </p>
+                  </div>
+                  <div className={`absolute top-4 right-4 h-8 w-8 rounded-full grid place-items-center text-xs transition z-10 ${
+                    imgUrl 
+                      ? "bg-cream text-charcoal group-hover:bg-primary group-hover:text-primary-foreground group-hover:scale-110" 
+                      : "bg-charcoal text-cream group-hover:bg-primary group-hover:scale-110"
+                  } duration-300`}>
+                    →
+                  </div>
                 </div>
-                <div className="absolute top-4 right-4 h-8 w-8 rounded-full bg-charcoal text-cream grid place-items-center text-xs group-hover:bg-primary transition">
-                  →
-                </div>
-              </div>
-            </Link>
-          </motion.div>
-        ))}
+              </Link>
+            </motion.div>
+          );
+        })}
       </div>
     </section>
   );

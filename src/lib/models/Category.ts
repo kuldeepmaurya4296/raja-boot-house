@@ -7,6 +7,7 @@ export interface ICategory extends Document {
   parentId?: mongoose.Types.ObjectId | null;
   productCount: number;
   isActive: boolean;
+  imageUrl?: string;
 }
 
 const CategorySchema: Schema = new Schema(
@@ -17,6 +18,7 @@ const CategorySchema: Schema = new Schema(
     parentId: { type: Schema.Types.ObjectId, ref: "Category", default: null },
     productCount: { type: Number, default: 0 },
     isActive: { type: Boolean, default: true },
+    imageUrl: { type: String },
   },
   { timestamps: true }
 );

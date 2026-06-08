@@ -18,6 +18,7 @@ export default async function EditCategoryPage({ params }: { params: Promise<{ i
     slug: cat.slug,
     description: cat.description || "",
     isActive: cat.isActive,
+    imageUrl: cat.imageUrl || "",
   };
 
   return (

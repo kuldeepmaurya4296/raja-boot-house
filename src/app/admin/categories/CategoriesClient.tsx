@@ -15,6 +15,7 @@ type CategoryData = {
   description: string;
   isActive: boolean;
   productCount: number;
+  imageUrl?: string;
   createdAt: string;
 };
 
@@ -37,6 +38,15 @@ export function CategoriesClient({ categories, totalItems = 0 }: { categories: C
   };
 
   const cols: Column<CategoryData>[] = [
+    { key: "img", header: "Image", render: c => (
+      <div className="h-10 w-10 rounded overflow-hidden bg-muted border border-border flex items-center justify-center">
+        {c.imageUrl ? (
+          <img src={c.imageUrl} alt={c.name} className="h-full w-full object-cover" />
+        ) : (
+          <span className="text-[10px] text-muted-foreground uppercase font-semibold">No Img</span>
+        )}
+      </div>
+    )},
     { key: "name", header: "Name", sortKey: "name", render: c => (
       <div>
         <p className="font-semibold">{c.name}</p>
