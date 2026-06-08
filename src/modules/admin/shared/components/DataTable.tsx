@@ -1,15 +1,63 @@
+"use client";
+
 import type { ReactNode } from "react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { ArrowDown, ArrowUp, ArrowUpDown } from "lucide-react";
 
-export interface Column<T> { key: string; header: string; render: (row: T) => ReactNode; className?: string; }
+export interface Column<T> { 
+  key: string; 
+  header: string; 
+  render: (row: T) => ReactNode; 
+  className?: string;
+  sortKey?: string; 
+}
 
-export function DataTable<T extends { id: string }>({ columns, rows, empty = "No records" }: { columns: Column<T>[]; rows: T[]; empty?: string }) {
+function DataTableInner<T extends { id: string }>({ columns, rows, empty = "No records" }: { columns: Column<T>[]; rows: T[]; empty?: string }) {
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  
+  const currentSort = searchParams.get("sort") || "";
+  const currentOrder = searchParams.get("order") || "desc";
+
+  const handleSort = (key: string) => {
+    const params = new URLSearchParams(searchParams.toString());
+    if (currentSort === key) {
+      if (currentOrder === "asc") {
+        params.set("order", "desc");
+      } else {
+        params.delete("sort");
+        params.delete("order");
+      }
+    } else {
+      params.set("sort", key);
+      params.set("order", "asc");
+    }
+    router.push(`${pathname}?${params.toString()}`, { scroll: false });
+  };
+
   return (
     <div className="bg-card rounded-xl border border-border overflow-hidden shadow-card">
       <div className="overflow-x-auto">
         <table className="w-full text-sm min-w-[640px]">
           <thead className="bg-muted/60">
             <tr>
-              {columns.map(c => <th key={c.key} className={`text-left font-semibold text-xs uppercase tracking-wider text-muted-foreground px-5 py-3 ${c.className ?? ""}`}>{c.header}</th>)}
+              {columns.map(c => (
+                <th key={c.key} className={`text-left font-semibold text-xs uppercase tracking-wider text-muted-foreground px-5 py-3 ${c.className ?? ""}`}>
+                  {c.sortKey ? (
+                    <button onClick={() => handleSort(c.sortKey!)} className="flex items-center gap-1 hover:text-foreground transition-colors">
+                      {c.header}
+                      {currentSort === c.sortKey ? (
+                        currentOrder === "asc" ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />
+                      ) : (
+                        <ArrowUpDown className="h-3 w-3 opacity-30" />
+                      )}
+                    </button>
+                  ) : (
+                    c.header
+                  )}
+                </th>
+              ))}
             </tr>
           </thead>
           <tbody className="divide-y divide-border">
@@ -24,6 +72,15 @@ export function DataTable<T extends { id: string }>({ columns, rows, empty = "No
         </table>
       </div>
     </div>
+  );
+}
+
+import { Suspense } from "react";
+export function DataTable<T extends { id: string }>(props: { columns: Column<T>[]; rows: T[]; empty?: string }) {
+  return (
+    <Suspense fallback={<div className="h-64 border border-border rounded-xl bg-card animate-pulse shadow-card"></div>}>
+      <DataTableInner {...props} />
+    </Suspense>
   );
 }
 

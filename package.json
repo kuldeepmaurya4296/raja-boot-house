@@ -12,6 +12,7 @@
     "db:seed": "tsx scripts/seed.ts"
   },
   "dependencies": {
+    "@hookform/resolvers": "^5.4.0",
     "@tailwindcss/postcss": "^4.3.0",
     "@tanstack/react-query": "^5.83.0",
     "@vercel/blob": "^2.4.0",

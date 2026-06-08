@@ -1,15 +1,16 @@
 "use client";
 
 import { DashboardLayout } from "@/modules/admin/dashboard/components/DashboardLayout";
-import { LayoutDashboard, Package, ShoppingCart, Users, BarChart3, Store, Settings } from "lucide-react";
+import { LayoutDashboard, Package, ShoppingCart, Users, BarChart3, Store, Settings, LineChart, Tag } from "lucide-react";
 
 const items = [
   { to: "/admin", label: "Overview", icon: LayoutDashboard, exact: true },
-  { to: "/admin/products", label: "Products", icon: Package },
+  { to: "/admin/analytics", label: "Analytics", icon: BarChart3 },
   { to: "/admin/orders", label: "Orders", icon: ShoppingCart },
+  { to: "/admin/products", label: "Products", icon: Package },
+  { to: "/admin/categories", label: "Categories", icon: Tag },
   { to: "/admin/customers", label: "Customers", icon: Users },
   { to: "/admin/vendors", label: "Vendors", icon: Store },
-  { to: "/admin/analytics", label: "Analytics", icon: BarChart3 },
   { to: "/admin/settings", label: "Settings", icon: Settings },
 ];
 

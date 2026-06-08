@@ -10,7 +10,7 @@ if (typeof window === "undefined" && process.env.NEXT_RUNTIME !== "edge") {
   }
 }
 
-const { promisify } = require("util");
+import { promisify } from "util";
 
 // Force IPv4 DNS resolution order to prevent querySrv ECONNREFUSED in Next.js runtime
 if (dns && typeof dns.setDefaultResultOrder === "function") {
