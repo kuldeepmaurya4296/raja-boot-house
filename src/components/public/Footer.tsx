@@ -3,8 +3,8 @@ import { Logo } from "@/components/shared/Logo";
 
 export function Footer() {
   return (
-    <footer className="bg-charcoal text-cream/90 mt-20 hidden md:block">
-      <div className="container mx-auto px-6 py-16 grid grid-cols-2 md:grid-cols-5 gap-10">
+    <footer className="bg-charcoal text-cream/90 mt-12 md:mt-16 lg:mt-24 hidden md:block">
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-12 lg:py-16 grid grid-cols-2 md:grid-cols-5 gap-10">
         <div className="col-span-2">
           <Logo size={44} />
           <p className="mt-4 text-sm text-cream/60 max-w-xs">Footwear retail brand established in 2025 by the Gupta brothers. Offering a wide range of footwear from reputed brands like Lakhani, Touch, Paragon, and Goldstar for all age groups.</p>
@@ -32,7 +32,7 @@ export function Footer() {
         </div>
       </div>
       <div className="border-t border-cream/10">
-        <div className="container mx-auto px-6 py-5 text-xs text-cream/50 flex justify-between">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-5 text-xs text-cream/50 flex justify-between">
           <span>© 2025–2026 Raja Boot House. All rights reserved.</span>
           <span>Made By Kuldeep Maurya</span>
         </div>

@@ -16,7 +16,7 @@ export default function CartPage() {
   }
 
   return (
-    <div className="container mx-auto px-4 md:px-6 py-8 md:py-12">
+    <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-16 lg:py-24">
       <h1 className="font-serif text-3xl md:text-5xl font-bold mb-8">Your bag</h1>
       <div className="grid lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2 space-y-4">

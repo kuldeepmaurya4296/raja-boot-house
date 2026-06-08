@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState, Suspense } from "react";
 import { Logo } from "@/components/shared/Logo";
-import { signIn } from "next-auth/react";
+import { signIn, useSession } from "next-auth/react";
 import { toast } from "sonner";
 
 function LoginForm() {
@@ -50,7 +50,7 @@ function LoginForm() {
   };
 
   return (
-    <div className="container mx-auto px-4 py-12 md:py-20 max-w-md">
+    <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-16 lg:py-24 max-w-md">
       <div className="text-center mb-8">
         <Logo size={56} />
       </div>
@@ -120,9 +120,19 @@ function LoginForm() {
 }
 
 export default function LoginPage() {
+  const { status } = useSession();
+
+  if (status === "authenticated") {
+    return (
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-20 text-center">
+        <p className="mb-4">You are already logged in.</p>
+      </div>
+    );
+  }
+
   return (
     <Suspense fallback={
-      <div className="container mx-auto px-4 py-20 text-center">
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-20 text-center">
         <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary mx-auto"></div>
       </div>
     }>
@@ -130,4 +140,3 @@ export default function LoginPage() {
     </Suspense>
   );
 }
-

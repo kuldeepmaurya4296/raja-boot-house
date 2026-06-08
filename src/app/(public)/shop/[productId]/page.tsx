@@ -53,7 +53,7 @@ export default function ProductPage({ params }: PageProps) {
 
   if (!product) {
     return (
-      <div className="container mx-auto px-4 py-20 text-center">
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-20 text-center">
         <p className="mb-4">Product not found.</p>
         <Link href="/shop" className="underline font-semibold">
           Back to shop
@@ -76,7 +76,7 @@ export default function ProductPage({ params }: PageProps) {
   };
 
   return (
-    <div className="container mx-auto px-4 md:px-6 py-6 md:py-12">
+    <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12 lg:py-16">
       <div className="text-xs text-muted-foreground mb-6 flex gap-1">
         <Link href="/">Home</Link>
         <span>/</span>

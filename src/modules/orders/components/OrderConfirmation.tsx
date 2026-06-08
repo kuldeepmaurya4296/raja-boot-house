@@ -5,9 +5,9 @@ import { motion } from "framer-motion";
 export function OrderConfirmation() {
   return (
     <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      className="container mx-auto px-4 py-20 text-center max-w-lg"
+      initial={{ opacity: 0, scale: 0.95 }}
+      animate={{ opacity: 1, scale: 1 }}
+      className="container mx-auto px-4 sm:px-6 lg:px-8 py-20 text-center max-w-lg"
     >
       <CheckCircle2 className="h-16 w-16 mx-auto text-cognac" />
       <h1 className="font-serif text-4xl font-bold mt-4">Order placed.</h1>

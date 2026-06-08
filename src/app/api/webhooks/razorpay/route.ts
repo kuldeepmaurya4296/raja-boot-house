@@ -3,6 +3,9 @@ import crypto from "crypto";
 import { connectToDatabase } from "@/lib/db";
 import Order from "@/lib/models/Order";
 
+import mongoose from "mongoose";
+import { ensureDbReady } from "@/lib/db-utils";
+
 export async function POST(request: Request) {
   try {
     const rawBody = await request.text();
@@ -33,7 +36,13 @@ export async function POST(request: Request) {
 
     console.log(`Received Razorpay webhook event: ${event}`);
 
-    await connectToDatabase();
+    const { db, isReady } = await ensureDbReady();
+
+    // If database is offline, skip updates but return 200 to Razorpay to avoid retries
+    if (!isReady) {
+      console.error("Database offline during webhook processing. Returning 500 to trigger Razorpay retries.");
+      return NextResponse.json({ error: "Database offline" }, { status: 500 });
+    }
 
     if (event === "payment.captured" || event === "order.paid") {
       const paymentEntity = payload.payment?.entity;

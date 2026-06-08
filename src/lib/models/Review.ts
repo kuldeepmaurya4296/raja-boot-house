@@ -18,7 +18,7 @@ const ReviewSchema: Schema = new Schema(
     userId: { type: Schema.Types.ObjectId, ref: "User", required: true, index: true },
     rating: { type: Number, required: true, min: 1, max: 5 },
     comment: { type: String },
-    images: [{ type: String }], // Cloudinary URLs
+    images: [{ type: String }], // Vercel Blob URLs
     isApproved: { type: Boolean, default: false, index: true },
     helpfulVotes: { type: Number, default: 0 },
   },

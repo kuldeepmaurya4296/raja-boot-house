@@ -16,8 +16,8 @@ const items = [
 export default function AccountLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   return (
-    <div className="container mx-auto px-4 md:px-6 py-6 md:py-12">
-      <div className="mb-6 md:mb-10">
+    <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12 lg:py-16">
+      <div className="grid md:grid-cols-4 gap-8">
         <p className="text-[11px] uppercase tracking-[0.3em] text-cognac font-semibold">My account</p>
         <h1 className="font-serif text-3xl md:text-5xl font-bold mt-2">Hello, {currentUser.name.split(" ")[0]}</h1>
       </div>

@@ -3,33 +3,82 @@ import { connectToDatabase } from "@/lib/db";
 import Product from "@/lib/models/Product";
 import Category from "@/lib/models/Category";
 import { products as fallbackProducts } from "@/data/products";
+import { ensureDbReady, normalizeProduct } from "@/lib/db-utils";
+
+function escapeRegExp(string: string) {
+  return string.replace(/[\\^$*+?.()|[\]{}]/g, "\\$&");
+}
 
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
     const categorySlug = searchParams.get("category");
+    const brand = searchParams.get("brand");
+    const occasion = searchParams.get("occasion");
+    const gender = searchParams.get("gender");
+    const searchQuery = searchParams.get("search");
     const sort = searchParams.get("sort") || "new";
 
-    const db = await connectToDatabase();
-    if (!db) {
+    const { db, isReady } = await ensureDbReady();
+    if (!isReady) {
       console.warn("Using local mock products fallback (database offline).");
       let list = [...fallbackProducts];
+
       if (categorySlug && categorySlug !== "all") {
         list = list.filter((p) => p.category === categorySlug);
+      }
+      if (brand) {
+        list = list.filter((p) => p.vendorId?.toLowerCase() === brand.toLowerCase());
+      }
+      if (occasion) {
+        list = list.filter((p) => p.details?.some((t: string) => t.toLowerCase() === occasion.toLowerCase()));
+      }
+      if (searchQuery) {
+        const q = searchQuery.toLowerCase();
+        list = list.filter((p) =>
+          p.name?.toLowerCase().includes(q) ||
+          p.description?.toLowerCase().includes(q)
+        );
       }
       return NextResponse.json(sortList(list, sort));
     }
 
     let query: any = { isActive: true };
 
+    // 1. Category filter
     if (categorySlug && categorySlug !== "all") {
       const categoryDoc = await Category.findOne({ slug: categorySlug });
       if (categoryDoc) {
         query.category = categoryDoc._id;
       } else {
-        // Category slug not found, return empty
-        return NextResponse.json([]);
+        return NextResponse.json([]); // Category not found
       }
+    }
+
+    // 2. Brand filter
+    if (brand) {
+      query.brand = new RegExp(`^${escapeRegExp(brand)}$`, "i");
+    }
+
+    // 3. Occasion filter
+    if (occasion) {
+      query.occasion = occasion;
+    }
+
+    // 4. Gender filter
+    if (gender) {
+      query.gender = gender;
+    }
+
+    // 5. Search query matching name, description, brand, tags
+    if (searchQuery) {
+      const regex = new RegExp(escapeRegExp(searchQuery), "i");
+      query.$or = [
+        { name: regex },
+        { brand: regex },
+        { description: regex },
+        { tags: regex }
+      ];
     }
 
     let mongooseQuery = Product.find(query).populate("category");
@@ -42,7 +91,6 @@ export async function GET(request: Request) {
     } else if (sort === "rating") {
       mongooseQuery = mongooseQuery.sort({ "rating.average": -1 });
     } else {
-      // Default to newest
       mongooseQuery = mongooseQuery.sort({ createdAt: -1 });
     }
 
@@ -53,29 +101,6 @@ export async function GET(request: Request) {
     console.error("Failed to fetch products:", error);
     return NextResponse.json({ error: error.message || "Failed to fetch products" }, { status: 500 });
   }
-}
-
-function normalizeProduct(p: any) {
-  return {
-    id: p._id.toString(),
-    slug: p.slug,
-    name: p.name,
-    category: p.category && p.category.slug ? p.category.slug : "shoes",
-    vendorId: p.brand,
-    price: p.salePrice,
-    compareAt: p.price,
-    image: p.images && p.images[0] ? p.images[0].url : "/assets/product-placeholder.jpg",
-    gallery: p.images ? p.images.map((img: any) => img.url) : [],
-    description: p.description,
-    details: p.tags && p.tags.length > 0 ? p.tags : ["Premium craftsmanship", "Durability assured"],
-    colors: Array.from(new Set(p.variants ? p.variants.map((v: any) => v.color) : [])),
-    sizes: Array.from(new Set(p.variants ? p.variants.map((v: any) => v.size) : [])),
-    stock: p.variants ? p.variants.reduce((acc: number, v: any) => acc + v.stock, 0) : 0,
-    rating: p.rating ? p.rating.average : 4.5,
-    reviewsCount: p.rating ? p.rating.count : 0,
-    badge: p.isFeatured ? "bestseller" : p.isNewArrival ? "new" : undefined,
-    createdAt: p.createdAt ? p.createdAt.toISOString().split("T")[0] : "2025-06-08",
-  };
 }
 
 function sortList(list: any[], sort: string) {

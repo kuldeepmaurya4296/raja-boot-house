@@ -215,7 +215,7 @@ export default function CheckoutPage() {
 
   if (lines.length === 0 && !done) {
     return (
-      <div className="container mx-auto px-4 py-20 text-center">
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-20 text-center">
         <p className="text-muted-foreground mb-4">Your bag is empty.</p>
         <Link href="/shop" className="underline font-semibold text-primary">
           Shop now
@@ -232,7 +232,7 @@ export default function CheckoutPage() {
     <>
       <Script src="https://checkout.razorpay.com/v1/checkout.js" strategy="lazyOnload" />
       
-      <div className="container mx-auto px-4 md:px-6 py-8 md:py-12">
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-16 lg:py-24">
         <h1 className="font-serif text-3xl md:text-5xl font-bold mb-2">Checkout</h1>
         
         {/* Wizard Steps Header */}

@@ -15,7 +15,7 @@ const BannerSchema: Schema = new Schema(
   {
     title: { type: String, trim: true },
     subtitle: { type: String, trim: true },
-    imageUrl: { type: String, required: true }, // Cloudinary or asset URL
+    imageUrl: { type: String, required: true }, // Vercel Blob or asset URL
     linkUrl: { type: String },
     order: { type: Number, default: 0, index: true },
     isActive: { type: Boolean, default: true, index: true },

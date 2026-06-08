@@ -43,7 +43,7 @@ export default function SignupPage() {
   };
 
   return (
-    <div className="container mx-auto px-4 py-12 md:py-20 max-w-md">
+    <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-16 lg:py-24 max-w-md">
       <div className="text-center mb-8">
         <Logo size={56} />
       </div>

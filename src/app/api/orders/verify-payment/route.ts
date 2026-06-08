@@ -4,6 +4,9 @@ import { connectToDatabase } from "@/lib/db";
 import Order from "@/lib/models/Order";
 import Product from "@/lib/models/Product";
 
+import mongoose from "mongoose";
+import { ensureDbReady } from "@/lib/db-utils";
+
 export async function POST(request: Request) {
   try {
     const body = await request.json();
@@ -37,12 +40,35 @@ export async function POST(request: Request) {
       }
     }
 
-    await connectToDatabase();
+    const { db, isReady } = await ensureDbReady();
+
+    // If database is offline, only simulate success if in DEMO_MODE
+    if (!isReady) {
+      if (process.env.DEMO_MODE === "true") {
+        console.warn("Database offline during verification. Simulating payment verification success (DEMO_MODE=true).");
+        return NextResponse.json({
+          success: true,
+          message: "Payment verified successfully (Simulated - Database Offline)",
+          order: {
+            orderId,
+            payment: {
+              status: "PAID",
+            },
+            status: "CONFIRMED",
+          },
+        });
+      }
+
+      console.error("Database offline during verification and DEMO_MODE is not enabled.");
+      return NextResponse.json({
+        error: "Payment verification service is temporarily unavailable. Please contact support if your payment was deducted."
+      }, { status: 503 });
+    }
 
     // Update order status in database
     const order = await Order.findOne({ orderId });
     if (!order) {
-      return NextResponse.json({ error: "Order not found" }, { status: 44 });
+      return NextResponse.json({ error: "Order not found" }, { status: 404 });
     }
 
     // Check if order payment is already PAID to avoid double-processing
