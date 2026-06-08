@@ -3,8 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { User, Package, Heart, MapPin, Settings, LogOut } from "lucide-react";
-import { currentUser } from "@/data/users";
-import { signOut } from "next-auth/react";
+import { useSession, signOut } from "next-auth/react";
 
 const items = [
   { href: "/account", label: "Overview", icon: User, exact: true },
@@ -16,11 +15,15 @@ const items = [
 
 export default function AccountLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const { data: session } = useSession();
+
+  if (!session) return null; // or loading
+
   return (
     <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12 lg:py-16">
       <div className="grid md:grid-cols-4 gap-8">
         <p className="text-[11px] uppercase tracking-[0.3em] text-cognac font-semibold">My account</p>
-        <h1 className="font-serif text-3xl md:text-5xl font-bold mt-2">Hello, {currentUser.name.split(" ")[0]}</h1>
+        <h1 className="font-serif text-3xl md:text-5xl font-bold mt-2">Hello, {session.user?.name?.split(" ")[0]}</h1>
       </div>
       <div className="grid lg:grid-cols-[240px_1fr] gap-6 md:gap-10">
         <aside>

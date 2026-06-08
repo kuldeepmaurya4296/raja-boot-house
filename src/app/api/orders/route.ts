@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { connectToDatabase } from "@/lib/db";
 import Order from "@/lib/models/Order";
 import Product from "@/lib/models/Product";
-import { orders as fallbackOrders } from "@/data/orders";
+
 
 export async function GET(request: Request) {
   try {
@@ -11,12 +11,7 @@ export async function GET(request: Request) {
 
     const db = await connectToDatabase();
     if (!db) {
-      console.warn("Using local mock orders fallback (database offline).");
-      let list = fallbackOrders;
-      if (userId) {
-        list = list.filter((o) => o.userId === userId);
-      }
-      return NextResponse.json(list);
+      throw new Error("Database offline");
     }
 
     let query: any = {};
@@ -43,12 +38,7 @@ export async function POST(request: Request) {
 
     const db = await connectToDatabase();
     if (!db) {
-      console.warn("MongoDB offline. Simulating order placement success.");
-      return NextResponse.json({
-        success: true,
-        orderId: `RBH-${Date.now()}`,
-        message: "Order placed successfully (simulated fallback).",
-      });
+      throw new Error("Database offline");
     }
 
     // Generate unique orderId

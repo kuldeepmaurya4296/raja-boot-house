@@ -2,13 +2,33 @@
 
 import Link from "next/link";
 import { useCart } from "@/lib/cart-store";
-import { products } from "@/data/products";
+import { useState, useEffect } from "react";
 import { ProductCard } from "@/modules/products/components/ProductCard";
 import { Heart } from "lucide-react";
 
 export default function AccountWishlistPage() {
   const { wishlist } = useCart();
-  const items = products.filter(p => wishlist.includes(p.id));
+  const [items, setItems] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (wishlist.length === 0) {
+      setItems([]);
+      setLoading(false);
+      return;
+    }
+
+    setLoading(true);
+    Promise.all(
+      wishlist.map(id => fetch(`/api/products/${id}`).then(res => res.json()))
+    ).then(results => {
+      setItems(results.filter(p => p && !p.error));
+    }).finally(() => setLoading(false));
+  }, [wishlist]);
+
+  if (loading) {
+    return <div className="py-10">Loading your wishlist...</div>;
+  }
   return (
     <div>
       <h2 className="font-serif text-2xl font-bold mb-6">Wishlist</h2>

@@ -1,77 +1,84 @@
-"use client";
-
 import { DashboardPage } from "@/modules/admin/dashboard/components/DashboardLayout";
-import { DataTable, StatusBadge, type Column } from "@/modules/admin/shared/components/DataTable";
-import { vendors, type Vendor } from "@/data/vendors";
-import { formatINR, formatDate } from "@/lib/format";
+import { connectToDatabase as dbConnect } from "@/lib/db";
+import User from "@/lib/models/User";
+import Product from "@/lib/models/Product";
+import Order from "@/lib/models/Order";
+import { VendorsClient } from "./VendorsClient";
 
-import { Suspense } from "react";
-import { useSearchParams } from "next/navigation";
-import { TableSearch, TablePagination, TableFilter } from "@/modules/admin/shared/components/DataTableControls";
+export const dynamic = "force-dynamic";
 
-const cols: Column<Vendor>[] = [
-  { key: "n", header: "Vendor", sortKey: "name", render: v => <div><p className="font-medium text-sm">{v.name}</p><p className="text-xs text-muted-foreground">{v.tagline}</p></div> },
-  { key: "j", header: "Joined", sortKey: "joinedAt", render: v => <span className="text-sm text-muted-foreground">{formatDate(v.joinedAt)}</span> },
-  { key: "p", header: "Products", sortKey: "productsCount", render: v => <span className="text-sm">{v.productsCount}</span> },
-  { key: "r", header: "Revenue", sortKey: "revenue", render: v => <span className="text-sm font-semibold">{formatINR(v.revenue)}</span> },
-  { key: "rt", header: "Rating", sortKey: "rating", render: v => <span className="text-sm">{v.rating}★</span> },
-  { key: "s", header: "Status", sortKey: "status", render: v => <StatusBadge status={v.status} /> },
-];
-
-function VendorsContent() {
-  const searchParams = useSearchParams();
-  const q = searchParams.get("q")?.toLowerCase() || "";
-  const page = parseInt(searchParams.get("page") || "1", 10);
-  const sortKey = searchParams.get("sort") || "joinedAt";
-  const sortOrder = searchParams.get("order") === "asc" ? 1 : -1;
-  const statusFilter = searchParams.get("status") || "";
-
-  let filtered = [...vendors];
-  if (statusFilter) {
-    filtered = filtered.filter(v => v.status === statusFilter);
+export default async function AdminVendorsPage({ searchParams }: { searchParams: Promise<{ [key: string]: string | undefined }> }) {
+  await dbConnect();
+  const params = await searchParams;
+  
+  const q = params.q || "";
+  const page = parseInt(params.page || "1", 10);
+  const limit = 10;
+  const sortKey = params.sort || "createdAt";
+  const sortOrder = params.order === "asc" ? 1 : -1;
+  const statusFilter = params.status || "";
+  
+  const query: any = { role: "vendor" };
+  
+  if (statusFilter === "active") {
+    query.isActive = true;
+  } else if (statusFilter === "pending") {
+    query.isActive = false;
   }
+
   if (q) {
-    filtered = filtered.filter(v => v.name.toLowerCase().includes(q) || v.tagline.toLowerCase().includes(q));
+    query.$or = [
+      { name: { $regex: q, $options: "i" } },
+      { email: { $regex: q, $options: "i" } }
+    ];
   }
 
-  filtered.sort((a, b) => {
-    let valA = (a as any)[sortKey];
-    let valB = (b as any)[sortKey];
-    if (valA < valB) return -1 * sortOrder;
-    if (valA > valB) return 1 * sortOrder;
-    return 0;
+  const sortObj: any = {};
+  sortObj[sortKey] = sortOrder;
+
+  const [vendorsRaw, totalItems] = await Promise.all([
+    User.find(query)
+      .sort(sortObj)
+      .skip((page - 1) * limit)
+      .limit(limit)
+      .lean(),
+    User.countDocuments(query)
+  ]);
+    
+  // Pre-fetch all vendor products and orders
+  const vendorIds = vendorsRaw.map((v: any) => v._id);
+  
+  const [allVendorProducts, allVendorOrders] = await Promise.all([
+    Product.find({ vendorId: { $in: vendorIds } }).select("vendorId").lean(),
+    Order.find({ "items.vendorId": { $in: vendorIds } }).lean() // Assuming order items could store vendorId for split carts
+  ]);
+
+  const vendors = vendorsRaw.map((v: any) => {
+    const productsCount = allVendorProducts.filter((p: any) => p.vendorId?.toString() === v._id.toString()).length;
+    // Compute revenue from orders that have items belonging to this vendor
+    let revenue = 0;
+    allVendorOrders.forEach((o: any) => {
+      o.items.forEach((item: any) => {
+        if (item.vendorId?.toString() === v._id.toString()) {
+          revenue += item.price * item.quantity;
+        }
+      });
+    });
+
+    return {
+      id: v._id.toString(),
+      name: v.name,
+      email: v.email,
+      joinedAt: v.createdAt?.toISOString() || new Date().toISOString(),
+      productsCount,
+      revenue,
+      isActive: v.isActive,
+    };
   });
 
-  const limit = 10;
-  const totalItems = filtered.length;
-  const paginated = filtered.slice((page - 1) * limit, page * limit);
-
-  return (
-    <div className="space-y-4">
-      <div className="flex flex-col sm:flex-row justify-between gap-4">
-        <TableSearch placeholder="Search vendor name..." />
-        <TableFilter 
-          filterKey="status" 
-          options={[
-            { label: "Active", value: "active" },
-            { label: "Pending", value: "pending" }
-          ]} 
-        />
-      </div>
-      <div>
-        <DataTable columns={cols} rows={paginated} empty="No vendors found." />
-        <TablePagination totalItems={totalItems} itemsPerPage={limit} />
-      </div>
-    </div>
-  );
-}
-
-export default function AdminVendorsPage() {
   return (
     <DashboardPage eyebrow="Marketplace" title="Vendors">
-      <Suspense fallback={<div>Loading...</div>}>
-        <VendorsContent />
-      </Suspense>
+      <VendorsClient vendors={vendors} totalItems={totalItems} />
     </DashboardPage>
   );
 }

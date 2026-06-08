@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { connectToDatabase } from "@/lib/db";
 import Product from "@/lib/models/Product";
-import { products as fallbackProducts } from "@/data/products";
+
 import { ensureDbReady, normalizeProduct } from "@/lib/db-utils";
 
 export async function GET(request: Request, { params }: { params: Promise<{ slug: string }> }) {
@@ -10,13 +10,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ slug
 
     const { db, isReady } = await ensureDbReady();
     if (!isReady) {
-      console.warn("Using local mock product detail fallback (database offline).");
-      // Fallback matching slug or id
-      const matched = fallbackProducts.find((p) => p.slug === slug || p.id === slug);
-      if (!matched) {
-        return NextResponse.json({ error: "Product not found" }, { status: 404 });
-      }
-      return NextResponse.json(matched);
+      throw new Error("Database offline");
     }
 
     // Try finding by slug first, then by ObjectId id

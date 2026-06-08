@@ -2,7 +2,6 @@ import { NextResponse } from "next/server";
 import { connectToDatabase } from "@/lib/db";
 import Product from "@/lib/models/Product";
 import Category from "@/lib/models/Category";
-import { products as fallbackProducts } from "@/data/products";
 import { ensureDbReady, normalizeProduct } from "@/lib/db-utils";
 
 function escapeRegExp(string: string) {
@@ -21,26 +20,7 @@ export async function GET(request: Request) {
 
     const { db, isReady } = await ensureDbReady();
     if (!isReady) {
-      console.warn("Using local mock products fallback (database offline).");
-      let list = [...fallbackProducts];
-
-      if (categorySlug && categorySlug !== "all") {
-        list = list.filter((p) => p.category === categorySlug);
-      }
-      if (brand) {
-        list = list.filter((p) => p.vendorId?.toLowerCase() === brand.toLowerCase());
-      }
-      if (occasion) {
-        list = list.filter((p) => p.details?.some((t: string) => t.toLowerCase() === occasion.toLowerCase()));
-      }
-      if (searchQuery) {
-        const q = searchQuery.toLowerCase();
-        list = list.filter((p) =>
-          p.name?.toLowerCase().includes(q) ||
-          p.description?.toLowerCase().includes(q)
-        );
-      }
-      return NextResponse.json(sortList(list, sort));
+      throw new Error("Database offline");
     }
 
     let query: any = { isActive: true };

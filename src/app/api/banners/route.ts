@@ -1,14 +1,12 @@
 import { NextResponse } from "next/server";
 import { connectToDatabase } from "@/lib/db";
 import Banner from "@/lib/models/Banner";
-import { banners as fallbackBanners } from "@/data/banners";
 
 export async function GET() {
   try {
     const db = await connectToDatabase();
     if (!db) {
-      console.warn("Using local mock banners fallback (database offline).");
-      return NextResponse.json(fallbackBanners);
+      throw new Error("Database offline");
     }
 
     const banners = await Banner.find({ isActive: true }).sort({ order: 1 });

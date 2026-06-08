@@ -47,7 +47,7 @@ const UserSchema: Schema = new Schema(
     googleId: { type: String, index: true },
     avatar: { type: String },
     phone: { type: String },
-    role: { type: String, enum: ["customer", "admin"], default: "customer", index: true },
+    role: { type: String, enum: ["customer", "admin", "vendor"], default: "customer", index: true },
     isActive: { type: Boolean, default: true },
     isEmailVerified: { type: Boolean, default: false },
     addresses: [AddressSchema],

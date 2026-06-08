@@ -103,12 +103,15 @@ export function DashboardLayout({
               <Bell className="h-4.5 w-4.5" />
               <span className="absolute top-1.5 right-1.5 h-2 w-2 bg-primary rounded-full" />
             </button>
-            <button className="flex items-center gap-2 pl-2 pr-3 py-1.5 rounded-full hover:bg-muted">
+            <button 
+              onClick={() => signOut({ callbackUrl: "/" })}
+              className="flex items-center gap-2 pl-2 pr-3 py-1.5 rounded-full hover:bg-red-50 hover:text-red-600 transition-colors cursor-pointer"
+            >
               <div className="h-7 w-7 rounded-full bg-primary text-primary-foreground grid place-items-center text-xs font-semibold">
                 RB
               </div>
-              <span className="hidden md:inline text-sm font-medium">Admin</span>
-              <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" />
+              <span className="hidden md:inline text-sm font-medium">Logout</span>
+              <LogOut className="h-3.5 w-3.5" />
             </button>
           </div>
         </header>

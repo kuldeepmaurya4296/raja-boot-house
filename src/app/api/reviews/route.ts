@@ -3,7 +3,7 @@ import { connectToDatabase } from "@/lib/db";
 import mongoose from "mongoose";
 import Review from "@/lib/models/Review";
 import Product from "@/lib/models/Product";
-import { reviews as fallbackReviews } from "@/data/reviews";
+
 
 export async function GET(request: Request) {
   try {
@@ -16,9 +16,7 @@ export async function GET(request: Request) {
 
     const db = await connectToDatabase();
     if (!db) {
-      console.warn("Using local mock reviews fallback (database offline).");
-      const matched = fallbackReviews.filter((r) => r.productId === productId);
-      return NextResponse.json(matched);
+      throw new Error("Database offline");
     }
 
     const reviews = await Review.find({ productId, isApproved: true })
@@ -42,8 +40,7 @@ export async function POST(request: Request) {
 
     const db = await connectToDatabase();
     if (!db) {
-      console.warn("MongoDB is offline. Simulating review submit success.");
-      return NextResponse.json({ success: true, message: "Review submitted successfully (simulated)." });
+      throw new Error("Database offline");
     }
 
     // Create review entry

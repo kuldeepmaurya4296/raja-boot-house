@@ -1,8 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { findProduct, products } from "@/data/products";
-import { reviewsByProduct } from "@/data/reviews";
+
 import { Heart, ShoppingBag, Star } from "lucide-react";
 import { useCart } from "@/lib/cart-store";
 import { ProductCard } from "@/modules/products/components/ProductCard";
@@ -26,7 +25,9 @@ interface PageProps {
 
 export default function ProductPage({ params }: PageProps) {
   const { productId } = React.use(params);
-  const [product, setProduct] = useState<any>(() => findProduct(productId) || null);
+  const [product, setProduct] = useState<any>(null);
+  const [reviews, setReviews] = useState<any[]>([]);
+  const [related, setRelated] = useState<any[]>([]);
 
   useEffect(() => {
     fetch(`/api/products/${productId}`)
@@ -34,27 +35,40 @@ export default function ProductPage({ params }: PageProps) {
       .then((data) => {
         if (data && !data.error) {
           setProduct(data);
+          // Fetch related
+          fetch(`/api/products?category=${data.category}`)
+            .then(r => r.json())
+            .then(rel => setRelated(rel.filter((p: any) => p.id !== data.id).slice(0, 4)))
+            .catch(console.error);
         }
       })
       .catch((err) => console.error("Error loading live product details from API:", err));
+
+    // Fetch reviews
+    fetch(`/api/reviews?productId=${productId}`)
+      .then(res => res.json())
+      .then(data => {
+        if (Array.isArray(data)) setReviews(data);
+      })
+      .catch(console.error);
   }, [productId]);
 
   const router = useRouter();
   const { add, wishlist, toggleWish } = useCart();
   const [size, setSize] = useState<number | null>(null);
-  const [color, setColor] = useState(product?.colors[0] || "");
+  const [color, setColor] = useState("");
   const [qty, setQty] = useState(1);
 
   useEffect(() => {
-    if (product && !color) {
-      setColor(product.colors[0] || "");
+    if (product && !color && product.colors?.length > 0) {
+      setColor(product.colors[0]);
     }
   }, [product, color]);
 
   if (!product) {
     return (
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-20 text-center">
-        <p className="mb-4">Product not found.</p>
+        <p className="mb-4">Loading product...</p>
         <Link href="/shop" className="underline font-semibold">
           Back to shop
         </Link>
@@ -63,8 +77,6 @@ export default function ProductPage({ params }: PageProps) {
   }
 
   const wished = wishlist.includes(product.id);
-  const reviews = reviewsByProduct(product.id);
-  const related = products.filter(p => p.category === product.category && p.id !== product.id).slice(0, 4);
 
   const handleAdd = () => {
     if (!size) {

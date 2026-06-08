@@ -4,7 +4,7 @@ import Link from "next/link";
 import { Hero } from "@/components/public/Hero";
 import { CategoryGrid } from "@/modules/products/components/CategoryGrid";
 import { ProductCard } from "@/modules/products/components/ProductCard";
-import { featuredProducts, products as mockProducts } from "@/data/products";
+
 import { motion } from "framer-motion";
 import { Truck, Award, RotateCcw, ShieldCheck, Calendar, Heart, Sparkles, CheckCircle, ArrowRight } from "lucide-react";
 import { useState, useEffect } from "react";
@@ -72,13 +72,9 @@ export default function Home() {
       .finally(() => setLoading(false));
   }, []);
 
-  const featured = productList.length > 0
-    ? productList.filter((p) => p.badge === "bestseller" || p.badge === "new").slice(0, 4)
-    : featuredProducts();
+  const featured = productList.filter((p) => p.badge === "bestseller" || p.badge === "new").slice(0, 4);
 
-  const newest = productList.length > 0
-    ? [...productList].slice(0, 4)
-    : [...mockProducts].sort((a, b) => b.createdAt.localeCompare(a.createdAt)).slice(0, 4);
+  const newest = [...productList].sort((a, b) => (b.createdAt || "").localeCompare(a.createdAt || "")).slice(0, 4);
 
   return (
     <>

@@ -1,8 +1,6 @@
 "use client";
 
 import { ProductCard } from "@/modules/products/components/ProductCard";
-import { products as fallbackProducts } from "@/data/products";
-import { categories as fallbackCategories } from "@/data/categories";
 import { useState, useEffect, useMemo, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { SlidersHorizontal, RotateCcw, X } from "lucide-react";
@@ -29,13 +27,9 @@ function ShopContent() {
       .then((data) => {
         if (Array.isArray(data) && data.length > 0) {
           setCategoriesList(data);
-        } else {
-          setCategoriesList(fallbackCategories);
         }
       })
-      .catch(() => {
-        setCategoriesList(fallbackCategories);
-      });
+      .catch((err) => console.error("Error loading categories:", err));
   }, []);
 
   // Fetch filtered products from backend API
@@ -76,28 +70,8 @@ function ShopContent() {
   };
 
   const filtered = useMemo(() => {
-    if (productList.length > 0) {
-      return productList;
-    }
-    // Static fallback if database offline
-    let list = fallbackProducts;
-    if (activeCategory !== "all") {
-      list = list.filter((p) => p.category === activeCategory);
-    }
-    if (activeBrand) {
-      list = list.filter((p) => p.vendorId?.toLowerCase() === activeBrand.toLowerCase());
-    }
-    if (activeSearch) {
-      const q = activeSearch.toLowerCase();
-      list = list.filter((p) => p.name?.toLowerCase().includes(q) || p.description?.toLowerCase().includes(q));
-    }
-    return [...list].sort((a, b) => {
-      if (activeSort === "low") return a.price - b.price;
-      if (activeSort === "high") return b.price - a.price;
-      if (activeSort === "rating") return b.rating - a.rating;
-      return b.createdAt.localeCompare(a.createdAt);
-    });
-  }, [productList, activeCategory, activeBrand, activeSearch, activeSort]);
+    return productList;
+  }, [productList]);
 
   const hasActiveFilters = activeCategory !== "all" || activeBrand || activeOccasion || activeSearch;
 

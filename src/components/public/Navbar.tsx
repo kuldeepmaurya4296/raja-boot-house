@@ -151,7 +151,7 @@ export function Navbar() {
                 path === "/shop" ? "text-primary font-semibold" : "text-foreground/80"
               }`}
             >
-              All Shoes
+              Shop All
             </Link>
             {links.map((l) => {
               const active = path + searchParams.toString() === l.href;
@@ -218,7 +218,7 @@ export function Navbar() {
                   onClick={() => setMenuOpen(false)}
                   className="px-3 py-3 rounded-lg text-sm font-medium hover:bg-muted"
                 >
-                  All Shoes
+                  Shop All
                 </Link>
                 {links.map((l) => (
                   <Link

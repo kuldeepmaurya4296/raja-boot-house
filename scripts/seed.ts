@@ -127,7 +127,18 @@ async function runSeed() {
       ],
     });
 
-    console.log(`Seeded Users: ${adminUser.email}, ${mockCustomer1.email}`);
+    const vendor1 = await User.create({
+      name: "Lakhani Footwear",
+      email: "vendor@lakhani.com",
+      password: customerPasswordHash,
+      phone: "+91 88888 88888",
+      role: "vendor",
+      isActive: true,
+      isEmailVerified: true,
+      addresses: [],
+    });
+
+    console.log(`Seeded Users: ${adminUser.email}, ${mockCustomer1.email}, ${vendor1.email}`);
 
     // 3. Seed Categories
     console.log("Seeding Categories...");
@@ -180,6 +191,7 @@ async function runSeed() {
           slug: `${brand.toLowerCase().replace(" ", "-")}-${cat.slug}-style-${i}`,
           description: `High-quality ${cat.name} footwear by ${brand}. Perfect for daily use and special occasions. Features a comfortable sole and durable materials.`,
           brand: brand,
+          vendorId: brand === "Lakhani" ? vendor1._id : undefined,
           category: categoryMap[cat.slug]._id,
           subcategory: "Classics",
           gender: gender,

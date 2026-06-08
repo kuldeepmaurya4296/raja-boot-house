@@ -50,6 +50,7 @@ const ProductSchema: Schema = new Schema(
     slug: { type: String, required: true, unique: true, index: true },
     description: { type: String, required: true },
     brand: { type: String, required: true },
+    vendorId: { type: Schema.Types.ObjectId, ref: "User", index: true },
     category: { type: Schema.Types.ObjectId, ref: "Category", required: true, index: true },
     subcategory: { type: String },
     gender: { type: String, enum: ["Men", "Women", "Children", "Unisex"], required: true, index: true },

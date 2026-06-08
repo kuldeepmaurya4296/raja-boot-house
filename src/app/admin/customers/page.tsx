@@ -1,74 +1,61 @@
-"use client";
-
 import { DashboardPage } from "@/modules/admin/dashboard/components/DashboardLayout";
-import { DataTable, type Column } from "@/modules/admin/shared/components/DataTable";
-import { customers, type User } from "@/data/users";
-import { formatINR, formatDate } from "@/lib/format";
+import { connectToDatabase as dbConnect } from "@/lib/db";
+import User from "@/lib/models/User";
+import Order from "@/lib/models/Order";
+import { CustomersClient } from "./CustomersClient";
 
-import { Suspense } from "react";
-import { useSearchParams } from "next/navigation";
-import { TableSearch, TablePagination } from "@/modules/admin/shared/components/DataTableControls";
+export const dynamic = "force-dynamic";
 
-const cols: Column<User>[] = [
-  { key: "n", header: "Customer", sortKey: "name", render: u => (
-    <div className="flex items-center gap-3">
-      <div className="h-9 w-9 rounded-full bg-primary text-primary-foreground grid place-items-center text-xs font-semibold">
-        {u.name.split(" ").map(p => p[0]).join("")}
-      </div>
-      <div>
-        <p className="font-medium text-sm">{u.name}</p>
-        <p className="text-xs text-muted-foreground">{u.email}</p>
-      </div>
-    </div>
-  )},
-  { key: "j", header: "Joined", sortKey: "joinedAt", render: u => <span className="text-sm text-muted-foreground">{formatDate(u.joinedAt)}</span> },
-  { key: "o", header: "Orders", sortKey: "orders", render: u => <span className="text-sm font-semibold">{u.orders}</span> },
-  { key: "s", header: "Spent", sortKey: "totalSpent", render: u => <span className="text-sm font-semibold">{formatINR(u.totalSpent)}</span>, className: "text-right" },
-];
-
-function CustomersContent() {
-  const searchParams = useSearchParams();
-  const q = searchParams.get("q")?.toLowerCase() || "";
-  const page = parseInt(searchParams.get("page") || "1", 10);
-  const sortKey = searchParams.get("sort") || "joinedAt";
-  const sortOrder = searchParams.get("order") === "asc" ? 1 : -1;
-
-  let filtered = [...customers];
+export default async function AdminCustomersPage({ searchParams }: { searchParams: Promise<{ [key: string]: string | undefined }> }) {
+  await dbConnect();
+  const params = await searchParams;
+  
+  const q = params.q || "";
+  const page = parseInt(params.page || "1", 10);
+  const limit = 10;
+  const sortKey = params.sort || "createdAt";
+  const sortOrder = params.order === "asc" ? 1 : -1;
+  
+  const query: any = { role: "customer" };
   if (q) {
-    filtered = filtered.filter(c => c.name.toLowerCase().includes(q) || c.email.toLowerCase().includes(q));
+    query.$or = [
+      { name: { $regex: q, $options: "i" } },
+      { email: { $regex: q, $options: "i" } }
+    ];
   }
 
-  filtered.sort((a, b) => {
-    let valA = (a as any)[sortKey];
-    let valB = (b as any)[sortKey];
-    if (valA < valB) return -1 * sortOrder;
-    if (valA > valB) return 1 * sortOrder;
-    return 0;
+  const sortObj: any = {};
+  sortObj[sortKey] = sortOrder;
+
+  const [usersRaw, totalItems] = await Promise.all([
+    User.find(query)
+      .sort(sortObj)
+      .skip((page - 1) * limit)
+      .limit(limit)
+      .lean(),
+    User.countDocuments(query)
+  ]);
+    
+  // Fetch stats for these users
+  const userIds = usersRaw.map((u: any) => u._id);
+  const ordersRaw = await Order.find({ userId: { $in: userIds } }).lean();
+
+  const customers = usersRaw.map((u: any) => {
+    const userOrders = ordersRaw.filter((o: any) => o.userId?.toString() === u._id.toString());
+    const totalSpent = userOrders.reduce((sum: number, o: any) => sum + (o.pricing?.total || 0), 0);
+    return {
+      id: u._id.toString(),
+      name: u.name,
+      email: u.email,
+      joinedAt: u.createdAt?.toISOString() || new Date().toISOString(),
+      orders: userOrders.length,
+      totalSpent,
+    };
   });
 
-  const limit = 10;
-  const totalItems = filtered.length;
-  const paginated = filtered.slice((page - 1) * limit, page * limit);
-
-  return (
-    <div className="space-y-4">
-      <div className="flex flex-col sm:flex-row justify-between gap-4">
-        <TableSearch placeholder="Search name or email..." />
-      </div>
-      <div>
-        <DataTable columns={cols} rows={paginated} empty="No customers found." />
-        <TablePagination totalItems={totalItems} itemsPerPage={limit} />
-      </div>
-    </div>
-  );
-}
-
-export default function AdminCustomersPage() {
   return (
     <DashboardPage eyebrow="People" title="Customers">
-      <Suspense fallback={<div>Loading...</div>}>
-        <CustomersContent />
-      </Suspense>
+      <CustomersClient customers={customers} totalItems={totalItems} />
     </DashboardPage>
   );
 }
