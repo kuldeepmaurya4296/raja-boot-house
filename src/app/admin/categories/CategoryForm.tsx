@@ -1,6 +1,6 @@
 "use client";
 
-import { useForm } from "react-hook-form";
+import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useState } from "react";
@@ -9,6 +9,7 @@ import { createCategory, updateCategory } from "@/app/admin/actions";
 import { toast } from "sonner";
 import Link from "next/link";
 import { ChevronLeft } from "lucide-react";
+import { ImageUploader } from "@/modules/admin/shared/components/ImageUploader";
 
 const schema = z.object({
   name: z.string().min(2, "Name is required"),
@@ -24,7 +25,7 @@ export function CategoryForm({ initialData, id }: { initialData?: Partial<FormDa
   const router = useRouter();
   const [loading, setLoading] = useState(false);
 
-  const { register, handleSubmit, formState: { errors }, watch, setValue } = useForm<FormData>({
+  const { register, control, handleSubmit, formState: { errors }, watch, setValue } = useForm<FormData>({
     resolver: zodResolver(schema),
     defaultValues: {
       name: initialData?.name || "",
@@ -106,29 +107,19 @@ export function CategoryForm({ initialData, id }: { initialData?: Partial<FormDa
           </div>
 
           <div>
-            <label className="block text-sm font-medium mb-1">Image URL</label>
-            <input 
-              {...register("imageUrl")}
-              className="w-full px-3 py-2 border border-border rounded-md bg-background focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
-              placeholder="e.g. https://images.unsplash.com/... or /assets/..."
+            <Controller
+              control={control}
+              name="imageUrl"
+              render={({ field }) => (
+                <ImageUploader
+                  value={field.value || ""}
+                  onChange={field.onChange}
+                  label="Category Image"
+                  placeholder="e.g. https://images.unsplash.com/... or upload a file"
+                />
+              )}
             />
             {errors.imageUrl && <p className="text-red-500 text-xs mt-1">{errors.imageUrl.message}</p>}
-            
-            {imageUrlValue && (
-              <div className="mt-3">
-                <p className="text-xs text-muted-foreground mb-1">Preview:</p>
-                <div className="relative aspect-[4/3] w-40 rounded-lg overflow-hidden border border-border bg-muted">
-                  <img 
-                    src={imageUrlValue} 
-                    alt="Preview" 
-                    className="h-full w-full object-cover"
-                    onError={(e) => {
-                      (e.target as HTMLImageElement).style.display = 'none';
-                    }}
-                  />
-                </div>
-              </div>
-            )}
           </div>
 
           <div className="flex items-center gap-2 mt-2">

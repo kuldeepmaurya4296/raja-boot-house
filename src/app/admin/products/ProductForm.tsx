@@ -1,6 +1,6 @@
 "use client";
 
-import { useForm, useFieldArray } from "react-hook-form";
+import { useForm, useFieldArray, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useState } from "react";
@@ -9,6 +9,7 @@ import { createProduct, updateProduct } from "@/app/admin/actions";
 import { toast } from "sonner";
 import Link from "next/link";
 import { ChevronLeft, Plus, Trash2 } from "lucide-react";
+import { ImageUploader } from "@/modules/admin/shared/components/ImageUploader";
 
 const variantSchema = z.object({
   size: z.coerce.number().min(1, "Size is required"),
@@ -177,12 +178,28 @@ export function ProductForm({
               <Plus className="h-3.5 w-3.5" /> Add Image
             </button>
           </div>
-          <div className="space-y-3">
+          <div className="space-y-4">
             {imageFields.map((field, index) => (
-              <div key={field.id} className="flex gap-2">
-                <input {...register(`images.${index}.url` as const)} placeholder="Image URL (e.g. https://images.unsplash.com/...)" className="flex-1 px-3 py-2 border border-border rounded-md bg-background focus:outline-none focus:ring-2 focus:ring-primary/20" />
+              <div key={field.id} className="flex items-start gap-2 border border-border/40 p-4 rounded-lg bg-muted/5 relative">
+                <div className="flex-1">
+                  <Controller
+                    control={control}
+                    name={`images.${index}.url` as const}
+                    render={({ field: uploaderField }) => (
+                      <ImageUploader
+                        value={uploaderField.value || ""}
+                        onChange={uploaderField.onChange}
+                        placeholder="Image URL (e.g. https://images.unsplash.com/... or upload a file)"
+                      />
+                    )}
+                  />
+                </div>
                 {imageFields.length > 1 && (
-                  <button type="button" onClick={() => removeImage(index)} className="p-2 text-destructive hover:bg-destructive/10 rounded-md">
+                  <button
+                    type="button"
+                    onClick={() => removeImage(index)}
+                    className="p-2 text-destructive hover:bg-destructive/10 rounded-md mt-1 cursor-pointer self-start"
+                  >
                     <Trash2 className="h-5 w-5" />
                   </button>
                 )}

@@ -6,6 +6,7 @@ import { saveBanner, deleteBanner, saveSetting } from "./actions";
 import { updateCategory } from "@/app/admin/actions";
 import { toast } from "sonner";
 import { DataTable, type Column } from "@/modules/admin/shared/components/DataTable";
+import { ImageUploader } from "@/modules/admin/shared/components/ImageUploader";
 
 export function CmsClient({ 
   banners, 
@@ -99,10 +100,12 @@ function BannersTab({ banners }: { banners: any[] }) {
       <div className="bg-card p-6 rounded-xl border border-border">
         <h3 className="text-lg font-semibold mb-4">{formData.id ? "Edit Banner" : "New Banner"}</h3>
         <form onSubmit={handleSubmit} className="space-y-4 max-w-xl">
-          <div>
-            <label className="block text-sm font-medium mb-1">Image URL *</label>
-            <input required type="url" value={formData.imageUrl} onChange={e => setFormData({...formData, imageUrl: e.target.value})} className="w-full p-2 border border-border rounded bg-background" />
-          </div>
+          <ImageUploader 
+            value={formData.imageUrl} 
+            onChange={url => setFormData({...formData, imageUrl: url})} 
+            label="Image URL *" 
+            required 
+          />
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium mb-1">Title</label>
@@ -266,16 +269,11 @@ function CategoriesTab({ categories }: { categories: any[] }) {
               <input required type="text" value={formData.slug} onChange={e => setFormData({...formData, slug: e.target.value})} className="w-full p-2 border border-border rounded bg-background" />
             </div>
           </div>
-          <div>
-            <label className="block text-sm font-medium mb-1">Image URL</label>
-            <input type="url" value={formData.imageUrl} onChange={e => setFormData({...formData, imageUrl: e.target.value})} className="w-full p-2 border border-border rounded bg-background" placeholder="https://images.unsplash.com/..." />
-            {formData.imageUrl && (
-              <div className="mt-2">
-                <p className="text-xs text-muted-foreground mb-1">Preview:</p>
-                <img src={formData.imageUrl} alt="preview" className="h-20 w-20 object-cover rounded border border-border" />
-              </div>
-            )}
-          </div>
+          <ImageUploader 
+            value={formData.imageUrl} 
+            onChange={url => setFormData({...formData, imageUrl: url})} 
+            label="Image URL" 
+          />
           <div>
             <label className="block text-sm font-medium mb-1">Description</label>
             <textarea rows={3} value={formData.description} onChange={e => setFormData({...formData, description: e.target.value})} className="w-full p-2 border border-border rounded bg-background" />
