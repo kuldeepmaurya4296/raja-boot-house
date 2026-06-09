@@ -47,48 +47,73 @@ export async function GET() {
     const customersCount = await User.countDocuments({ role: "customer" });
     const productsCount = await Product.countDocuments();
 
-    // Sum revenue from PAID orders
-    const paidOrders = await Order.find({ "payment.status": "PAID" });
-    const totalRevenue = paidOrders.reduce((sum, o) => sum + o.pricing.total, 0);
+    // Sum revenue from PAID orders using aggregation
+    const revenueAgg = await Order.aggregate([
+      { $match: { "payment.status": "PAID" } },
+      { $group: { _id: null, total: { $sum: "$pricing.total" } } }
+    ]);
+    const totalRevenue = revenueAgg[0]?.total ?? 0;
 
-    // Dynamic sales chart for last 7 days
+    // Dynamic sales chart for last 7 days using aggregation
     const today = new Date();
+    const sevenDaysAgo = new Date(today.getFullYear(), today.getMonth(), today.getDate() - 6, 0, 0, 0);
+    const weekdays = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+
+    const salesAgg = await Order.aggregate([
+      {
+        $match: {
+          createdAt: { $gte: sevenDaysAgo },
+          "payment.status": "PAID"
+        }
+      },
+      {
+        $group: {
+          _id: {
+            dateStr: { $dateToString: { format: "%Y-%m-%d", date: "$createdAt", timezone: "Asia/Kolkata" } }
+          },
+          revenue: { $sum: "$pricing.total" }
+        }
+      }
+    ]);
+
+    const revenueMap: Record<string, number> = {};
+    salesAgg.forEach((item: any) => {
+      if (item._id && item._id.dateStr) {
+        revenueMap[item._id.dateStr] = item.revenue;
+      }
+    });
+
     const last7DaysData: number[] = [];
     const last7DaysLabels: string[] = [];
-    const weekdays = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
     for (let i = 6; i >= 0; i--) {
       const d = new Date(today);
       d.setDate(today.getDate() - i);
-      const dayStart = new Date(d.getFullYear(), d.getMonth(), d.getDate(), 0, 0, 0);
-      const dayEnd = new Date(d.getFullYear(), d.getMonth(), d.getDate(), 23, 59, 59);
+      const year = d.getFullYear();
+      const month = String(d.getMonth() + 1).padStart(2, "0");
+      const day = String(d.getDate()).padStart(2, "0");
+      const dateKey = `${year}-${month}-${day}`;
 
-      const dailyOrders = await Order.find({
-        createdAt: { $gte: dayStart, $lte: dayEnd },
-        "payment.status": "PAID",
-      });
-
-      const dayRevenue = dailyOrders.reduce((sum, o) => sum + o.pricing.total, 0);
+      const dayRevenue = revenueMap[dateKey] ?? 0;
       last7DaysData.push(dayRevenue);
       last7DaysLabels.push(weekdays[d.getDay()]);
     }
 
-    // Fetch latest 6 orders and populate customer user info
+    // Fetch latest 6 orders and populate customer user info using .populate()
     const rawLatestOrders = await Order.find()
       .sort({ createdAt: -1 })
-      .limit(6);
+      .limit(6)
+      .populate({ path: "userId", model: User, select: "name" });
 
-    const latestOrders = [];
-    for (const o of rawLatestOrders) {
+    const latestOrders = rawLatestOrders.map((o: any) => {
       let customerName = "—";
-      if (o.userId) {
-        const userDoc = await User.findById(o.userId);
-        if (userDoc) customerName = userDoc.name;
+      if (o.userId && typeof o.userId === "object" && o.userId.name) {
+        customerName = o.userId.name;
       } else {
         customerName = o.shippingAddress?.fullName || "—";
       }
 
-      latestOrders.push({
+      return {
         id: o._id.toString(),
         orderId: o.orderId,
         number: o.orderId,
@@ -97,8 +122,8 @@ export async function GET() {
         status: o.status,
         total: o.pricing.total,
         paymentStatus: o.payment.status,
-      });
-    }
+      };
+    });
 
     // Fetch top products (e.g. sorted by rating count or featured)
     const rawProducts = await Product.find({ isActive: true })

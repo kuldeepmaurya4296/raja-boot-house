@@ -20,12 +20,12 @@ export function normalizeProduct(p: any) {
     gallery: p.images ? p.images.map((img: any) => img.url) : [],
     description: p.description,
     details: p.tags && p.tags.length > 0 ? p.tags : ["Premium craftsmanship", "Durability assured"],
-    colors: Array.from(new Set(p.variants ? p.variants.map((v: any) => v.color) : [])),
-    sizes: Array.from(new Set(p.variants ? p.variants.map((v: any) => v.size) : [])),
+    colors: Array.from(new Set(p.variants ? p.variants.map((v: any) => v.color) : [])) as string[],
+    sizes: Array.from(new Set(p.variants ? p.variants.map((v: any) => v.size) : [])) as number[],
     stock: p.variants ? p.variants.reduce((acc: number, v: any) => acc + v.stock, 0) : 0,
     rating: p.rating ? p.rating.average : 4.5,
     reviewsCount: p.rating ? p.rating.count : 0,
-    badge: p.isFeatured ? "bestseller" : p.isNewArrival ? "new" : undefined,
+    badge: (p.isFeatured ? "bestseller" : p.isNewArrival ? "new" : undefined) as "new" | "bestseller" | "sale" | undefined,
     createdAt: p.createdAt ? (p.createdAt instanceof Date ? p.createdAt.toISOString().split("T")[0] : p.createdAt) : "2025-06-08",
   };
 }

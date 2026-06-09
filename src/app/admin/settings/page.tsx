@@ -37,7 +37,7 @@ export default function AdminSettingsPage() {
       setLocalShipping(
         (shippingMethods || []).map(m => ({
           ...m,
-          priceINR: Math.round(m.price * 84)
+          priceINR: m.price
         }))
       );
     }
@@ -83,12 +83,12 @@ export default function AdminSettingsPage() {
         if (isNaN(m.priceINR) || m.priceINR < 0) throw new Error("Shipping prices must be valid positive numbers");
       }
 
-      // Format shipping methods back to base currency
+      // Format shipping methods back
       const formattedShipping = localShipping.map(m => ({
         id: m.id,
         name: m.name.trim(),
         desc: m.desc.trim(),
-        price: Math.round((Number(m.priceINR) / 84) * 100) / 100
+        price: Number(m.priceINR)
       }));
 
       const res = await fetch("/api/settings", {

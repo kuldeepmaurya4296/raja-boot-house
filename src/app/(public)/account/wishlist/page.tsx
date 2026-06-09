@@ -27,7 +27,20 @@ export default function AccountWishlistPage() {
   }, [wishlist]);
 
   if (loading) {
-    return <div className="py-10">Loading your wishlist...</div>;
+    return (
+      <div className="animate-pulse space-y-6">
+        <h2 className="font-serif text-2xl font-bold mb-6">Wishlist</h2>
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-4 md:gap-6">
+          {[1, 2, 3].map(i => (
+            <div key={i} className="flex flex-col gap-3">
+              <div className="aspect-[4/5] bg-muted rounded-xl"></div>
+              <div className="h-4 bg-muted rounded w-3/4"></div>
+              <div className="h-3 bg-muted rounded w-1/2"></div>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
   }
   return (
     <div>

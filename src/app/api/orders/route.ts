@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { connectToDatabase } from "@/lib/db";
 import Order from "@/lib/models/Order";
 import Product from "@/lib/models/Product";
+import Counter from "@/lib/models/Counter";
 import { auth } from "@/lib/auth";
 
 export async function GET(request: Request) {
@@ -55,19 +56,13 @@ export async function POST(request: Request) {
 
     const userId = session.user.id;
 
-    // Generate unique sequential orderId prefix as RBH and 5 digit suffix (e.g. RBH-00001)
-    const lastOrder = await Order.findOne({ orderId: /^RBH-\d{5}$/ })
-      .sort({ orderId: -1 })
-      .lean();
-    
-    let nextNum = 1;
-    if (lastOrder) {
-      const lastNum = parseInt(lastOrder.orderId.replace("RBH-", ""), 10);
-      if (!isNaN(lastNum)) {
-        nextNum = lastNum + 1;
-      }
-    }
-    const orderId = `RBH-${String(nextNum).padStart(5, "0")}`;
+    // Generate unique sequential orderId prefix as RBH and 5 digit suffix using atomic Mongo counter
+    const counter = await Counter.findOneAndUpdate(
+      { _id: "orderId" },
+      { $inc: { seq: 1 } },
+      { upsert: true, new: true }
+    );
+    const orderId = `RBH-${String(counter.seq).padStart(5, "0")}`;
 
     // Enrich items with current returnDays from Product catalog
     const enrichedItems = [];
@@ -134,7 +129,7 @@ function isTransitionAllowed(currentStatus: string, nextStatus: string): boolean
   if (currentStatus === "REFUNDED") return false;
   
   if (currentStatus === "CANCELLED") {
-    return false;
+    return nextStatus === "REFUNDED";
   }
   
   // RETURN_REQUESTED can be approved (→ RETURNED) or rejected (→ DELIVERED)
@@ -267,6 +262,22 @@ export async function PUT(request: Request) {
         return NextResponse.json({ error: "Confirmation of payment collection is required for delivering COD orders." }, { status: 400 });
       }
       order.payment.status = "PAID";
+    }
+
+    if (status === "CANCELLED" && currentStatus !== "CANCELLED") {
+      // Loop through order items and increment variant stock back
+      for (const item of order.items) {
+        const product = await Product.findById(item.productId);
+        if (product) {
+          const variantIndex = product.variants.findIndex(
+            (v: any) => v.size === item.size && v.color === item.color
+          );
+          if (variantIndex >= 0) {
+            product.variants[variantIndex].stock = product.variants[variantIndex].stock + item.qty;
+            await product.save();
+          }
+        }
+      }
     }
 
     order.status = status;

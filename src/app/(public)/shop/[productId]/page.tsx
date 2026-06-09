@@ -1,168 +1,137 @@
-"use client";
-
-import React, { useState } from "react";
-
-import { Heart, ShoppingBag, Star } from "lucide-react";
-import { useCart } from "@/lib/cart-store";
-import { ProductCard } from "@/modules/products/components/ProductCard";
-import { formatINR } from "@/lib/format";
-import { useRouter } from "next/navigation";
+import React from "react";
+import { Metadata } from "next";
+import Product from "@/lib/models/Product";
+import Review from "@/lib/models/Review";
+import Category from "@/lib/models/Category";
+import User from "@/lib/models/User"; // needed for reviews user populate
+import { ensureDbReady, normalizeProduct } from "@/lib/db-utils";
+import ProductClient from "@/modules/products/components/ProductClient";
 import Link from "next/link";
-
-// Sub-components
-import { ProductGallery } from "@/modules/products/components/ProductGallery";
-import { SizeSelector } from "@/modules/products/components/SizeSelector";
-import { ColorSelector } from "@/modules/products/components/ColorSelector";
-import { TrustBadges } from "@/components/public/TrustBadges";
-import { ReviewsSection } from "@/modules/reviews/components/ReviewsSection";
-import { QuantitySelector } from "@/components/shared/QuantitySelector";
-
-import { useEffect } from "react";
 
 interface PageProps {
   params: Promise<{ productId: string }>;
 }
 
-export default function ProductPage({ params }: PageProps) {
-  const { productId } = React.use(params);
-  const [product, setProduct] = useState<any>(null);
-  const [reviews, setReviews] = useState<any[]>([]);
-  const [related, setRelated] = useState<any[]>([]);
+async function getProductData(productId: string) {
+  const { isReady } = await ensureDbReady();
+  if (!isReady) {
+    console.warn("Database connection is not ready. Returning null product data.");
+    return null;
+  }
+  
+  // Try finding by slug first, then by ObjectId id
+  let productDoc = await Product.findOne({ slug: productId, isActive: true }).populate("category");
+  if (!productDoc && productId.match(/^[0-9a-fA-F]{24}$/)) {
+    productDoc = await Product.findOne({ _id: productId, isActive: true }).populate("category");
+  }
 
-  useEffect(() => {
-    fetch(`/api/products/${productId}`)
-      .then((res) => res.json())
-      .then((data) => {
-        if (data && !data.error) {
-          setProduct(data);
-          // Fetch related
-          fetch(`/api/products?category=${data.category}`)
-            .then(r => r.json())
-            .then(rel => setRelated(rel.filter((p: any) => p.id !== data.id).slice(0, 4)))
-            .catch(console.error);
-        }
-      })
-      .catch((err) => console.error("Error loading live product details from API:", err));
+  if (!productDoc) return null;
 
-    // Fetch reviews
-    fetch(`/api/reviews?productId=${productId}`)
-      .then(res => res.json())
-      .then(data => {
-        if (Array.isArray(data)) setReviews(data);
-      })
-      .catch(console.error);
-  }, [productId]);
+  const normalizedProduct = normalizeProduct(productDoc);
 
-  const router = useRouter();
-  const { add, wishlist, toggleWish } = useCart();
-  const [size, setSize] = useState<number | null>(null);
-  const [color, setColor] = useState("");
-  const [qty, setQty] = useState(1);
+  // Fetch reviews
+  const reviewsDocs = await Review.find({ productId: productDoc._id, isApproved: true })
+    .populate({ path: "userId", model: User, select: "name avatar" })
+    .sort({ createdAt: -1 });
 
-  useEffect(() => {
-    if (product && !color && product.colors?.length > 0) {
-      setColor(product.colors[0]);
+  // Fetch related products
+  const relatedDocs = await Product.find({
+    category: productDoc.category,
+    _id: { $ne: productDoc._id },
+    isActive: true
+  }).limit(4).populate("category");
+
+  return {
+    product: normalizedProduct,
+    reviews: JSON.parse(JSON.stringify(reviewsDocs)),
+    related: relatedDocs.map(p => normalizeProduct(p))
+  };
+}
+
+export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+  const { productId } = await params;
+  const { isReady } = await ensureDbReady();
+  
+  let product = null;
+  if (isReady) {
+    product = await Product.findOne({ slug: productId, isActive: true });
+    if (!product && productId.match(/^[0-9a-fA-F]{24}$/)) {
+      product = await Product.findOne({ _id: productId, isActive: true });
     }
-  }, [product, color]);
+  }
 
   if (!product) {
+    return {
+      title: "Product Not Found — Raja Boot House",
+      description: "This footwear style is not available."
+    };
+  }
+
+  return {
+    title: `${product.name} — Raja Boot House`,
+    description: product.description?.slice(0, 160) || `Buy ${product.name} at Raja Boot House.`,
+    openGraph: {
+      title: `${product.name} — Raja Boot House`,
+      description: product.description?.slice(0, 160),
+      images: [{ url: product.images?.[0]?.url || "/assets/product-placeholder.jpg" }]
+    }
+  };
+}
+
+export default async function ProductPage({ params }: PageProps) {
+  const { productId } = await params;
+  const data = await getProductData(productId);
+
+  if (!data) {
     return (
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-20 text-center">
-        <p className="mb-4">Loading product...</p>
-        <Link href="/shop" className="underline font-semibold">
+        <h1 className="font-serif text-3xl font-bold text-charcoal mb-4">Product Not Found</h1>
+        <p className="text-muted-foreground mb-6">The style you are looking for does not exist or has been removed.</p>
+        <Link href="/shop" className="underline font-semibold text-primary">
           Back to shop
         </Link>
       </div>
     );
   }
 
-  const wished = wishlist.includes(product.id);
-
-  const handleAdd = () => {
-    if (!size) {
-      alert("Please select a size");
-      return;
-    }
-    add(product, { size, color, quantity: qty });
-    router.push("/cart");
+  // Schema.org JSON-LD Structured Data
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Product",
+    "name": data.product.name,
+    "image": data.product.gallery,
+    "description": data.product.description,
+    "sku": data.product.id,
+    "brand": {
+      "@type": "Brand",
+      "name": data.product.vendorId || "Raja Boot House"
+    },
+    "offers": {
+      "@type": "Offer",
+      "url": `https://rajaboothouse.com/shop/${data.product.slug}`,
+      "priceCurrency": "INR",
+      "price": data.product.price,
+      "itemCondition": "https://schema.org/NewCondition",
+      "availability": data.product.stock > 0 ? "https://schema.org/InStock" : "https://schema.org/OutOfStock"
+    },
+    "aggregateRating": data.product.reviewsCount > 0 ? {
+      "@type": "AggregateRating",
+      "ratingValue": data.product.rating,
+      "reviewCount": data.product.reviewsCount
+    } : undefined
   };
 
   return (
-    <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12 lg:py-16">
-      <div className="text-xs text-muted-foreground mb-6 flex gap-1">
-        <Link href="/">Home</Link>
-        <span>/</span>
-        <Link href="/shop">Shop</Link>
-        <span>/</span>
-        <span className="text-foreground">{product.name}</span>
-      </div>
-
-      <div className="grid md:grid-cols-2 gap-8 md:gap-16">
-        {/* Gallery */}
-        <ProductGallery gallery={product.gallery} name={product.name} />
-
-        {/* Info */}
-        <div className="space-y-6">
-          <div>
-            <p className="text-[11px] uppercase tracking-[0.3em] text-cognac font-semibold">{product.category}</p>
-            <h1 className="font-serif text-3xl md:text-5xl font-bold mt-2">{product.name}</h1>
-            <div className="flex items-center gap-3 mt-3">
-              <div className="flex">
-                {[...Array(5)].map((_, i) => (
-                  <Star key={i} className={`h-4 w-4 ${i < Math.round(product.rating) ? "fill-brass text-brass" : "text-muted"}`} />
-                ))}
-              </div>
-              <span className="text-xs text-muted-foreground">{product.rating} · {product.reviewsCount} reviews</span>
-            </div>
-            <div className="mt-4 flex items-baseline gap-3">
-              <span className="font-serif text-3xl font-bold">{formatINR(product.price)}</span>
-              {product.compareAt && <span className="text-muted-foreground line-through">{formatINR(product.compareAt)}</span>}
-            </div>
-            <p className="mt-5 text-muted-foreground leading-relaxed">{product.description}</p>
-          </div>
-
-          {/* Color Selector */}
-          <ColorSelector colors={product.colors} selectedColor={color} onSelect={setColor} />
-
-          {/* Size Selector */}
-          <SizeSelector sizes={product.sizes} selectedSize={size} onSelect={setSize} />
-
-          {/* Qty + CTA */}
-          <div className="flex gap-3 items-center pt-2">
-            <QuantitySelector quantity={qty} onChange={setQty} />
-            <button onClick={handleAdd} className="flex-1 bg-primary text-primary-foreground rounded-full h-12 font-semibold flex items-center justify-center gap-2 hover:bg-primary/90 transition cursor-pointer">
-              <ShoppingBag className="h-4 w-4" /> Add to bag
-            </button>
-            <button onClick={() => toggleWish(product.id)} className="h-12 w-12 grid place-items-center border border-border rounded-full hover:bg-muted transition cursor-pointer">
-              <Heart className={`h-4 w-4 ${wished ? "fill-primary text-primary" : ""}`} />
-            </button>
-          </div>
-
-          {/* Details */}
-          <div className="border-t border-border pt-6 space-y-3">
-            <h3 className="font-semibold text-sm">Crafted with</h3>
-            <ul className="text-sm text-muted-foreground space-y-1.5">
-              {product.details.map((d: any) => <li key={d} className="flex gap-2"><span className="text-cognac">·</span>{d}</li>)}
-            </ul>
-          </div>
-
-          {/* Trust Badges */}
-          <TrustBadges />
-        </div>
-      </div>
-
-      {/* Reviews Section */}
-      <ReviewsSection reviews={reviews} />
-
-      {/* Related Products */}
-      {related.length > 0 && (
-        <section className="mt-16 md:mt-24">
-          <h2 className="font-serif text-2xl md:text-3xl font-bold mb-6">You may also like</h2>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
-            {related.map((p, i) => <ProductCard key={p.id} product={p} index={i} />)}
-          </div>
-        </section>
-      )}
-    </div>
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
+      <ProductClient
+        product={data.product}
+        initialReviews={data.reviews}
+        relatedProducts={data.related}
+      />
+    </>
   );
 }

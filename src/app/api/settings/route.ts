@@ -9,14 +9,13 @@ const defaultGeneral = {
   taxRate: 8,
   currency: "INR — ₹",
   currencySymbol: "₹",
-  currencyMultiplier: 84,
   defaultReturnDays: 7,
 };
 
 const defaultShipping = [
   { id: "std", name: "Standard", desc: "5–7 days", price: 0 },
-  { id: "exp", name: "Express", desc: "2–3 days", price: 4.75 },
-  { id: "same", name: "Same-day (Jawa Rewa)", desc: "Today", price: 8.32 }
+  { id: "exp", name: "Express", desc: "2–3 days", price: 150 },
+  { id: "same", name: "Same-day (Jawa Rewa)", desc: "Today", price: 350 }
 ];
 
 export async function GET() {
@@ -52,7 +51,7 @@ export async function PUT(request: Request) {
     }
 
     const body = await request.json();
-    const { storeName, supportEmail, taxRate, currency, currencySymbol, currencyMultiplier, defaultReturnDays, shippingMethods } = body;
+    const { storeName, supportEmail, taxRate, currency, currencySymbol, defaultReturnDays, shippingMethods } = body;
 
     const db = await connectToDatabase();
     if (!db) {
@@ -69,7 +68,6 @@ export async function PUT(request: Request) {
             taxRate: typeof taxRate === "number" ? taxRate : defaultGeneral.taxRate,
             currency: currency || defaultGeneral.currency,
             currencySymbol: currencySymbol || defaultGeneral.currencySymbol,
-            currencyMultiplier: typeof currencyMultiplier === "number" ? currencyMultiplier : defaultGeneral.currencyMultiplier,
             defaultReturnDays: typeof defaultReturnDays === "number" ? defaultReturnDays : defaultGeneral.defaultReturnDays
           } 
         },

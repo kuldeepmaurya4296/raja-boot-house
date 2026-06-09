@@ -119,8 +119,56 @@ export default function CheckoutPage() {
   // Payment State
   const [paymentMethod, setPaymentMethod] = useState<"Online" | "COD">("Online");
 
+  // Coupon States
+  const [couponCode, setCouponCode] = useState("");
+  const [couponApplied, setCouponApplied] = useState(false);
+  const [couponDiscount, setCouponDiscount] = useState(0);
+  const [couponMessage, setCouponMessage] = useState("");
+
+  const handleApplyCoupon = async () => {
+    if (!couponCode.trim()) {
+      setCouponMessage("Please enter a coupon code");
+      return;
+    }
+    try {
+      const res = await fetch("/api/coupons/validate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ code: couponCode, cartValue: subtotal })
+      });
+      const data = await res.json();
+      if (data.valid) {
+        setCouponApplied(true);
+        setCouponMessage(data.message);
+        let discount = 0;
+        if (data.type === "percent") {
+          discount = Math.round(subtotal * (data.value / 100));
+        } else if (data.type === "fixed") {
+          discount = data.value;
+        }
+        setCouponDiscount(discount);
+        toast.success("Coupon applied successfully!");
+      } else {
+        setCouponApplied(false);
+        setCouponDiscount(0);
+        setCouponMessage(data.message || "Invalid coupon code");
+        toast.error(data.message || "Invalid coupon code");
+      }
+    } catch (err) {
+      toast.error("Failed to validate coupon");
+    }
+  };
+
+  const handleRemoveCoupon = () => {
+    setCouponApplied(false);
+    setCouponCode("");
+    setCouponDiscount(0);
+    setCouponMessage("");
+    toast.info("Coupon removed");
+  };
+
   const tax = Math.round(subtotal * (settings.taxRate / 100));
-  const total = subtotal + shippingCost + tax;
+  const total = Math.max(0, subtotal + shippingCost + tax - couponDiscount);
 
   const handleShippingChange = (name: string, price: number) => {
     setShippingMethod(name);
@@ -165,9 +213,13 @@ export default function CheckoutPage() {
           pricing: {
             subtotal,
             shipping: shippingCost,
-            couponDiscount: 0,
+            couponDiscount,
             total,
           },
+          coupon: couponApplied ? {
+            code: couponCode,
+            discountAmount: couponDiscount,
+          } : undefined,
           payment: {
             method: paymentMethod === "COD" ? "COD" : "UPI",
             status: "PENDING",
@@ -197,7 +249,7 @@ export default function CheckoutPage() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          amount: Math.round(total * 84), // Convert base currency (USD-equivalent) to INR
+          amount: total, // Pass amount in INR directly (backend will convert to paise)
           receipt: orderId,
         }),
       });
@@ -416,6 +468,36 @@ export default function CheckoutPage() {
                     </label>
                   ))}
                 </div>
+
+                <div className="border-t border-border pt-6 mt-6">
+                  <h3 className="font-serif text-lg font-bold mb-3">Apply Coupon</h3>
+                  <div className="flex gap-2 max-w-sm">
+                    <input
+                      type="text"
+                      placeholder="Enter coupon code (e.g. RAJA10)"
+                      value={couponCode}
+                      onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
+                      disabled={couponApplied}
+                      className="flex-1 px-4 py-2 bg-background border border-input rounded-xl text-sm focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary transition"
+                    />
+                    <button
+                      type="button"
+                      onClick={couponApplied ? handleRemoveCoupon : handleApplyCoupon}
+                      className={`px-5 py-2 rounded-xl text-xs font-semibold cursor-pointer transition ${
+                        couponApplied
+                          ? "bg-red-50 text-red-650 hover:bg-red-100/50"
+                          : "bg-primary/10 text-primary hover:bg-primary/20"
+                      }`}
+                    >
+                      {couponApplied ? "Remove" : "Apply"}
+                    </button>
+                  </div>
+                  {couponMessage && (
+                    <p className={`text-xs mt-1.5 font-medium ${couponApplied ? "text-green-600 animate-in fade-in" : "text-destructive animate-in fade-in"}`}>
+                      {couponMessage}
+                    </p>
+                  )}
+                </div>
               </>
             )}
 
@@ -461,8 +543,18 @@ export default function CheckoutPage() {
               <button
                 disabled={loading}
                 onClick={() => {
-                  if (step < 3) {
-                    setStep((step + 1) as 1 | 2 | 3);
+                  if (step === 1) {
+                    if (!fullName.trim()) { toast.error("Full name is required"); return; }
+                    if (!phone.trim()) { toast.error("Phone number is required"); return; }
+                    if (!/^[6-9]\d{9}$/.test(phone.replace(/\s+/g, ""))) { toast.error("Enter a valid 10-digit Indian mobile number"); return; }
+                    if (!line1.trim()) { toast.error("Address line 1 is required"); return; }
+                    if (!city.trim()) { toast.error("City is required"); return; }
+                    if (!state.trim()) { toast.error("State is required"); return; }
+                    if (!zip.trim()) { toast.error("ZIP/PIN code is required"); return; }
+                    if (!/^\d{6}$/.test(zip.trim())) { toast.error("Enter a valid 6-digit Indian PIN code"); return; }
+                    setStep(2);
+                  } else if (step === 2) {
+                    setStep(3);
                   } else {
                     handlePlaceOrder();
                   }
@@ -478,6 +570,8 @@ export default function CheckoutPage() {
               subtotal={subtotal}
               shipping={shippingCost}
               tax={tax}
+              couponDiscount={couponDiscount}
+              couponCode={couponCode}
               actionButton={
                 <div className="border-t border-border pt-4 mt-2">
                   <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">

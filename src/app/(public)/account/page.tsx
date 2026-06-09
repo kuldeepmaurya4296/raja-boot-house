@@ -5,7 +5,7 @@ import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import { StatusBadge } from "@/modules/admin/shared/components/DataTable";
 import { formatINR, formatDate } from "@/lib/format";
-import { Package, Heart, MapPin, ArrowRight } from "lucide-react";
+import { Package, Heart, MapPin, ArrowRight, IndianRupee } from "lucide-react";
 
 export default function AccountOverview() {
   const { data: session } = useSession();
@@ -81,7 +81,7 @@ export default function AccountOverview() {
 
   const statItems = [
     { label: "Total orders", value: stats?.totalOrders ?? 0, icon: Package },
-    { label: "Total spent", value: formatINR(stats?.totalSpent ?? 0), icon: Heart },
+    { label: "Total spent", value: formatINR(stats?.totalSpent ?? 0), icon: IndianRupee },
     { label: "Saved addresses", value: stats?.savedAddressesCount ?? 0, icon: MapPin },
   ];
 

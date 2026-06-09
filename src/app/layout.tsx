@@ -4,8 +4,32 @@ import { Toaster } from "sonner";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Raja Boot House — Reputed Footwear Retail Store",
-  description: "Footwear retail brand established in 2025 by the Gupta brothers. Offers a wide range of footwear for men, women, and children from Lakhani, Touch, Paragon, Goldstar, and more.",
+  metadataBase: new URL("https://rajaboothouse.com"),
+  title: {
+    default: "Raja Boot House — Handcrafted Leather Boots & Premium Footwear",
+    template: "%s | Raja Boot House"
+  },
+  description: "Footwear retail brand established since 1972. Offers a wide range of premium footwear for men, women, and children from Lakhani, Touch, Paragon, Goldstar, and more.",
+  openGraph: {
+    type: "website",
+    locale: "en_IN",
+    url: "https://rajaboothouse.com",
+    siteName: "Raja Boot House",
+    images: [
+      {
+        url: "/assets/hero-boots.jpg",
+        width: 1200,
+        height: 630,
+        alt: "Raja Boot House Handcrafted Footwear"
+      }
+    ]
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Raja Boot House",
+    description: "Handcrafted luxury footwear and premium Indian leather craftsmanship since 1972.",
+    images: ["/assets/hero-boots.jpg"]
+  }
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

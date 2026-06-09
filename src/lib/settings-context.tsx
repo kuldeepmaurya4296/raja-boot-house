@@ -14,7 +14,6 @@ export interface Settings {
   supportEmail: string;
   currency: string;
   currencySymbol: string;
-  currencyMultiplier: number;
   taxRate: number;
   defaultReturnDays: number;
   shippingMethods: ShippingMethod[];
@@ -30,13 +29,12 @@ const defaultSettings: Settings = {
   supportEmail: "care@rajaboothouse.com",
   currency: "INR — ₹",
   currencySymbol: "₹",
-  currencyMultiplier: 84,
   taxRate: 8,
   defaultReturnDays: 7,
   shippingMethods: [
     { id: "std", name: "Standard", desc: "5–7 days", price: 0 },
-    { id: "exp", name: "Express", desc: "2–3 days", price: 4.75 },
-    { id: "same", name: "Same-day (Jawa Rewa)", desc: "Today", price: 8.32 }
+    { id: "exp", name: "Express", desc: "2–3 days", price: 150 },
+    { id: "same", name: "Same-day (Jawa Rewa)", desc: "Today", price: 350 }
   ]
 };
 

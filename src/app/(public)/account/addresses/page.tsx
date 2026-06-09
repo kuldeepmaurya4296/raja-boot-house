@@ -22,6 +22,7 @@ export default function AccountAddressesPage() {
   const { data: session } = useSession();
   const [addresses, setAddresses] = useState<Address[]>([]);
   const [loading, setLoading] = useState(true);
+  const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
 
   // Form states
   const [isFormOpen, setIsFormOpen] = useState(false);
@@ -146,8 +147,6 @@ export default function AccountAddressesPage() {
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm("Are you sure you want to remove this address?")) return;
-
     try {
       const res = await fetch(`/api/user/addresses?id=${id}`, {
         method: "DELETE",
@@ -234,19 +233,44 @@ export default function AccountAddressesPage() {
                 <p className="mt-2 text-xs text-muted-foreground font-medium">Phone: {a.phone}</p>
               </div>
 
-              <div className="mt-5 pt-3 border-t border-border flex gap-3 text-xs">
-                <button
-                  onClick={() => handleOpenEdit(a)}
-                  className="underline hover:text-primary font-semibold cursor-pointer flex items-center gap-1 text-muted-foreground transition-colors"
-                >
-                  <Edit2 className="h-3 w-3" /> Edit
-                </button>
-                <button
-                  onClick={() => handleDelete(a._id!)}
-                  className="underline hover:text-destructive font-semibold cursor-pointer flex items-center gap-1 text-muted-foreground hover:text-red-650 transition-colors"
-                >
-                  <Trash2 className="h-3 w-3" /> Remove
-                </button>
+              <div className="mt-5 pt-3 border-t border-border flex justify-between items-center text-xs w-full min-h-[36px]">
+                {deleteConfirmId === a._id ? (
+                  <div className="flex items-center gap-2 bg-red-50 border border-red-100 rounded-lg px-2.5 py-1.5 w-full justify-between animate-in fade-in duration-150">
+                    <span className="font-semibold text-red-700">Delete address?</span>
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => {
+                          handleDelete(a._id!);
+                          setDeleteConfirmId(null);
+                        }}
+                        className="bg-destructive text-destructive-foreground hover:bg-destructive/90 px-2.5 py-1 rounded font-semibold transition cursor-pointer"
+                      >
+                        Yes
+                      </button>
+                      <button
+                        onClick={() => setDeleteConfirmId(null)}
+                        className="bg-background border border-input text-foreground hover:bg-muted px-2.5 py-1 rounded font-semibold transition cursor-pointer"
+                      >
+                        No
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="flex gap-3">
+                    <button
+                      onClick={() => handleOpenEdit(a)}
+                      className="underline hover:text-primary font-semibold cursor-pointer flex items-center gap-1 text-muted-foreground transition-colors"
+                    >
+                      <Edit2 className="h-3 w-3" /> Edit
+                    </button>
+                    <button
+                      onClick={() => setDeleteConfirmId(a._id!)}
+                      className="underline hover:text-destructive font-semibold cursor-pointer flex items-center gap-1 text-muted-foreground hover:text-red-650 transition-colors"
+                    >
+                      <Trash2 className="h-3 w-3" /> Remove
+                    </button>
+                  </div>
+                )}
               </div>
             </div>
           ))}

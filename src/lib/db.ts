@@ -29,39 +29,46 @@ const resolveSrv = dns ? promisify(dns.resolveSrv) : async () => {
 };
 
 async function resolveMongoSrv(srvUri: string): Promise<string> {
-  // Check if it's an SRV connection string
   if (!srvUri.startsWith("mongodb+srv://")) {
     return srvUri;
   }
 
-  // Parse credentials and host
-  const match = srvUri.match(/^mongodb\+srv:\/\/([^:]+):([^@]+)@([^/]+)(.*)$/);
-  if (!match) return srvUri;
-
-  const [_, user, pass, hostWithParams, rest] = match;
-  const hostMatch = hostWithParams.match(/^([^?]+)(\?.*)?$/);
-  if (!hostMatch) return srvUri;
-
-  const [__, host, params] = hostMatch;
-  const srvDomain = `_mongodb._tcp.${host}`;
-
   try {
-    if (!dns) throw new Error("DNS not available");
-    console.log(`Resolving MongoDB SRV records for: ${srvDomain}`);
-    const records = await resolveSrv(srvDomain);
-    if (records.length === 0) throw new Error("No SRV records returned");
+    const parsedUrl = new URL(srvUri.replace("mongodb+srv://", "http://"));
+    const host = parsedUrl.host;
+    const srvDomain = `_mongodb._tcp.${host}`;
+    
+    let shardList = "";
+    try {
+      if (!dns) throw new Error("DNS not available");
+      console.log(`Resolving MongoDB SRV records for: ${srvDomain}`);
+      const records = await resolveSrv(srvDomain);
+      if (records.length === 0) throw new Error("No SRV records returned");
+      shardList = records.map((r: any) => `${r.name}:${r.port}`).join(",");
+    } catch (err) {
+      console.warn("MongoDB SRV lookup failed, falling back to static shard list resolution.", err);
+      shardList = "ac-7icklru-shard-00-00.wx9o96c.mongodb.net:27017,ac-7icklru-shard-00-01.wx9o96c.mongodb.net:27017,ac-7icklru-shard-00-02.wx9o96c.mongodb.net:27017";
+    }
 
-    const shardList = records.map((r: any) => `${r.name}:${r.port}`).join(",");
-    const sslParam = params ? (params.includes("ssl=") || params.includes("tls=") ? "" : "&ssl=true") : "?ssl=true";
-    const directUri = `mongodb://${user}:${pass}@${shardList}${rest || "/"}${params || ""}${sslParam}&authSource=admin`;
+    const pathname = parsedUrl.pathname;
+    const searchParams = parsedUrl.searchParams;
+
+    if (!searchParams.has("ssl") && !searchParams.has("tls")) {
+      searchParams.set("ssl", "true");
+    }
+    if (!searchParams.has("authSource")) {
+      searchParams.set("authSource", "admin");
+    }
+
+    const username = parsedUrl.username;
+    const password = parsedUrl.password;
+    const credentials = username ? `${username}:${password}@` : "";
+
+    const directUri = `mongodb://${credentials}${shardList}${pathname}?${searchParams.toString()}`;
     return directUri;
   } catch (err) {
-    console.warn("MongoDB SRV lookup failed, falling back to static shard list resolution.", err);
-    // Hardcoded resolved shards for the user's specific cluster
-    const shardList = "ac-7icklru-shard-00-00.wx9o96c.mongodb.net:27017,ac-7icklru-shard-00-01.wx9o96c.mongodb.net:27017,ac-7icklru-shard-00-02.wx9o96c.mongodb.net:27017";
-    const sslParam = params ? (params.includes("ssl=") || params.includes("tls=") ? "" : "&ssl=true") : "?ssl=true";
-    const directUri = `mongodb://${user}:${pass}@${shardList}${rest || "/"}${params || ""}${sslParam}&authSource=admin`;
-    return directUri;
+    console.error("Failed to parse MongoDB URI:", err);
+    return srvUri;
   }
 }
 

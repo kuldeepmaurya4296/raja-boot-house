@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
+import { useEffect } from "react";
 import { User, Package, Heart, MapPin, Settings, LogOut } from "lucide-react";
 import { useSession, signOut } from "next-auth/react";
 
@@ -15,9 +16,25 @@ const items = [
 
 export default function AccountLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const { data: session } = useSession();
+  const router = useRouter();
+  const { data: session, status } = useSession();
 
-  if (!session) return null; // or loading
+  useEffect(() => {
+    if (status === "unauthenticated") {
+      router.push("/login?callbackUrl=" + encodeURIComponent(pathname));
+    }
+  }, [status, router, pathname]);
+
+  if (status === "loading") {
+    return (
+      <div className="container mx-auto px-4 py-20 text-center flex flex-col items-center justify-center min-h-[300px]">
+        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary"></div>
+        <p className="mt-4 text-muted-foreground text-sm font-semibold">Verifying session...</p>
+      </div>
+    );
+  }
+
+  if (!session) return null;
 
   return (
     <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12 lg:py-16">

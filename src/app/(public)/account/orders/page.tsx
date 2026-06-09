@@ -266,8 +266,59 @@ export default function AccountOrdersPage() {
     fetchOrders();
   };
 
+  const handleCancelOrder = (orderId: string) => {
+    toast("Are you sure you want to cancel this order? This cannot be undone.", {
+      action: {
+        label: "Cancel Order",
+        onClick: async () => {
+          try {
+            const res = await fetch("/api/orders", {
+              method: "PUT",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ orderId, status: "CANCELLED", note: "Cancelled by customer." })
+            });
+            const data = await res.json();
+            if (res.ok) {
+              toast.success("Order cancelled successfully!");
+              fetchOrders();
+            } else {
+              toast.error(data.error || "Failed to cancel order");
+            }
+          } catch (err) {
+            toast.error("An error occurred. Please try again.");
+          }
+        }
+      }
+    });
+  };
+
   if (loading) {
-    return <div className="py-10">Loading your orders...</div>;
+    return (
+      <div className="space-y-4 animate-pulse">
+        <h2 className="font-serif text-2xl font-bold">My orders</h2>
+        {[1, 2].map(i => (
+          <div key={i} className="bg-card border border-border rounded-xl p-5 shadow-sm space-y-4">
+            <div className="flex justify-between pb-4 border-b border-border">
+              <div className="space-y-2">
+                <div className="h-4 w-24 bg-muted rounded"></div>
+                <div className="h-3 w-32 bg-muted rounded"></div>
+              </div>
+              <div className="h-6 w-20 bg-muted rounded"></div>
+            </div>
+            <div className="space-y-3">
+              <div className="flex items-center gap-3">
+                <div className="h-14 w-14 rounded-lg bg-muted"></div>
+                <div className="flex-1 space-y-2">
+                  <div className="h-4 w-40 bg-muted rounded"></div>
+                  <div className="h-3 w-24 bg-muted rounded"></div>
+                </div>
+                <div className="h-4 w-16 bg-muted rounded"></div>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+    );
   }
 
   if (orders.length === 0) {
@@ -356,8 +407,19 @@ export default function AccountOrdersPage() {
               </div>
             )}
 
-            {/* Toggle Button */}
-            <div className="mt-4 pt-3 border-t border-border flex justify-end">
+            {/* Action Buttons */}
+            <div className="mt-4 pt-3 border-t border-border flex justify-between items-center gap-3">
+              <div>
+                {(o.status === "PLACED" || o.status === "CONFIRMED") && (
+                  <button
+                    onClick={() => handleCancelOrder(o.orderId)}
+                    className="text-xs font-semibold px-4 py-2 rounded-full border border-red-200 text-red-600 hover:bg-red-50 transition cursor-pointer"
+                  >
+                    Cancel Order
+                  </button>
+                )}
+              </div>
+
               <button
                 onClick={() => toggleExpand(o._id || o.id)}
                 className="text-xs font-semibold flex items-center gap-1 hover:text-primary transition cursor-pointer text-muted-foreground border border-border px-3.5 py-1.5 rounded-full hover:bg-muted"
