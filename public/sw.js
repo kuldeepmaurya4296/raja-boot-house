@@ -6,7 +6,8 @@ const ASSETS_TO_CACHE = [
   "/web-app-manifest-192x192.png",
   "/web-app-manifest-512x512.png",
   "/favicon-96x96.png",
-  "/apple-touch-icon.png"
+  "/apple-touch-icon.png",
+  "/rbh-logo.png"
 ];
 
 // Install Event - cache core shell
