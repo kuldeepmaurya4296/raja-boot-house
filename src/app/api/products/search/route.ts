@@ -46,7 +46,7 @@ export async function GET(request: Request) {
         { tags: regex },
         { category: { $in: categoryIds } },
       ],
-    }).populate("category");
+    }).populate({ path: "category", model: Category });
 
     const normalized = products.map((p: any) => normalizeProduct(p));
 

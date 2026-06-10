@@ -65,7 +65,7 @@ async function getShopData(filters: any) {
     ];
   }
 
-  let mongooseQuery = Product.find(query).populate("category");
+  let mongooseQuery = Product.find(query).populate({ path: "category", model: Category });
 
   if (sort === "low") {
     mongooseQuery = mongooseQuery.sort({ salePrice: 1 });

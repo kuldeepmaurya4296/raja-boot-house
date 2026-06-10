@@ -61,7 +61,7 @@ export async function GET(request: Request) {
       ];
     }
 
-    let mongooseQuery = Product.find(query).populate("category");
+    let mongooseQuery = Product.find(query).populate({ path: "category", model: Category });
 
     // Sorting logic
     if (sort === "low") {

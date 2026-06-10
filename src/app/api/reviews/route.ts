@@ -3,6 +3,7 @@ import { connectToDatabase } from "@/lib/db";
 import mongoose from "mongoose";
 import Review from "@/lib/models/Review";
 import Product from "@/lib/models/Product";
+import User from "@/lib/models/User";
 
 
 export async function GET(request: Request) {
@@ -20,7 +21,7 @@ export async function GET(request: Request) {
     }
 
     const reviews = await Review.find({ productId, isApproved: true })
-      .populate("userId", "name avatar")
+      .populate({ path: "userId", model: User, select: "name avatar" })
       .sort({ createdAt: -1 });
 
     return NextResponse.json(reviews);

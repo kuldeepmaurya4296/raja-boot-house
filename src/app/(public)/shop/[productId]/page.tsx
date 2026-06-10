@@ -20,9 +20,9 @@ async function getProductData(productId: string) {
   }
   
   // Try finding by slug first, then by ObjectId id
-  let productDoc = await Product.findOne({ slug: productId, isActive: true }).populate("category");
+  let productDoc = await Product.findOne({ slug: productId, isActive: true }).populate({ path: "category", model: Category });
   if (!productDoc && productId.match(/^[0-9a-fA-F]{24}$/)) {
-    productDoc = await Product.findOne({ _id: productId, isActive: true }).populate("category");
+    productDoc = await Product.findOne({ _id: productId, isActive: true }).populate({ path: "category", model: Category });
   }
 
   if (!productDoc) return null;
@@ -39,7 +39,7 @@ async function getProductData(productId: string) {
     category: productDoc.category,
     _id: { $ne: productDoc._id },
     isActive: true
-  }).limit(4).populate("category");
+  }).limit(4).populate({ path: "category", model: Category });
 
   return {
     product: normalizedProduct,

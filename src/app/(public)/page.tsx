@@ -29,7 +29,7 @@ async function getHomepageData() {
       console.warn("Database connection is not ready. Returning empty homepage product list.");
       return [];
     }
-    const rawProducts = await Product.find({ isActive: true }).populate("category").sort({ createdAt: -1 });
+    const rawProducts = await Product.find({ isActive: true }).populate({ path: "category", model: Category }).sort({ createdAt: -1 });
     return rawProducts.map((p: any) => normalizeProduct(p));
   } catch (err) {
     console.error("Failed to load homepage data:", err);

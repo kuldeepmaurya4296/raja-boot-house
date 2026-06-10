@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { connectToDatabase } from "@/lib/db";
 import Product from "@/lib/models/Product";
+import Category from "@/lib/models/Category";
 
 import { ensureDbReady, normalizeProduct } from "@/lib/db-utils";
 
@@ -14,9 +15,9 @@ export async function GET(request: Request, { params }: { params: Promise<{ slug
     }
 
     // Try finding by slug first, then by ObjectId id
-    let product = await Product.findOne({ slug, isActive: true }).populate("category");
+    let product = await Product.findOne({ slug, isActive: true }).populate({ path: "category", model: Category });
     if (!product && slug.match(/^[0-9a-fA-F]{24}$/)) {
-      product = await Product.findOne({ _id: slug, isActive: true }).populate("category");
+      product = await Product.findOne({ _id: slug, isActive: true }).populate({ path: "category", model: Category });
     }
 
     if (!product) {
