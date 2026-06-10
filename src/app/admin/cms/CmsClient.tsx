@@ -52,7 +52,7 @@ export function CmsClient({
           onClick={() => setTab("categories")}
           className={`px-4 py-2 font-medium text-sm border-b-2 transition-colors ${tab === "categories" ? "border-primary text-foreground" : "border-transparent text-muted-foreground hover:text-foreground"}`}
         >
-          By Silhouette (Categories)
+          Shop by Style (Categories)
         </button>
         <button
           onClick={() => setTab("brands")}
@@ -292,8 +292,8 @@ function CategoriesTab({ categories }: { categories: any[] }) {
     <div className="space-y-4">
       <div className="flex justify-between items-center">
         <div>
-          <h3 className="font-semibold text-base">Homepage Categories ("By Silhouette")</h3>
-          <p className="text-xs text-muted-foreground">Manage the shoe silhouettes displayed on the homepage category grid.</p>
+          <h3 className="font-semibold text-base">Homepage Categories ("Shop by Style")</h3>
+          <p className="text-xs text-muted-foreground">Manage the shoe styles/categories displayed on the homepage category grid.</p>
         </div>
       </div>
       <DataTable columns={cols} rows={categories} empty="No categories configured." />

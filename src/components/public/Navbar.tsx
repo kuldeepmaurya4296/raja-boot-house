@@ -399,10 +399,10 @@ export function Navbar() {
                         </div>
                       )}
 
-                      {/* Quick Silhouettes category suggestions */}
+                      {/* Quick Style category suggestions */}
                       <div>
                         <h4 className="text-[10px] uppercase tracking-widest text-muted-foreground font-semibold mb-2">
-                          Popular Silhouettes
+                          Popular Styles
                         </h4>
                         <div className="flex flex-wrap gap-2">
                           {categoriesList.map((c) => (

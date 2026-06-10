@@ -96,7 +96,7 @@ export default async function Home() {
         </div>
       </section>
 
-      {/* Dynamic Silhouettes Categories */}
+      {/* Dynamic Style Categories */}
       <CategoryGrid />
 
       {/* Brand Logos Infinite sliding Marquee */}

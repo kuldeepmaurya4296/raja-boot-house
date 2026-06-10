@@ -98,7 +98,7 @@ export default function ShopClient({ categories, initialProducts }: ShopClientPr
                 : "bg-muted text-foreground hover:bg-secondary"
             }`}
           >
-            All Silhouettes
+            All Styles
           </button>
           {categories.map((c) => (
             <button

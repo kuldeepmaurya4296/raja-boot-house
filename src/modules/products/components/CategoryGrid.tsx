@@ -38,12 +38,13 @@ export function CategoryGrid() {
       <div className="flex items-end justify-between mb-8">
         <div>
           <p className="text-[11px] uppercase tracking-[0.3em] text-cognac font-semibold mb-2">Browse</p>
-          <h2 className="font-serif text-3xl md:text-5xl font-bold text-charcoal">By Silhouette</h2>
+          <h2 className="font-serif text-3xl md:text-5xl font-bold text-charcoal">Shop by Style</h2>
         </div>
         <Link href="/shop" className="hidden md:inline text-sm font-semibold underline underline-offset-4 cursor-pointer">
           View all
         </Link>
       </div>
+      
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 md:gap-6">
         {categoriesList.map((c, i) => {
           const imgUrl = c.imageUrl || fallbacks[c.slug] || fallbacks[c.slug?.replace("s", "")];
@@ -90,6 +91,16 @@ export function CategoryGrid() {
             </motion.div>
           );
         })}
+      </div>
+
+      {/* Mobile Shop All Button - Larger, Tappable & Premium */}
+      <div className="mt-8 flex justify-center md:hidden">
+        <Link 
+          href="/shop" 
+          className="w-full bg-primary text-primary-foreground text-center py-4 rounded-xl text-xs sm:text-sm font-semibold uppercase tracking-wider hover:opacity-95 active:scale-98 transition shadow-md flex items-center justify-center gap-2 cursor-pointer border border-primary/20"
+        >
+          Shop All Styles →
+        </Link>
       </div>
     </section>
   );
