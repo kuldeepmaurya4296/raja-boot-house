@@ -87,8 +87,9 @@ export default function ShopClient({ categories, initialProducts }: ShopClientPr
       )}
 
       {/* Main Filter & Sort Controls Grid */}
-      <div className="sticky top-16 md:top-20 z-20 -mx-4 md:mx-0 px-4 md:px-0 py-3 bg-cream/90 backdrop-blur border-y border-border md:border-0 md:rounded-xl md:bg-card md:border md:p-4 md:shadow-card mb-8 flex items-center justify-between gap-4 overflow-x-auto scrollbar-hide">
-        <div className="flex items-center gap-2">
+      <div className="sticky top-16 md:top-20 z-20 -mx-4 md:mx-0 px-4 md:px-0 py-3 bg-cream/90 backdrop-blur border-y border-border md:border-0 md:rounded-xl md:bg-card md:border md:p-4 md:shadow-card mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        {/* Categories scrollable container */}
+        <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide pb-2 sm:pb-0 px-4 sm:px-0 -mx-4 sm:mx-0">
           <button
             onClick={() => updateFilters({ category: "all" })}
             className={`px-4 py-2 rounded-full text-xs font-bold whitespace-nowrap cursor-pointer transition ${
@@ -113,12 +114,17 @@ export default function ShopClient({ categories, initialProducts }: ShopClientPr
             </button>
           ))}
         </div>
-        <div className="flex items-center gap-2 text-sm shrink-0">
-          <SlidersHorizontal className="h-4 w-4 text-muted-foreground" />
+        
+        {/* Sort select box */}
+        <div className="flex items-center justify-between sm:justify-end gap-2 text-sm px-4 sm:px-0 border-t border-border/40 pt-2 sm:border-0 sm:pt-0 shrink-0">
+          <div className="flex items-center gap-1.5 text-xs text-muted-foreground font-semibold">
+            <SlidersHorizontal className="h-3.5 w-3.5" />
+            <span>Sort by:</span>
+          </div>
           <select
             value={activeSort}
             onChange={(e) => updateFilters({ sort: e.target.value })}
-            className="bg-card border border-input rounded-lg px-3 py-2 text-xs font-medium outline-none"
+            className="bg-card border border-input rounded-lg px-3 py-2 text-xs font-medium outline-none cursor-pointer"
           >
             <option value="new">Newest Arrivals</option>
             <option value="low">Price: Low to High</option>

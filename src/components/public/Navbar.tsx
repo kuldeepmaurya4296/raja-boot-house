@@ -207,10 +207,11 @@ export function Navbar() {
         <AnimatePresence>
           {menuOpen && (
             <motion.nav
-              initial={{ height: 0 }}
-              animate={{ height: "auto" }}
-              exit={{ height: 0 }}
-              className="md:hidden overflow-hidden border-t border-border bg-card"
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ duration: 0.2 }}
+              className="md:hidden absolute top-full left-0 right-0 border-b border-border bg-card shadow-lg z-50 overflow-hidden"
             >
               <div className="flex flex-col p-4 gap-1">
                 <Link

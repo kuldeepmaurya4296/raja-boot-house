@@ -44,7 +44,7 @@ export function CategoryGrid() {
           View all
         </Link>
       </div>
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-6">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 md:gap-6">
         {categoriesList.map((c, i) => {
           const imgUrl = c.imageUrl || fallbacks[c.slug] || fallbacks[c.slug?.replace("s", "")];
           return (

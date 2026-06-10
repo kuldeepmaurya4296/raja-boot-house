@@ -36,7 +36,7 @@ export default function CartPage() {
             );
           })}
         </div>
-        <aside className="h-fit sticky top-24">
+        <aside className="h-fit sticky top-24 pb-8 lg:pb-0">
           <OrderSummary
             subtotal={subtotal}
             shipping={shipping}
