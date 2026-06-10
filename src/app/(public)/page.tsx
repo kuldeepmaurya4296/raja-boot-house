@@ -4,13 +4,29 @@ import { Metadata } from "next";
 import { ensureDbReady, normalizeProduct } from "@/lib/db-utils";
 import Product from "@/lib/models/Product";
 import Category from "@/lib/models/Category";
+import Settings from "@/lib/models/Settings";
 import { OCCASIONS } from "@/data/occasions";
 import { Hero } from "@/components/public/Hero";
 import { CategoryGrid } from "@/modules/products/components/CategoryGrid";
 import { ProductCard } from "@/modules/products/components/ProductCard";
 import { BrandMarquee, OccasionGrid, EditorialBanner } from "@/modules/products/components/HomeAnimations";
 import { NewsletterFormClient } from "@/modules/products/components/NewsletterFormClient";
-import { Award, ShieldCheck, Truck, RotateCcw, ArrowRight } from "lucide-react";
+import { Award, ShieldCheck, Truck, RotateCcw, ArrowRight, HelpCircle } from "lucide-react";
+
+const ICON_MAP: Record<string, any> = {
+  Award,
+  ShieldCheck,
+  Truck,
+  RotateCcw,
+  HelpCircle,
+};
+
+const DEFAULT_TRUST_BADGES = [
+  { icon: "Award", title: "Official Retailer", subtitle: "Lakhani, Touch, Paragon, Goldstar" },
+  { icon: "ShieldCheck", title: "Gupta Brothers Craft", subtitle: "Since 1972 quality assurance" },
+  { icon: "Truck", title: "Free Shipping", subtitle: "Orders above ₹2000" },
+  { icon: "RotateCcw", title: "Simple Exchanges", subtitle: "Within 30 days hassle-free" },
+];
 
 export const metadata: Metadata = {
   title: "Raja Boot House — Handcrafted Leather Boots & Premium Footwear",
@@ -37,8 +53,23 @@ async function getHomepageData() {
   }
 }
 
+async function getTrustBadges() {
+  try {
+    const { isReady } = await ensureDbReady();
+    if (!isReady) return DEFAULT_TRUST_BADGES;
+    const doc = await Settings.findOne({ key: "trust_badges" }).lean();
+    return doc ? (doc.value as any[]) : DEFAULT_TRUST_BADGES;
+  } catch (err) {
+    console.error("Failed to load trust badges:", err);
+    return DEFAULT_TRUST_BADGES;
+  }
+}
+
 export default async function Home() {
-  const productList = await getHomepageData();
+  const [productList, trustBadges] = await Promise.all([
+    getHomepageData(),
+    getTrustBadges(),
+  ]);
 
   const featured = productList.filter((p) => p.badge === "bestseller" || p.badge === "new").slice(0, 4);
   const newest = [...productList].sort((a, b) => (b.createdAt || "").localeCompare(a.createdAt || "")).slice(0, 4);
@@ -50,20 +81,18 @@ export default async function Home() {
       {/* Trust Badges section */}
       <section className="border-y border-border bg-cream/60">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 lg:py-12 grid grid-cols-2 md:grid-cols-4 gap-4 text-center md:text-left">
-          {[
-            { icon: Award, t: "Official Retailer", s: "Lakhani, Touch, Paragon, Goldstar" },
-            { icon: ShieldCheck, t: "Gupta Brothers Craft", s: "Since 1972 quality assurance" },
-            { icon: Truck, t: "Free Shipping", s: "Orders above ₹2000" },
-            { icon: RotateCcw, t: "Simple Exchanges", s: "Within 30 days hassle-free" },
-          ].map(({ icon: I, t, s }) => (
-            <div key={t} className="flex items-center gap-3 justify-center md:justify-start">
-              <I className="h-5 w-5 text-cognac" />
-              <div className="text-left">
-                <div className="text-sm font-semibold text-charcoal">{t}</div>
-                <div className="text-[11px] text-muted-foreground">{s}</div>
+          {trustBadges.map((badge, index) => {
+            const IconComponent = ICON_MAP[badge.icon] || HelpCircle;
+            return (
+              <div key={index} className="flex items-center gap-3 justify-center md:justify-start">
+                <IconComponent className="h-5 w-5 text-cognac shrink-0" />
+                <div className="text-left">
+                  <div className="text-sm font-semibold text-charcoal">{badge.title}</div>
+                  <div className="text-[11px] text-muted-foreground">{badge.subtitle}</div>
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </section>
 

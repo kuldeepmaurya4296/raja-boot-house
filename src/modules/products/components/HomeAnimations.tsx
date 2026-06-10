@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { Sparkles, ArrowRight } from "lucide-react";
@@ -17,6 +17,21 @@ const BRANDS = [
 ];
 
 export function BrandMarquee() {
+  const [brands, setBrands] = useState<string[]>(BRANDS);
+
+  useEffect(() => {
+    fetch("/api/brands")
+      .then((res) => res.json())
+      .then((data) => {
+        if (Array.isArray(data) && data.length > 0) {
+          setBrands(data);
+        }
+      })
+      .catch((err) => console.error("Failed to load marquee brands:", err));
+  }, []);
+
+  const repeatedBrands = [...brands, ...brands, ...brands, ...brands];
+
   return (
     <section className="bg-charcoal text-cream overflow-hidden py-8 lg:py-10 relative">
       <div className="absolute top-0 bottom-0 left-0 w-20 bg-gradient-to-r from-charcoal to-transparent z-10 pointer-events-none" />
@@ -29,14 +44,14 @@ export function BrandMarquee() {
       <div className="flex w-full overflow-hidden">
         <motion.div
           className="flex gap-20 whitespace-nowrap text-xl md:text-2xl font-serif font-semibold italic text-cream/70 shrink-0"
-          animate={{ x: [0, -1200] }}
+          animate={{ x: [0, -1600] }}
           transition={{
             repeat: Infinity,
             duration: 35,
             ease: "linear",
           }}
         >
-          {[...BRANDS, ...BRANDS, ...BRANDS].map((b, i) => (
+          {repeatedBrands.map((b, i) => (
             <span key={i} className="flex items-center gap-2 select-none hover:text-brass transition">
               <Sparkles className="h-4 w-4 text-brass shrink-0" />
               {b}

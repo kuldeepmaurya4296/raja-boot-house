@@ -115,82 +115,119 @@ export function Hero() {
   const active = slides[current];
 
   return (
-    <section className="relative overflow-hidden bg-cream border-b border-border min-h-[500px] md:min-h-[580px] flex items-center">
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12 lg:py-16">
-        <div className="grid md:grid-cols-2 gap-8 md:gap-16 items-center">
-          
-          {/* Slide Content Column */}
-          <div className="relative h-[280px] md:h-[380px] flex flex-col justify-center">
-            <AnimatePresence mode="wait">
-              <motion.div
-                key={active.id}
-                initial={{ opacity: 0, x: -30 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: 30 }}
-                transition={{ duration: 0.5 }}
-                className="space-y-5 md:space-y-6 text-left"
-              >
-                <span className="inline-block text-[10px] tracking-[0.3em] uppercase text-cognac font-bold border border-cognac/30 rounded-full px-3 py-1 bg-cream">
-                  {active.tagline}
-                </span>
-                
-                <h1 className="font-serif text-[38px] leading-[1.05] md:text-6xl md:leading-[0.98] font-bold text-charcoal text-balance">
-                  {active.title}
-                </h1>
-                
-                <p className="text-sm md:text-base text-muted-foreground max-w-md">
-                  {active.subtitle}
-                </p>
-                
-                <div className="flex items-center gap-3 pt-2">
-                  <Link
-                    href={active.href}
-                    className="inline-flex items-center gap-2 bg-primary text-primary-foreground px-6 py-3.5 rounded-full text-xs md:text-sm font-semibold hover:bg-primary/90 transition group cursor-pointer"
-                  >
-                    {active.cta} <ArrowRight className="h-4 w-4 transition group-hover:translate-x-1" />
-                  </Link>
-                </div>
-              </motion.div>
-            </AnimatePresence>
-          </div>
-
-          {/* Slide Image Column */}
-          <div className="relative max-w-[272px] md:max-w-[352px] mx-auto w-full">
-            <AnimatePresence mode="wait">
-              <motion.div
-                key={active.id}
-                initial={{ opacity: 0, scale: 0.97 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.97 }}
-                transition={{ duration: 0.6 }}
-                className="relative w-full"
-              >
-                <div className="relative aspect-[4/5] max-h-[340px] md:max-h-[440px] rounded-2xl overflow-hidden shadow-elevated border border-border">
-                  <img
-                    src={active.image}
-                    alt="Raja Boot House"
-                    className={`h-full w-full object-cover ${active.objectPosition} transition duration-700`}
-                  />
-                  {/* Subtle vignette layer */}
-                  <div className="absolute inset-0 bg-gradient-to-t from-charcoal/30 via-transparent to-transparent pointer-events-none" />
-                </div>
-
-                {/* Floating Spec Badge */}
-                <div className="absolute -bottom-4 -left-4 md:bottom-6 md:left-6 bg-cream/95 backdrop-blur-sm border border-border rounded-xl shadow-card px-4 py-3 max-w-[220px]">
-                  <div className="text-[9px] uppercase tracking-widest text-muted-foreground">Featured Style</div>
-                  <div className="font-serif font-bold text-xs md:text-sm mt-1 text-charcoal truncate">
-                    {active.badgeTitle}
-                  </div>
-                  <div className="text-[11px] text-primary font-bold mt-1">
-                    {active.badgePrice}
-                  </div>
-                </div>
-              </motion.div>
-            </AnimatePresence>
-          </div>
-
-        </div>
+    <section className="relative overflow-hidden bg-cream border-b border-border h-[calc(100vh-4rem)] min-h-[500px] md:h-auto md:min-h-[580px] flex items-center">
+      {/* Background slide image (Mobile only) */}
+      <div className="md:hidden absolute inset-0 w-full h-full z-0 overflow-hidden">
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={active.id}
+            initial={{ opacity: 0, scale: 1.05 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.6 }}
+            className="w-full h-full"
+          >
+            <img
+              src={active.image}
+              alt=""
+              className={`h-full w-full object-cover ${active.objectPosition}`}
+            />
+            {/* Dark overlay for text readability */}
+            <div className="absolute inset-0 bg-charcoal/50 backdrop-blur-[1px]" />
+          </motion.div>
+        </AnimatePresence>
       </div>
+
+      {/* Swipe Overlay for Mobile and desktop (touch-friendly) */}
+      <motion.div
+        drag="x"
+        dragConstraints={{ left: 0, right: 0 }}
+        dragElastic={0.2}
+        onDragEnd={(e, info) => {
+          const swipeThreshold = 50;
+          if (info.offset.x < -swipeThreshold) {
+            nextSlide();
+          } else if (info.offset.x > swipeThreshold) {
+            prevSlide();
+          }
+        }}
+        className="w-full h-full flex items-center relative z-10"
+      >
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12 lg:py-16">
+          <div className="grid md:grid-cols-2 gap-8 md:gap-16 items-center">
+            
+            {/* Slide Content Column */}
+            <div className="relative h-[320px] md:h-[380px] flex flex-col justify-center">
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={active.id}
+                  initial={{ opacity: 0, x: -30 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: 30 }}
+                  transition={{ duration: 0.5 }}
+                  className="space-y-5 md:space-y-6 text-center md:text-left flex flex-col items-center md:items-start"
+                >
+                  <span className="inline-block text-[9px] md:text-[10px] tracking-[0.3em] uppercase text-brass md:text-cognac font-bold border border-brass/40 md:border-cognac/30 rounded-full px-3 py-1 bg-charcoal/30 md:bg-cream">
+                    {active.tagline}
+                  </span>
+                  
+                  <h1 className="font-serif text-[34px] leading-[1.05] md:text-6xl md:leading-[0.98] font-bold text-cream md:text-charcoal text-balance">
+                    {active.title}
+                  </h1>
+                  
+                  <p className="text-xs md:text-base text-cream/80 md:text-muted-foreground max-w-md">
+                    {active.subtitle}
+                  </p>
+                  
+                  <div className="flex items-center gap-3 pt-2">
+                    <Link
+                      href={active.href}
+                      className="inline-flex items-center gap-2 bg-primary text-primary-foreground px-6 py-3.5 rounded-full text-xs md:text-sm font-semibold hover:bg-primary/90 transition group cursor-pointer shadow-md"
+                    >
+                      {active.cta} <ArrowRight className="h-4 w-4 transition group-hover:translate-x-1" />
+                    </Link>
+                  </div>
+                </motion.div>
+              </AnimatePresence>
+            </div>
+
+            {/* Slide Image Column (Desktop only) */}
+            <div className="hidden md:block relative max-w-[272px] md:max-w-[352px] mx-auto w-full">
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={active.id}
+                  initial={{ opacity: 0, scale: 0.97 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.97 }}
+                  transition={{ duration: 0.6 }}
+                  className="relative w-full"
+                >
+                  <div className="relative aspect-[4/5] max-h-[340px] md:max-h-[440px] rounded-2xl overflow-hidden shadow-elevated border border-border">
+                    <img
+                      src={active.image}
+                      alt="Raja Boot House"
+                      className={`h-full w-full object-cover ${active.objectPosition} transition duration-700`}
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-charcoal/30 via-transparent to-transparent pointer-events-none" />
+                  </div>
+
+                  {/* Floating Spec Badge */}
+                  <div className="absolute -bottom-4 -left-4 md:bottom-6 md:left-6 bg-cream/95 backdrop-blur-sm border border-border rounded-xl shadow-card px-4 py-3 max-w-[220px]">
+                    <div className="text-[9px] uppercase tracking-widest text-muted-foreground">Featured Style</div>
+                    <div className="font-serif font-bold text-xs md:text-sm mt-1 text-charcoal truncate">
+                      {active.badgeTitle}
+                    </div>
+                    <div className="text-[11px] text-primary font-bold mt-1">
+                      {active.badgePrice}
+                    </div>
+                  </div>
+                </motion.div>
+              </AnimatePresence>
+            </div>
+
+          </div>
+        </div>
+      </motion.div>
 
       {/* Navigation arrows (desktop only) */}
       {slides.length > 1 && (

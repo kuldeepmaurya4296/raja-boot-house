@@ -10,6 +10,12 @@ export const metadata: Metadata = {
     template: "%s | Raja Boot House"
   },
   description: "Footwear retail brand established since 1972. Offers a wide range of premium footwear for men, women, and children from Lakhani, Touch, Paragon, Goldstar, and more.",
+  manifest: "/manifest.json",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "black-translucent",
+    title: "Raja Boot House",
+  },
   openGraph: {
     type: "website",
     locale: "en_IN",

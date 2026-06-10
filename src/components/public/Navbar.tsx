@@ -20,6 +20,17 @@ export function Navbar() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const [menuOpen, setMenuOpen] = useState(false);
+
+  // Hide mobile menu on scroll
+  useEffect(() => {
+    const handleScroll = () => {
+      if (menuOpen) {
+        setMenuOpen(false);
+      }
+    };
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, [menuOpen]);
   
   // Dynamic categories
   const [categoriesList, setCategoriesList] = useState<any[]>([]);
@@ -178,13 +189,7 @@ export function Navbar() {
             >
               <Search className="h-5 w-5" />
             </button>
-            <Link
-              href={accountLink}
-              className="hidden md:inline-flex p-2 hover:bg-muted rounded-full transition"
-              aria-label="Account"
-            >
-              <User className="h-5 w-5" />
-            </Link>
+            
             <Link
               href="/account/wishlist"
               className="hidden md:inline-flex p-2 hover:bg-muted rounded-full transition"
@@ -192,47 +197,131 @@ export function Navbar() {
             >
               <Heart className="h-5 w-5" />
             </Link>
+
             <Link href="/cart" className="relative p-2 hover:bg-muted rounded-full transition" aria-label="Cart">
-              <ShoppingBag className="h-5 w-5" />
+              <ShoppingBag className="h-5 w-5 text-charcoal hover:text-primary transition-colors" />
               {count > 0 && (
-                <span className="absolute -top-0.5 -right-0.5 bg-primary text-primary-foreground text-[10px] font-bold rounded-full h-5 w-5 flex items-center justify-center animate-pulse">
+                <span className="absolute -top-0.5 -right-0.5 bg-cognac text-cream text-[10px] font-bold rounded-full h-5 w-5 flex items-center justify-center animate-pulse">
                   {count}
                 </span>
               )}
             </Link>
+
+            {/* Profile Avatar shown on all screen sizes if logged in, otherwise Sign In button for desktop */}
+            {session ? (
+              <Link
+                href={accountLink}
+                className="inline-flex items-center justify-center h-8 w-8 rounded-full bg-cognac text-cream hover:bg-cognac/90 transition text-xs font-semibold uppercase shadow-sm border border-border shrink-0 ml-1"
+                title={`Account: ${session.user?.name || "User"}`}
+              >
+                {session.user?.image ? (
+                  <img src={session.user.image} alt="" className="h-full w-full rounded-full object-cover" />
+                ) : (
+                  <span>{session.user?.name ? session.user.name.split(" ").map((n: any) => n[0]).join("").slice(0, 2) : "U"}</span>
+                )}
+              </Link>
+            ) : (
+              <Link
+                href="/login"
+                className="hidden md:inline-flex items-center justify-center px-4 py-1.5 border border-charcoal/20 rounded-full hover:bg-muted text-xs font-semibold tracking-wide uppercase transition-all"
+              >
+                Sign In
+              </Link>
+            )}
           </div>
         </div>
 
         {/* Mobile Navigation Drawer */}
         <AnimatePresence>
           {menuOpen && (
-            <motion.nav
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
-              transition={{ duration: 0.2 }}
-              className="md:hidden absolute top-full left-0 right-0 border-b border-border bg-card shadow-lg z-50 overflow-hidden"
-            >
-              <div className="flex flex-col p-4 gap-1">
-                <Link
-                  href="/shop"
-                  onClick={() => setMenuOpen(false)}
-                  className="px-3 py-3 rounded-lg text-sm font-medium hover:bg-muted"
-                >
-                  Shop All
-                </Link>
-                {links.map((l) => (
-                  <Link
-                    key={l.label}
-                    href={l.href}
+            <>
+              {/* Drawer Backdrop Overlay */}
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 0.45 }}
+                exit={{ opacity: 0 }}
+                onClick={() => setMenuOpen(false)}
+                className="md:hidden fixed inset-0 bg-charcoal/45 z-40 backdrop-blur-xs"
+              />
+
+              {/* Side Drawer Menu */}
+              <motion.nav
+                initial={{ x: "100%" }}
+                animate={{ x: 0 }}
+                exit={{ x: "100%" }}
+                transition={{ type: "tween", duration: 0.35, ease: "easeInOut" }}
+                className="md:hidden fixed top-0 right-0 bottom-0 h-full w-[70vw] max-w-[280px] bg-card border-l border-border shadow-2xl z-50 flex flex-col p-6 overflow-y-auto"
+              >
+                {/* Drawer Header */}
+                <div className="flex items-center justify-between border-b border-border pb-4 mb-6">
+                  <span className="font-serif font-bold text-sm tracking-tight text-foreground">
+                    Navigation
+                  </span>
+                  <button
                     onClick={() => setMenuOpen(false)}
-                    className="px-3 py-3 rounded-lg text-sm font-medium hover:bg-muted"
+                    className="p-1 hover:bg-muted rounded-full transition"
+                    aria-label="Close menu"
                   >
-                    {l.label}
+                    <X className="h-5 w-5 text-muted-foreground" />
+                  </button>
+                </div>
+
+                {/* Navigation Links */}
+                <div className="flex flex-col gap-2 flex-grow">
+                  <Link
+                    href="/shop"
+                    onClick={() => setMenuOpen(false)}
+                    className="px-3 py-2.5 rounded-lg text-sm font-semibold hover:bg-muted text-foreground transition-colors uppercase tracking-wider"
+                  >
+                    Shop All
                   </Link>
-                ))}
-              </div>
-            </motion.nav>
+                  {links.map((l) => (
+                    <Link
+                      key={l.label}
+                      href={l.href}
+                      onClick={() => setMenuOpen(false)}
+                      className="px-3 py-2.5 rounded-lg text-sm font-medium hover:bg-muted text-foreground/80 hover:text-foreground transition-colors uppercase tracking-wider"
+                    >
+                      {l.label}
+                    </Link>
+                  ))}
+                </div>
+
+                {/* Drawer Footer Actions */}
+                <div className="border-t border-border pt-6 mt-auto flex flex-col gap-4">
+                  {session ? (
+                    <div className="flex items-center gap-3 p-2 bg-muted/50 rounded-xl">
+                      <div className="h-10 w-10 rounded-full bg-cognac text-cream flex items-center justify-center font-semibold text-sm uppercase shadow-sm shrink-0">
+                        {session.user?.image ? (
+                          <img src={session.user.image} alt="" className="h-full w-full rounded-full object-cover" />
+                        ) : (
+                          session.user?.name ? session.user.name.split(" ").map((n: any) => n[0]).join("").slice(0, 2) : "U"
+                        )}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs font-semibold text-foreground truncate">{session.user?.name || "Member"}</p>
+                        <p className="text-[10px] text-muted-foreground truncate">{session.user?.email}</p>
+                      </div>
+                      <Link
+                        href={accountLink}
+                        onClick={() => setMenuOpen(false)}
+                        className="p-1.5 bg-card hover:bg-muted rounded-lg border border-border text-xs font-bold text-primary transition shrink-0"
+                      >
+                        Go
+                      </Link>
+                    </div>
+                  ) : (
+                    <Link
+                      href="/login"
+                      onClick={() => setMenuOpen(false)}
+                      className="w-full py-3 bg-primary text-primary-foreground rounded-full text-center text-xs font-bold uppercase tracking-wider shadow-sm hover:opacity-95 transition"
+                    >
+                      Sign In
+                    </Link>
+                  )}
+                </div>
+              </motion.nav>
+            </>
           )}
         </AnimatePresence>
       </header>

@@ -23,6 +23,8 @@ import Coupon from "../src/lib/models/Coupon";
 import Banner from "../src/lib/models/Banner";
 import Settings from "../src/lib/models/Settings";
 import Review from "../src/lib/models/Review";
+import Brand from "../src/lib/models/Brand";
+import NewsletterSubscriber from "../src/lib/models/NewsletterSubscriber";
 
 // Load environment variables manually from .env file
 function loadEnv() {
@@ -76,6 +78,8 @@ async function runSeed() {
     await Banner.deleteMany({});
     await Settings.deleteMany({});
     await Review.deleteMany({});
+    await Brand.deleteMany({});
+    await NewsletterSubscriber.deleteMany({});
     console.log("Database cleaned.");
 
     // 2. Seed Users
@@ -238,6 +242,41 @@ async function runSeed() {
       },
     ]);
     console.log("Seeded homepage banners.");
+
+    // 6. Seed Brands
+    console.log("Seeding Brands...");
+    const sampleBrands = [
+      { name: "Lakhani", order: 1, isActive: true },
+      { name: "Touch Footwear", order: 2, isActive: true },
+      { name: "Paragon", order: 3, isActive: true },
+      { name: "Goldstar Shoes", order: 4, isActive: true },
+      { name: "Raja Exclusive", order: 5, isActive: true },
+      { name: "Touch Heels", order: 6, isActive: true },
+      { name: "Lakhani Canvas", order: 7, isActive: true },
+      { name: "Paragon Comfort", order: 8, isActive: true },
+    ];
+    await Brand.create(sampleBrands);
+    console.log("Seeded sample marquee brands.");
+
+    // 7. Seed Newsletter Subscribers
+    console.log("Seeding Subscribers...");
+    await NewsletterSubscriber.create([
+      { email: "subscriber.demo@example.com" }
+    ]);
+    console.log("Seeded sample newsletter subscriber.");
+
+    // 8. Seed Default Trust Badges in Settings
+    console.log("Seeding Default Trust Badges in Settings...");
+    await Settings.create({
+      key: "trust_badges",
+      value: [
+        { icon: "Award", title: "Official Retailer", subtitle: "Lakhani, Touch, Paragon, Goldstar" },
+        { icon: "ShieldCheck", title: "Gupta Brothers Craft", subtitle: "Since 1972 quality assurance" },
+        { icon: "Truck", title: "Free Shipping", subtitle: "Orders above ₹2000" },
+        { icon: "RotateCcw", title: "Simple Exchanges", subtitle: "Within 30 days hassle-free" },
+      ]
+    });
+    console.log("Seeded default trust badges settings.");
 
     console.log("\nDatabase Seeding Completed Successfully!");
   } catch (err: any) {
