@@ -40,17 +40,16 @@ export default function AccountLayout({ children }: { children: React.ReactNode 
     <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12 lg:py-16">
       <div className="grid md:grid-cols-4 gap-8">
         <p className="text-[11px] uppercase tracking-[0.3em] text-cognac font-semibold">My account</p>
-        <h1 className="font-serif text-3xl md:text-5xl font-bold mt-2">Hello, {session.user?.name?.split(" ")[0]}</h1>
+        <h1 className="font-serif text-3xl md:text-5xl font-bold mt-2 text-nowrap">Hello, {session.user?.name?.split(" ")[0]}</h1>
       </div>
-      <div className="grid lg:grid-cols-[240px_1fr] gap-6 md:gap-10">
+      <div className="grid lg:grid-cols-[240px_1fr] gap-6 md:gap-10 ">
         <aside>
           <nav className="flex md:flex-col gap-1 overflow-x-auto scrollbar-hide md:overflow-visible -mx-4 px-4 md:mx-0 md:px-0">
             {items.map(({ href, label, icon: Icon, exact }) => {
               const active = exact ? pathname === href : pathname.startsWith(href) && href !== "/account";
               return (
-                <Link key={href} href={href} className={`flex items-center gap-2.5 px-4 py-2.5 rounded-lg text-sm font-medium whitespace-nowrap ${
-                  active ? "bg-primary text-primary-foreground" : "text-foreground hover:bg-muted"
-                }`}>
+                <Link key={href} href={href} className={`flex items-center gap-2.5 px-4 py-2.5 rounded-lg text-sm font-medium whitespace-nowrap ${active ? "bg-primary text-primary-foreground" : "text-foreground hover:bg-muted"
+                  }`}>
                   <Icon className="h-4 w-4" /> {label}
                 </Link>
               );
@@ -63,7 +62,7 @@ export default function AccountLayout({ children }: { children: React.ReactNode 
             </button>
           </nav>
         </aside>
-        <div className="min-w-0">{children}</div>
+        <div className="min-w-0 pt-10">{children}</div>
       </div>
     </div>
   );
