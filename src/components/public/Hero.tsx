@@ -4,9 +4,6 @@ import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { ArrowRight, ChevronLeft, ChevronRight } from "lucide-react";
 import { useState, useEffect } from "react";
-import heroImg from "@/assets/hero-boots.jpg";
-import slide2Img from "@/assets/product-1.jpg";
-import slide3Img from "@/assets/product-4.jpg";
 
 export function Hero() {
   const [banners, setBanners] = useState<any[]>([]);
@@ -40,40 +37,52 @@ export function Hero() {
   const getFallbackBanners = () => [
     {
       id: "b1",
-      title: "Boots made the old way.",
-      subtitle: "Fifty years of cobbler-grade craft. Hand-cut leather, Goodyear-welted soles, and a fit that softens into you.",
+      title: "Crafted for Character",
+      subtitle: "Hand-finished leather boots stitched using 50 years of family bootmaking tradition. Structured to age beautifully with you.",
       cta: "Shop the collection",
       href: "/shop",
-      tagline: "Spring · Summer 2026",
-      badgeTitle: "Raja Oxblood Chelsea",
-      badgePrice: "From ₹1,299",
-      image: heroImg.src,
+      tagline: "Artisan Leather · Since 1972",
+      badgeTitle: "Oxford Welted Boot",
+      badgePrice: "From ₹2,499",
+      image: "https://images.unsplash.com/photo-1520639888713-7851133b1ed0?q=80&w=800&auto=format&fit=crop",
       objectPosition: "object-[20%_center]",
     },
     {
       id: "b2",
-      title: "Bridal & Dulha Heritage",
-      subtitle: "Handcrafted wedding sets, groom mojaris, and bride heels tailored to add royal charm to your functions.",
+      title: "Royal Wedding Heritage",
+      subtitle: "Hand-embroidered groom sherwani mojaris and custom bridal footwear tailored for ultimate comfort on your special night.",
       cta: "Explore Wedding collection",
       href: "/shop?category=bridal",
-      tagline: "Dulha-Dulhan Special",
-      badgeTitle: "Embroidered Dulha Joota",
-      badgePrice: "From ₹2,799",
-      image: slide2Img.src,
+      tagline: "Traditional Sherwani Jootis",
+      badgeTitle: "Golden Zardozi Mojari",
+      badgePrice: "From ₹1,899",
+      image: "https://images.unsplash.com/photo-1607522370275-f14206abe5d3?q=80&w=800&auto=format&fit=crop",
       objectPosition: "object-center",
     },
     {
       id: "b3",
-      title: "Reputed National Brands",
-      subtitle: "Guaranteed comfort and longevity. Official retailers for Lakhani, Touch, Paragon, Goldstar, and more.",
+      title: "Modern Comfort in Motion",
+      subtitle: "Lightweight, shock-absorbing athletic running shoes and everyday casual wear guaranteed by India's top national brands.",
       cta: "Shop Top Brands",
-      href: "/shop",
-      tagline: "Gupta Brothers Curations",
+      href: "/shop?category=sports",
+      tagline: "Official Retail Partner",
       badgeTitle: "Lakhani Classic Runner",
       badgePrice: "From ₹899",
-      image: slide3Img.src,
+      image: "https://images.unsplash.com/photo-1542291026-7eec264c27ff?q=80&w=800&auto=format&fit=crop",
       objectPosition: "object-center",
     },
+    {
+      id: "b4",
+      title: "The Statement Heels Collection",
+      subtitle: "Elevate your look with handcrafted block heels, festive ethnic flats, and daily sandals built with ergonomic arch support.",
+      cta: "Shop Women Collection",
+      href: "/shop?category=women",
+      tagline: "Atelier Women's Collection",
+      badgeTitle: "Cognac Block Strap Heel",
+      badgePrice: "From ₹1,499",
+      image: "https://images.unsplash.com/photo-1595950653106-6c9ebd614d3a?q=80&w=800&auto=format&fit=crop",
+      objectPosition: "object-center",
+    }
   ];
 
   if (banners.length === 0) {
@@ -86,21 +95,20 @@ export function Hero() {
 
   // Assign image fallbacks for dynamic banners that might not specify images
   const slides = banners.map((b, idx) => {
-    let img = b.image || b.imageUrl;
+    let img = b.imageUrl || b.image;
+    const fallbacks = getFallbackBanners();
     if (!img) {
-      if (idx === 0) img = heroImg.src;
-      else if (idx === 1) img = slide2Img.src;
-      else img = slide3Img.src;
+      img = fallbacks[idx % fallbacks.length].image;
     }
     return {
       ...b,
       image: img,
-      href: b.href || b.linkUrl || "/shop",
-      cta: b.cta || "Shop Now",
-      tagline: b.tagline || "Raja Boot House · Established 2025",
-      badgeTitle: b.badgeTitle || "Premium Quality",
-      badgePrice: b.badgePrice || "Best Price Assured",
-      objectPosition: b.objectPosition || (idx === 0 ? "object-[20%_center]" : "object-center"),
+      href: b.linkUrl || b.href || "/shop",
+      cta: b.cta || (idx === 1 ? "Explore Wedding collection" : idx === 2 ? "Shop Top Brands" : idx === 3 ? "Shop Women Collection" : "Shop the collection"),
+      tagline: b.tagline || fallbacks[idx % fallbacks.length].tagline,
+      badgeTitle: b.badgeTitle || fallbacks[idx % fallbacks.length].badgeTitle,
+      badgePrice: b.badgePrice || fallbacks[idx % fallbacks.length].badgePrice,
+      objectPosition: b.objectPosition || "object-center",
     };
   });
 
@@ -115,30 +123,7 @@ export function Hero() {
   const active = slides[current];
 
   return (
-    <section className="relative overflow-hidden bg-cream border-b border-border h-[calc(100vh-4rem)] min-h-[500px] md:h-auto md:min-h-[580px] flex items-center">
-      {/* Background slide image (Mobile only) */}
-      <div className="md:hidden absolute inset-0 w-full h-full z-0 overflow-hidden">
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={active.id}
-            initial={{ opacity: 0, scale: 1.05 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.6 }}
-            className="w-full h-full"
-          >
-            <img
-              src={active.image}
-              alt=""
-              className={`h-full w-full object-cover ${active.objectPosition}`}
-            />
-            {/* Dark overlay for text readability */}
-            <div className="absolute inset-0 bg-charcoal/50 backdrop-blur-[1px]" />
-          </motion.div>
-        </AnimatePresence>
-      </div>
-
-      {/* Swipe Overlay for Mobile and desktop (touch-friendly) */}
+    <section className="relative bg-cream border-b border-border py-10 md:py-16 lg:py-24 flex items-center min-h-[580px]">
       <motion.div
         drag="x"
         dragConstraints={{ left: 0, right: 0 }}
@@ -151,31 +136,31 @@ export function Hero() {
             prevSlide();
           }
         }}
-        className="w-full h-full flex items-center relative z-10"
+        className="w-full relative z-10"
       >
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12 lg:py-16">
-          <div className="grid md:grid-cols-2 gap-8 md:gap-16 items-center">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-10 md:gap-16 items-center">
             
-            {/* Slide Content Column */}
-            <div className="relative h-[320px] md:h-[380px] flex flex-col justify-center">
+            {/* Slide Content Column (Top on mobile, left on desktop) */}
+            <div className="relative flex flex-col justify-center text-center md:text-left items-center md:items-start">
               <AnimatePresence mode="wait">
                 <motion.div
                   key={active.id}
-                  initial={{ opacity: 0, x: -30 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: 30 }}
+                  initial={{ opacity: 0, y: -20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: 20 }}
                   transition={{ duration: 0.5 }}
-                  className="space-y-5 md:space-y-6 text-center md:text-left flex flex-col items-center md:items-start"
+                  className="space-y-4 md:space-y-6 flex flex-col items-center md:items-start"
                 >
-                  <span className="inline-block text-[9px] md:text-[10px] tracking-[0.3em] uppercase text-brass md:text-cognac font-bold border border-brass/40 md:border-cognac/30 rounded-full px-3 py-1 bg-charcoal/30 md:bg-cream">
+                  <span className="inline-block text-[9px] md:text-[10px] tracking-[0.3em] uppercase text-cognac font-bold border border-cognac/30 rounded-full px-3 py-1 bg-cream shadow-xs">
                     {active.tagline}
                   </span>
                   
-                  <h1 className="font-serif text-[34px] leading-[1.05] md:text-6xl md:leading-[0.98] font-bold text-cream md:text-charcoal text-balance">
+                  <h1 className="font-serif text-[32px] leading-[1.1] md:text-6xl md:leading-[0.98] font-bold text-charcoal text-balance">
                     {active.title}
                   </h1>
                   
-                  <p className="text-xs md:text-base text-cream/80 md:text-muted-foreground max-w-md">
+                  <p className="text-xs md:text-base text-muted-foreground max-w-md">
                     {active.subtitle}
                   </p>
                   
@@ -191,8 +176,8 @@ export function Hero() {
               </AnimatePresence>
             </div>
 
-            {/* Slide Image Column (Desktop only) */}
-            <div className="hidden md:block relative max-w-[272px] md:max-w-[352px] mx-auto w-full">
+            {/* Slide Image Column (Bottom on mobile with padding, right on desktop) */}
+            <div className="relative w-full max-w-[340px] md:max-w-[352px] mx-auto px-4 md:px-0">
               <AnimatePresence mode="wait">
                 <motion.div
                   key={active.id}
@@ -202,7 +187,7 @@ export function Hero() {
                   transition={{ duration: 0.6 }}
                   className="relative w-full"
                 >
-                  <div className="relative aspect-[4/5] max-h-[340px] md:max-h-[440px] rounded-2xl overflow-hidden shadow-elevated border border-border">
+                  <div className="relative aspect-[4/3] md:aspect-[4/5] rounded-2xl overflow-hidden shadow-elevated border border-border bg-white">
                     <img
                       src={active.image}
                       alt="Raja Boot House"
@@ -212,7 +197,7 @@ export function Hero() {
                   </div>
 
                   {/* Floating Spec Badge */}
-                  <div className="absolute -bottom-4 -left-4 md:bottom-6 md:left-6 bg-cream/95 backdrop-blur-sm border border-border rounded-xl shadow-card px-4 py-3 max-w-[220px]">
+                  <div className="absolute -bottom-4 left-6 md:-left-4 md:bottom-6 bg-cream/95 backdrop-blur-sm border border-border rounded-xl shadow-card px-4 py-3 max-w-[220px]">
                     <div className="text-[9px] uppercase tracking-widest text-muted-foreground">Featured Style</div>
                     <div className="font-serif font-bold text-xs md:text-sm mt-1 text-charcoal truncate">
                       {active.badgeTitle}
