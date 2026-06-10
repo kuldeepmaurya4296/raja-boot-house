@@ -289,9 +289,10 @@ async function runSeed() {
     // 7. Seed Newsletter Subscribers
     console.log("Seeding Subscribers...");
     await NewsletterSubscriber.create([
-      { email: "subscriber.demo@example.com" }
+      { name: "Rahul Maurya", email: "rahul.maurya@example.com", phone: "9876543210", message: "Looking for premium shoes." },
+      { name: "Siddharth Singh", email: "siddharth@example.com", phone: "9123456789", message: "Interested in regional wedding footwear." }
     ]);
-    console.log("Seeded sample newsletter subscriber.");
+    console.log("Seeded sample newsletter subscribers.");
 
     // 8. Seed Default Trust Badges in Settings
     console.log("Seeding Default Trust Badges in Settings...");

@@ -162,8 +162,11 @@ export default async function Home() {
       <section className="container mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-16 lg:py-24">
         <div className="bg-cream border border-border rounded-2xl p-8 md:p-14 text-center max-w-3xl mx-auto shadow-sm relative overflow-hidden">
           <div className="absolute inset-0 grain opacity-20" />
-          <p className="text-[11px] uppercase tracking-[0.3em] text-cognac font-semibold mb-3 relative">The Atelier Letter</p>
-          <h3 className="font-serif text-3xl md:text-4xl font-bold text-charcoal relative">Drops, stories, the occasional discount.</h3>
+          <p className="text-[11px] uppercase tracking-[0.3em] text-cognac font-semibold mb-3 relative">Raja Footwear Club</p>
+          <h3 className="font-serif text-3xl md:text-4xl font-bold text-charcoal relative">Join the Raja Footwear Club</h3>
+          <p className="text-sm text-muted-foreground mt-3 max-w-lg mx-auto relative z-10">
+            Sign up to receive updates on premium leather footwear, bridal collection drops, and exclusive festive discount alerts in Gorakhpur and across Central India.
+          </p>
           <NewsletterFormClient />
         </div>
       </section>

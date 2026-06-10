@@ -61,6 +61,9 @@ export default async function AdminCmsPage() {
   const subscribers = subscribersRaw.map((s: any) => ({
     id: s._id.toString(),
     email: s.email,
+    name: s.name || "",
+    phone: s.phone || "",
+    message: s.message || "",
     createdAt: s.createdAt ? s.createdAt.toISOString() : "",
   }));
 

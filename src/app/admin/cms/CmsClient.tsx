@@ -511,7 +511,10 @@ function NewsletterTab({ subscribers }: { subscribers: any[] }) {
   const [sendingBlast, setSendingBlast] = useState(false);
 
   const cols: Column<any>[] = [
-    { key: "email", header: "Email Address", render: s => <span className="font-semibold text-sm">{s.email}</span> },
+    { key: "name", header: "Name", render: s => <span className="font-semibold text-sm">{s.name || "—"}</span> },
+    { key: "email", header: "Email Address", render: s => <span className="text-sm">{s.email}</span> },
+    { key: "phone", header: "Mobile Number", render: s => <span className="text-sm">{s.phone || "—"}</span> },
+    { key: "message", header: "Inquiry Message", render: s => <span className="text-xs text-muted-foreground max-w-[200px] truncate block" title={s.message}>{s.message || "—"}</span> },
     { key: "date", header: "Subscribed At", render: s => <span className="text-xs text-muted-foreground">{new Date(s.createdAt).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" })}</span> },
     { key: "actions", header: "", className: "text-right", render: s => (
       <div className="flex justify-end">
@@ -557,8 +560,8 @@ function NewsletterTab({ subscribers }: { subscribers: any[] }) {
       {/* Subscribers List Column */}
       <div className="space-y-4">
         <div>
-          <h3 className="font-semibold text-base">Newsletter Subscribers ({subscribers.length})</h3>
-          <p className="text-xs text-muted-foreground">A list of all users subscribed to The Atelier Letter.</p>
+          <h3 className="font-semibold text-base">Club Members & Inquiries ({subscribers.length})</h3>
+          <p className="text-xs text-muted-foreground">A list of all users registered to Raja Footwear Club.</p>
         </div>
         <DataTable columns={cols} rows={subscribers} empty="No subscribers registered yet." />
       </div>

@@ -27,14 +27,14 @@ function getTransporter() {
 /**
  * Sends a welcome email to a new subscriber
  */
-export async function sendWelcomeEmail(toEmail: string) {
+export async function sendWelcomeEmail(toEmail: string, name: string) {
   const transporter = getTransporter();
   if (!transporter) return false;
 
   const mailOptions = {
     from: `"Raja Boot House" <${SUPPORT_EMAIL}>`,
     to: toEmail,
-    subject: "Welcome to The Atelier Letter — Raja Boot House",
+    subject: "Welcome to Raja Footwear Club — Raja Boot House",
     html: `
       <div style="font-family: 'Georgia', 'Times New Roman', serif; max-width: 600px; margin: 0 auto; padding: 30px; border: 1px solid #E4E4E7; background-color: #FAF9F6; color: #1C1917;">
         <div style="text-align: center; margin-bottom: 30px;">
@@ -43,8 +43,9 @@ export async function sendWelcomeEmail(toEmail: string) {
         </div>
         <hr style="border: 0; border-top: 1px solid #E4E4E7; margin-bottom: 35px;" />
         
-        <p style="font-size: 15px; line-height: 1.6; color: #27272A;">Thank you for subscribing to <strong>The Atelier Letter</strong>.</p>
-        <p style="font-size: 15px; line-height: 1.6; color: #27272A;">You are now part of an exclusive circle. We look forward to sharing footwear drops, artisan workshop stories, and seasonal catalog highlights directly from Gorakhpur's premium footwear house.</p>
+        <p style="font-size: 15px; line-height: 1.6; color: #27272A;">Dear ${name},</p>
+        <p style="font-size: 15px; line-height: 1.6; color: #27272A;">Thank you for subscribing to <strong>The Raja Footwear Club</strong>.</p>
+        <p style="font-size: 15px; line-height: 1.6; color: #27272A;">We are delighted to welcome you. We look forward to sharing our latest footwear collections, updates on local craftsmanship, and exclusive festive discount alerts directly from Gorakhpur's premium footwear house.</p>
         
         <div style="margin: 40px 0; text-align: center;">
           <a href="${process.env.NEXTAUTH_URL || "https://rajaboothouse.com"}/shop" style="background-color: #1C1917; color: #FAF9F6; text-decoration: none; padding: 12px 28px; border-radius: 20px; font-size: 13px; font-weight: bold; text-transform: uppercase; letter-spacing: 0.1em; display: inline-block;">

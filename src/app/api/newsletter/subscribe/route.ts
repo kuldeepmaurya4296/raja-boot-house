@@ -5,7 +5,10 @@ import { sendWelcomeEmail } from "@/lib/email";
 import { z } from "zod";
 
 const subscribeSchema = z.object({
+  name: z.string().min(1, "Please provide your name"),
   email: z.string().email("Please provide a valid email address"),
+  phone: z.string().min(10, "Please provide a valid phone number (at least 10 digits)"),
+  message: z.string().optional(),
 });
 
 export async function POST(request: Request) {
@@ -25,7 +28,7 @@ export async function POST(request: Request) {
       );
     }
 
-    const { email } = validation.data;
+    const { name, email, phone, message } = validation.data;
 
     // Check if already subscribed
     const existing = await NewsletterSubscriber.findOne({ email });
@@ -37,11 +40,11 @@ export async function POST(request: Request) {
     }
 
     // Save subscriber
-    const newSubscriber = await NewsletterSubscriber.create({ email });
+    const newSubscriber = await NewsletterSubscriber.create({ name, email, phone, message });
 
     // Send Welcome Email asynchronously
     try {
-      await sendWelcomeEmail(email);
+      await sendWelcomeEmail(email, name);
     } catch (mailError) {
       console.error("Failed to trigger welcome email inside subscription route:", mailError);
       // We do not fail the request if only the welcome email fails
