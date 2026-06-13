@@ -4,6 +4,7 @@ import { CartProvider } from "@/lib/cart-store";
 import { SessionProvider } from "next-auth/react";
 import { useState, useEffect } from "react";
 import { SettingsProvider } from "@/lib/settings-context";
+import { ThemeProvider } from "@/components/public/ThemeProvider";
 
 export function Providers({ children }: { children: React.ReactNode }) {
   const [queryClient] = useState(() => new QueryClient());
@@ -22,7 +23,9 @@ export function Providers({ children }: { children: React.ReactNode }) {
     <SessionProvider>
       <QueryClientProvider client={queryClient}>
         <SettingsProvider>
-          <CartProvider>{children}</CartProvider>
+          <ThemeProvider>
+            <CartProvider>{children}</CartProvider>
+          </ThemeProvider>
         </SettingsProvider>
       </QueryClientProvider>
     </SessionProvider>

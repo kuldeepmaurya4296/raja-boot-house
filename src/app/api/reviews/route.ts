@@ -4,7 +4,8 @@ import mongoose from "mongoose";
 import Review from "@/lib/models/Review";
 import Product from "@/lib/models/Product";
 import User from "@/lib/models/User";
-
+import { auth } from "@/lib/auth";
+import Order from "@/lib/models/Order";
 
 export async function GET(request: Request) {
   try {
@@ -33,7 +34,12 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   try {
-    const { productId, userId, rating, comment, images } = await request.json();
+    const session = await auth();
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const { productId, rating, title, comment, body, images } = await request.json();
 
     if (!productId || !rating) {
       return NextResponse.json({ error: "productId and rating are required fields" }, { status: 400 });
@@ -44,20 +50,31 @@ export async function POST(request: Request) {
       throw new Error("Database offline");
     }
 
+    // Check if user has purchased the item
+    const deliveredOrder = await Order.findOne({
+      userId: session.user.id,
+      "items.productId": productId,
+      status: "DELIVERED",
+    });
+
+    const isVerifiedPurchase = !!deliveredOrder;
+
     // Create review entry
     const newReview = await Review.create({
       productId,
-      userId: userId || new mongoose.Types.ObjectId(), // fallback ID if not logged in
+      userId: session.user.id,
       rating,
-      comment,
+      title: title || "",
+      comment: comment || body || "",
       images: images || [],
-      isApproved: true, // Auto-approve in dev environment
+      isApproved: false, // Requires admin moderation
+      isVerifiedPurchase,
     });
 
-    // Update Product average rating
+    // Update Product average rating using existing approved reviews
     const allReviews = await Review.find({ productId, isApproved: true });
     const count = allReviews.length;
-    const average = allReviews.reduce((sum, r) => sum + r.rating, 0) / count;
+    const average = count > 0 ? allReviews.reduce((sum, r) => sum + r.rating, 0) / count : 0;
 
     await Product.findByIdAndUpdate(productId, {
       "rating.average": parseFloat(average.toFixed(1)),
@@ -70,3 +87,6 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: error.message || "Failed to submit review" }, { status: 500 });
   }
 }
+
+export const dynamic = "force-dynamic";
+

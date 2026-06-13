@@ -64,10 +64,20 @@ export async function POST(request: Request) {
       return NextResponse.json({ valid: false, message: "Coupon usage limit reached" });
     }
 
+    // Map DB coupon types to frontend expected types
+    let mappedType = coupon.type;
+    if (coupon.type === "Percentage") {
+      mappedType = "percent";
+    } else if (coupon.type === "Flat") {
+      mappedType = "fixed";
+    } else if (coupon.type === "Free Shipping") {
+      mappedType = "fixed";
+    }
+
     return NextResponse.json({
       valid: true,
       code: coupon.code,
-      type: coupon.type,
+      type: mappedType,
       value: coupon.value,
       message: "Coupon applied successfully!",
     });

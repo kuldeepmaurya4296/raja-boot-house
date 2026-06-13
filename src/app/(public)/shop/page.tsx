@@ -13,11 +13,92 @@ interface PageProps {
     occasion?: string;
     search?: string;
     sort?: string;
+    minPrice?: string;
+    maxPrice?: string;
+    size?: string;
+    limit?: string;
+    gender?: string;
+    color?: string;
   }>;
 }
 
 function escapeRegExp(string: string) {
   return string.replace(/[\\^$*+?.()|[\]{}]/g, "\\$&");
+}
+
+async function getFilterMetadata() {
+  const { isReady } = await ensureDbReady();
+  if (!isReady) {
+    return {
+      brands: [],
+      sizes: [],
+      occasions: [],
+      colors: [],
+      genders: [],
+      maxPrice: 5000
+    };
+  }
+
+  try {
+    const brands = await Product.distinct("brand", { isActive: true });
+    const sortedBrands = brands.filter(Boolean).sort();
+
+    const sizesAgg = await Product.aggregate([
+      { $match: { isActive: true } },
+      { $unwind: "$variants" },
+      { $group: { _id: null, sizes: { $addToSet: "$variants.size" } } }
+    ]);
+    const sortedSizes = (sizesAgg[0]?.sizes ?? [])
+      .filter((s: any) => typeof s === "number")
+      .sort((a: number, b: number) => a - b);
+
+    const occasions = await Product.distinct("occasion", { isActive: true });
+    const sortedOccasions = occasions.filter(Boolean).sort();
+
+    const genders = await Product.distinct("gender", { isActive: true });
+    const sortedGenders = genders.filter(Boolean).sort();
+
+    const colorsAgg = await Product.aggregate([
+      { $match: { isActive: true } },
+      { $unwind: "$variants" },
+      { 
+        $group: { 
+          _id: { $toLower: "$variants.color" }, 
+          name: { $first: "$variants.color" },
+          hex: { $first: "$variants.colorHex" } 
+        } 
+      }
+    ]);
+    const sortedColors = colorsAgg
+      .map((c: any) => ({ name: c.name, hex: c.hex }))
+      .filter((c: any) => c.name)
+      .sort((a: any, b: any) => a.name.localeCompare(b.name));
+
+    const maxPriceProduct = await Product.findOne({ isActive: true })
+      .sort({ salePrice: -1 })
+      .select("salePrice")
+      .lean();
+    const maxPrice = maxPriceProduct?.salePrice ?? 5000;
+
+    return {
+      brands: sortedBrands,
+      sizes: sortedSizes,
+      occasions: sortedOccasions,
+      colors: sortedColors,
+      genders: sortedGenders,
+      maxPrice
+    };
+  } catch (err) {
+    console.error("Failed to generate filter metadata:", err);
+    return {
+      brands: [],
+      sizes: [],
+      occasions: [],
+      colors: [],
+      genders: [],
+      maxPrice: 5000
+    };
+  }
 }
 
 async function getShopData(filters: any) {
@@ -26,14 +107,17 @@ async function getShopData(filters: any) {
     console.warn("Database connection is not ready. Returning empty shop catalog data.");
     return {
       categories: [],
-      products: []
+      products: [],
+      total: 0
     };
   }
 
-  const { category, brand, occasion, search, sort } = filters;
+  const { category, brand, occasion, search, sort, minPrice, maxPrice, size, limit, gender, color } = filters;
+  const currentLimit = parseInt(limit || "8", 10);
 
-  // 1. Fetch categories
-  const categoriesList = await Category.find().lean();
+  // 1. Fetch categories with active items
+  const categoryIds = await Product.distinct("category", { isActive: true });
+  const categoriesList = await Category.find({ _id: { $in: categoryIds } }).lean();
 
   // 2. Fetch products
   let query: any = { isActive: true };
@@ -48,7 +132,8 @@ async function getShopData(filters: any) {
   }
 
   if (brand) {
-    query.brand = new RegExp(`^${escapeRegExp(brand)}$`, "i");
+    const brandArray = brand.split(",").map((b: string) => new RegExp(`^${escapeRegExp(b.trim())}$`, "i"));
+    query.brand = { $in: brandArray };
   }
 
   if (occasion) {
@@ -65,6 +150,43 @@ async function getShopData(filters: any) {
     ];
   }
 
+  if (minPrice || maxPrice) {
+    query.salePrice = {};
+    if (minPrice) {
+      query.salePrice.$gte = parseFloat(minPrice);
+    }
+    if (maxPrice) {
+      query.salePrice.$lte = parseFloat(maxPrice);
+    }
+  }
+
+  if (gender) {
+    const genderArray = gender.split(",").map((g: string) => new RegExp(`^${escapeRegExp(g.trim())}$`, "i"));
+    query.gender = { $in: genderArray };
+  }
+
+  const variantConditions: any = { stock: { $gt: 0 } };
+  let hasVariantQuery = false;
+
+  if (size) {
+    const sizeArray = size.split(",").map((s: string) => parseInt(s.trim(), 10));
+    variantConditions.size = { $in: sizeArray };
+    hasVariantQuery = true;
+  }
+
+  if (color) {
+    const colorArray = color.split(",").map((c: string) => new RegExp(`^${escapeRegExp(c.trim())}$`, "i"));
+    variantConditions.color = { $in: colorArray };
+    hasVariantQuery = true;
+  }
+
+  if (hasVariantQuery) {
+    query.variants = {
+      $elemMatch: variantConditions
+    };
+  }
+
+  const total = await Product.countDocuments(query);
   let mongooseQuery = Product.find(query).populate({ path: "category", model: Category });
 
   if (sort === "low") {
@@ -77,12 +199,13 @@ async function getShopData(filters: any) {
     mongooseQuery = mongooseQuery.sort({ createdAt: -1 });
   }
 
-  const rawProducts = await mongooseQuery.exec();
+  const rawProducts = await mongooseQuery.limit(currentLimit).exec();
   const products = rawProducts.map((p: any) => normalizeProduct(p));
 
   return {
     categories: JSON.parse(JSON.stringify(categoriesList)),
-    products
+    products,
+    total
   };
 }
 
@@ -106,7 +229,10 @@ export async function generateMetadata({ searchParams }: PageProps): Promise<Met
 
 export default async function ShopPage({ searchParams }: PageProps) {
   const filters = await searchParams;
-  const data = await getShopData(filters);
+  const [data, filterMetadata] = await Promise.all([
+    getShopData(filters),
+    getFilterMetadata()
+  ]);
 
   return (
     <Suspense
@@ -120,6 +246,8 @@ export default async function ShopPage({ searchParams }: PageProps) {
       <ShopClient
         categories={data.categories}
         initialProducts={data.products}
+        totalProducts={data.total}
+        filterMetadata={filterMetadata}
       />
     </Suspense>
   );

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { Search, ShoppingBag, User, Heart, Menu, X, Clock, ArrowRight } from "lucide-react";
+import { Search, ShoppingBag, User, Heart, Menu, X, Clock, ArrowRight, Sun, Moon } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import { useCart } from "@/lib/cart-store";
 import { Logo } from "@/components/shared/Logo";
@@ -10,9 +10,11 @@ import { motion, AnimatePresence } from "framer-motion";
 import { categories as fallbackCategories } from "@/data/categories";
 import { formatINR } from "@/lib/format";
 import { useSession } from "next-auth/react";
+import { useTheme } from "@/components/public/ThemeProvider";
 
 export function Navbar() {
   const { count } = useCart();
+  const { theme, toggleTheme } = useTheme();
   const { data: session } = useSession();
   const role = (session?.user as any)?.role || "customer";
   const accountLink = role === "admin" ? "/admin" : role === "vendor" ? "/vendor" : "/account";
@@ -41,8 +43,14 @@ export function Navbar() {
   const [searchResults, setSearchResults] = useState<any[]>([]);
   const [searching, setSearching] = useState(false);
   const [recentSearches, setRecentSearches] = useState<string[]>([]);
+  const [focusedIndex, setFocusedIndex] = useState(-1);
 
   const searchInputRef = useRef<HTMLInputElement>(null);
+
+  // Reset keyboard focus when query or search results change
+  useEffect(() => {
+    setFocusedIndex(-1);
+  }, [searchQuery, searchResults]);
 
   // Load categories and recent searches
   useEffect(() => {
@@ -105,6 +113,38 @@ export function Navbar() {
     router.push(`/shop?search=${encodeURIComponent(trimmed)}`);
   };
 
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    const totalNavigable = matchedBrands.length + Math.min(searchResults.length, 6);
+
+    if (e.key === "ArrowDown") {
+      e.preventDefault();
+      setFocusedIndex((prev) => (prev < totalNavigable - 1 ? prev + 1 : prev));
+    } else if (e.key === "ArrowUp") {
+      e.preventDefault();
+      setFocusedIndex((prev) => (prev > -1 ? prev - 1 : -1));
+    } else if (e.key === "Enter") {
+      if (focusedIndex >= 0 && focusedIndex < totalNavigable) {
+        e.preventDefault();
+        if (focusedIndex < matchedBrands.length) {
+          const brand = matchedBrands[focusedIndex];
+          setSearchOpen(false);
+          setSearchQuery("");
+          router.push(`/shop?brand=${encodeURIComponent(brand)}`);
+        } else {
+          const prodIdx = focusedIndex - matchedBrands.length;
+          const product = searchResults.slice(0, 6)[prodIdx];
+          setSearchOpen(false);
+          setSearchQuery("");
+          router.push(`/shop/${product.slug}`);
+        }
+      } else {
+        handleSearchSubmit(searchQuery);
+      }
+    } else if (e.key === "Escape") {
+      setSearchOpen(false);
+    }
+  };
+
   // Focus input on search modal open
   useEffect(() => {
     if (searchOpen) {
@@ -128,7 +168,7 @@ export function Navbar() {
   const matchedBrands = Array.from(
     new Set(
       searchResults
-        .map((p) => p.vendorId || p.brand)
+        .map((p) => p.brand)
         .filter(Boolean)
     )
   ).slice(0, 3);
@@ -164,7 +204,9 @@ export function Navbar() {
               Shop All
             </Link>
             {links.map((l) => {
-              const active = path + searchParams.toString() === l.href;
+              const active = l.href.includes("?")
+                ? path === l.href.split("?")[0] && searchParams.get("category") === new URLSearchParams(l.href.split("?")[1]).get("category")
+                : path === l.href;
               return (
                 <Link
                   key={l.label}
@@ -186,6 +228,14 @@ export function Navbar() {
               aria-label="Search"
             >
               <Search className="h-5 w-5" />
+            </button>
+
+            <button
+              onClick={toggleTheme}
+              className="p-2 hover:bg-muted rounded-full transition cursor-pointer text-charcoal dark:text-cream"
+              aria-label="Toggle theme"
+            >
+              {theme === "dark" ? <Sun className="h-5 w-5 text-amber-500 animate-spin-once" /> : <Moon className="h-5 w-5" />}
             </button>
 
             <Link
@@ -246,11 +296,11 @@ export function Navbar() {
 
             {/* Side Drawer Menu */}
             <motion.nav
-              initial={{ x: "100%" }}
+              initial={{ x: "-100%" }}
               animate={{ x: 0 }}
-              exit={{ x: "100%" }}
+              exit={{ x: "-100%" }}
               transition={{ type: "tween", duration: 0.35, ease: "easeInOut" }}
-              className="md:hidden fixed top-0 right-0 bottom-0 h-full w-[70vw] max-w-[280px] bg-card border-l border-border shadow-2xl z-50 flex flex-col p-6 overflow-y-auto"
+              className="md:hidden fixed top-0 left-0 bottom-0 h-full w-[70vw] max-w-[280px] bg-card border-r border-border shadow-2xl z-50 flex flex-col p-6 overflow-y-auto"
             >
               {/* Drawer Header */}
               <div className="flex items-center justify-between border-b border-border pb-4 mb-6">
@@ -355,7 +405,7 @@ export function Navbar() {
                     type="text"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    onKeyDown={(e) => e.key === "Enter" && handleSearchSubmit(searchQuery)}
+                    onKeyDown={handleKeyDown}
                     placeholder="Search by product name, brand, or category..."
                     className="flex-1 bg-transparent border-none outline-none text-base text-charcoal placeholder-muted-foreground"
                   />
@@ -438,18 +488,26 @@ export function Navbar() {
                             Suggested Brands
                           </h4>
                           <div className="flex gap-2">
-                            {matchedBrands.map((b) => (
-                              <button
-                                key={b}
-                                onClick={() => {
-                                  setSearchOpen(false);
-                                  router.push(`/shop?brand=${encodeURIComponent(b)}`);
-                                }}
-                                className="px-3 py-1 bg-brass/10 border border-brass/20 text-cognac rounded-full text-xs font-semibold hover:bg-brass/20 transition"
-                              >
-                                {b}
-                              </button>
-                            ))}
+                            {matchedBrands.map((b, idx) => {
+                              const isFocused = focusedIndex === idx;
+                              return (
+                                <button
+                                  key={b}
+                                  onClick={() => {
+                                    setSearchOpen(false);
+                                    setSearchQuery("");
+                                    router.push(`/shop?brand=${encodeURIComponent(b)}`);
+                                  }}
+                                  className={`px-3 py-1 rounded-full text-xs font-semibold transition border cursor-pointer ${
+                                    isFocused
+                                      ? "bg-brass/25 border-brass/50 text-cognac ring-2 ring-primary"
+                                      : "bg-brass/10 border-brass/20 text-cognac hover:bg-brass/20"
+                                  }`}
+                                >
+                                  {b}
+                                </button>
+                              );
+                            })}
                           </div>
                         </div>
                       )}
@@ -460,13 +518,20 @@ export function Navbar() {
                           Matched Products ({searchResults.length})
                         </h4>
                         <div className="space-y-3">
-                          {searchResults.slice(0, 6).map((p) => (
-                            <Link
-                              key={p.id}
-                              href={`/shop/${p.slug}`}
-                              onClick={() => setSearchOpen(false)}
-                              className="flex items-center gap-3 group border-b border-border/40 pb-2.5 last:border-0"
-                            >
+                          {searchResults.slice(0, 6).map((p, idx) => {
+                            const isFocused = focusedIndex === matchedBrands.length + idx;
+                            return (
+                              <Link
+                                key={p.id}
+                                href={`/shop/${p.slug}`}
+                                onClick={() => {
+                                  setSearchOpen(false);
+                                  setSearchQuery("");
+                                }}
+                                className={`flex items-center gap-3 group border-b border-border/40 pb-2.5 last:border-0 p-1.5 transition rounded-lg ${
+                                  isFocused ? "bg-muted/80 ring-1 ring-border/50" : ""
+                                }`}
+                              >
                               <img
                                 src={p.image}
                                 alt=""
@@ -477,12 +542,13 @@ export function Navbar() {
                                   {p.name}
                                 </p>
                                 <p className="text-xs text-muted-foreground">
-                                  {p.vendorId} · {formatINR(p.price)}
+                                  {p.brand} · {formatINR(p.price)}
                                 </p>
                               </div>
                               <ArrowRight className="h-4 w-4 text-muted-foreground group-hover:text-primary transition opacity-0 group-hover:opacity-100" />
                             </Link>
-                          ))}
+                            );
+                          })}
                         </div>
                       </div>
                     </>

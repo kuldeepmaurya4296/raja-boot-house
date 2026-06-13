@@ -58,10 +58,10 @@ export default function AdminPage() {
   return (
     <DashboardPage eyebrow="Today" title="Overview">
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard label="Revenue" value={formatINR(revenue)} delta={12.4} icon={IndianRupee} tint="primary" />
-        <StatCard label="Orders" value={formatNumber(ordersCount)} delta={8.1} icon={ShoppingCart} tint="accent" />
-        <StatCard label="Customers" value={formatNumber(customersCount)} delta={4.7} icon={Users} tint="brass" />
-        <StatCard label="Products" value={formatNumber(productsCount)} delta={-2.1} icon={Package} tint="muted" />
+        <StatCard label="Revenue" value={formatINR(revenue)} delta={stats?.revenueDelta ?? 0} icon={IndianRupee} tint="primary" />
+        <StatCard label="Orders" value={formatNumber(ordersCount)} delta={stats?.ordersDelta ?? 0} icon={ShoppingCart} tint="accent" />
+        <StatCard label="Customers" value={formatNumber(customersCount)} delta={stats?.customersDelta ?? 0} icon={Users} tint="brass" />
+        <StatCard label="Products" value={formatNumber(productsCount)} delta={stats?.productsDelta ?? 0} icon={Package} tint="muted" />
       </div>
 
       <div className="grid lg:grid-cols-3 gap-4">

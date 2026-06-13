@@ -83,13 +83,4 @@ export async function GET(request: Request) {
   }
 }
 
-function sortList(list: any[], sort: string) {
-  return list.sort((a, b) => {
-    if (sort === "low") return a.price - b.price;
-    if (sort === "high") return b.price - a.price;
-    if (sort === "rating") return b.rating - a.rating;
-    return b.createdAt.localeCompare(a.createdAt);
-  });
-}
-
 export const dynamic = "force-dynamic";

@@ -18,13 +18,15 @@ export async function GET(request: Request) {
     if (!isReady) {
       console.warn("Using local mock products fallback for search (database offline).");
       const normalizedQuery = query.toLowerCase().trim();
-      const results = fallbackProducts.filter(
-        (p: any) =>
-          p.name?.toLowerCase().includes(normalizedQuery) ||
-          p.description?.toLowerCase().includes(normalizedQuery) ||
-          p.vendorId?.toLowerCase().includes(normalizedQuery) ||
-          p.category?.toLowerCase().includes(normalizedQuery)
-      );
+      const results = fallbackProducts
+        .map((p) => normalizeProduct(p))
+        .filter(
+          (p: any) =>
+            p.name?.toLowerCase().includes(normalizedQuery) ||
+            p.description?.toLowerCase().includes(normalizedQuery) ||
+            p.brand?.toLowerCase().includes(normalizedQuery) ||
+            p.category?.toLowerCase().includes(normalizedQuery)
+        );
       return NextResponse.json(results);
     }
 

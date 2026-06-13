@@ -265,7 +265,7 @@ export default function AccountAddressesPage() {
                     </button>
                     <button
                       onClick={() => setDeleteConfirmId(a._id!)}
-                      className="underline hover:text-destructive font-semibold cursor-pointer flex items-center gap-1 text-muted-foreground hover:text-red-650 transition-colors"
+                      className="underline hover:text-destructive font-semibold cursor-pointer flex items-center gap-1 text-muted-foreground hover:text-red-600 transition-colors"
                     >
                       <Trash2 className="h-3 w-3" /> Remove
                     </button>

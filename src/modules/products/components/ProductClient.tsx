@@ -29,12 +29,37 @@ export default function ProductClient({ product, initialReviews, relatedProducts
   const [size, setSize] = useState<number | null>(null);
   const [color, setColor] = useState("");
   const [qty, setQty] = useState(1);
+  const [recentlyViewed, setRecentlyViewed] = useState<any[]>([]);
 
   useEffect(() => {
     if (product && !color && product.colors?.length > 0) {
       setColor(product.colors[0]);
     }
   }, [product, color]);
+
+  useEffect(() => {
+    if (typeof window === "undefined" || !product) return;
+    try {
+      const stored = localStorage.getItem("rbh-recently-viewed");
+      let list = stored ? JSON.parse(stored) : [];
+      list = list.filter((p: any) => p.id !== product.id);
+      list.unshift({
+        id: product.id,
+        name: product.name,
+        price: product.price,
+        compareAt: product.compareAt,
+        image: product.gallery?.[0] || "",
+        slug: product.slug,
+        rating: product.rating,
+        reviewsCount: product.reviewsCount,
+      });
+      const sliced = list.slice(0, 5);
+      localStorage.setItem("rbh-recently-viewed", JSON.stringify(sliced));
+      setRecentlyViewed(sliced.filter((p: any) => p.id !== product.id).slice(0, 4));
+    } catch (err) {
+      console.error("Failed to update recently viewed:", err);
+    }
+  }, [product]);
 
   const wished = wishlist.includes(product.id);
 
@@ -112,7 +137,7 @@ export default function ProductClient({ product, initialReviews, relatedProducts
       </div>
 
       {/* Reviews Section */}
-      <ReviewsSection reviews={initialReviews} />
+      <ReviewsSection reviews={initialReviews} productId={product.id} />
 
       {/* Related Products */}
       {relatedProducts.length > 0 && (
@@ -120,6 +145,16 @@ export default function ProductClient({ product, initialReviews, relatedProducts
           <h2 className="font-serif text-2xl md:text-3xl font-bold mb-6">You may also like</h2>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
             {relatedProducts.map((p, i) => <ProductCard key={p.id} product={p} index={i} />)}
+          </div>
+        </section>
+      )}
+
+      {/* Recently Viewed Products */}
+      {recentlyViewed.length > 0 && (
+        <section className="mt-16 md:mt-24 border-t border-border pt-16 animate-in fade-in slide-in-from-bottom-5 duration-300">
+          <h2 className="font-serif text-2xl md:text-3xl font-bold mb-6 text-charcoal">Recently Viewed Styles</h2>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
+            {recentlyViewed.map((p, i) => <ProductCard key={p.id} product={p} index={i} />)}
           </div>
         </section>
       )}

@@ -34,6 +34,21 @@ async function getProductData(productId: string) {
     .populate({ path: "userId", model: User, select: "name avatar" })
     .sort({ createdAt: -1 });
 
+  const mappedReviews = reviewsDocs.map((r: any) => ({
+    id: r._id.toString(),
+    productId: r.productId.toString(),
+    userName: r.userId && typeof r.userId === "object" && "name" in r.userId ? (r.userId as any).name : "Anonymous",
+    rating: r.rating,
+    title: r.title || "",
+    body: r.comment || "",
+    createdAt: new Date(r.createdAt).toLocaleDateString("en-IN", {
+      day: "numeric",
+      month: "short",
+      year: "numeric"
+    }),
+    verified: r.isVerifiedPurchase || false
+  }));
+
   // Fetch related products
   const relatedDocs = await Product.find({
     category: productDoc.category,
@@ -43,7 +58,7 @@ async function getProductData(productId: string) {
 
   return {
     product: normalizedProduct,
-    reviews: JSON.parse(JSON.stringify(reviewsDocs)),
+    reviews: mappedReviews,
     related: relatedDocs.map(p => normalizeProduct(p))
   };
 }
@@ -104,7 +119,7 @@ export default async function ProductPage({ params }: PageProps) {
     "sku": data.product.id,
     "brand": {
       "@type": "Brand",
-      "name": data.product.vendorId || "Raja Boot House"
+      "name": data.product.brand || "Raja Boot House"
     },
     "offers": {
       "@type": "Offer",

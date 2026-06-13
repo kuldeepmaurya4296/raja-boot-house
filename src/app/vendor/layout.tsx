@@ -1,5 +1,5 @@
-"use client";
-
+import { auth } from "@/lib/auth";
+import { redirect } from "next/navigation";
 import { DashboardLayout } from "@/modules/admin/dashboard/components/DashboardLayout";
 import { LayoutDashboard, Package, ShoppingCart, Wallet, Settings } from "lucide-react";
 
@@ -11,7 +11,12 @@ const items = [
   { to: "/vendor/settings", label: "Settings", icon: Settings },
 ];
 
-export default function VendorLayout({ children }: { children: React.ReactNode }) {
+export default async function VendorLayout({ children }: { children: React.ReactNode }) {
+  const session = await auth();
+  if (!session?.user?.id || ((session.user as any).role !== "vendor" && (session.user as any).role !== "admin")) {
+    redirect("/login");
+  }
+
   return (
     <DashboardLayout items={items} title="Vendor Portal" accent="accent">
       {children}

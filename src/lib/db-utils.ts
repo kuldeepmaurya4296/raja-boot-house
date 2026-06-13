@@ -8,24 +8,40 @@ export async function ensureDbReady() {
 }
 
 export function normalizeProduct(p: any) {
+  const brandName = p.brand || (
+    p.vendorId === "v1" ? "Lakhani" : 
+    p.vendorId === "v2" ? "Touch" : 
+    p.vendorId === "v3" ? "Paragon" : 
+    p.vendorId === "v4" ? "Goldstar" : 
+    p.vendorId || "Raja Boot House"
+  );
+
   return {
     id: p._id ? p._id.toString() : p.id,
     slug: p.slug,
     name: p.name,
     category: p.category && p.category.slug ? p.category.slug : "shoes",
-    vendorId: p.brand,
-    price: p.salePrice,
-    compareAt: p.price,
-    image: p.images && p.images[0] ? p.images[0].url : "/assets/product-placeholder.jpg",
-    gallery: p.images ? p.images.map((img: any) => img.url) : [],
+    brand: brandName,
+    vendorId: p._id ? (p.vendorId ? p.vendorId.toString() : undefined) : p.vendorId,
+    price: p.salePrice !== undefined ? p.salePrice : p.price,
+    compareAt: p.salePrice !== undefined ? p.price : p.compareAt,
+    variants: p.variants ? p.variants.map((v: any) => ({
+      size: v.size,
+      color: v.color,
+      colorHex: v.colorHex,
+      stock: v.stock,
+      sku: v.sku,
+    })) : [],
+    image: p.images && p.images[0] ? p.images[0].url : (p.image || "/assets/product-placeholder.jpg"),
+    gallery: p.images ? p.images.map((img: any) => img.url) : (p.gallery || []),
     description: p.description,
-    details: p.tags && p.tags.length > 0 ? p.tags : ["Premium craftsmanship", "Durability assured"],
-    colors: Array.from(new Set(p.variants ? p.variants.map((v: any) => v.color) : [])) as string[],
-    sizes: Array.from(new Set(p.variants ? p.variants.map((v: any) => v.size) : [])) as number[],
-    stock: p.variants ? p.variants.reduce((acc: number, v: any) => acc + v.stock, 0) : 0,
-    rating: p.rating ? p.rating.average : 4.5,
-    reviewsCount: p.rating ? p.rating.count : 0,
-    badge: (p.isFeatured ? "bestseller" : p.isNewArrival ? "new" : undefined) as "new" | "bestseller" | "sale" | undefined,
+    details: p.tags && p.tags.length > 0 ? p.tags : (p.details || ["Premium craftsmanship", "Durability assured"]),
+    colors: Array.from(new Set(p.variants ? p.variants.map((v: any) => v.color) : (p.colors || []))) as string[],
+    sizes: Array.from(new Set(p.variants ? p.variants.map((v: any) => v.size) : (p.sizes || []))) as number[],
+    stock: p.variants ? p.variants.reduce((acc: number, v: any) => acc + v.stock, 0) : (p.stock !== undefined ? p.stock : 0),
+    rating: p.rating ? (typeof p.rating === "number" ? p.rating : p.rating.average) : 4.5,
+    reviewsCount: p.rating ? (typeof p.rating === "number" ? p.reviewsCount : p.rating.count) : (p.reviewsCount || 0),
+    badge: (p.isFeatured ? "bestseller" : p.isNewArrival ? "new" : p.badge) as "new" | "bestseller" | "sale" | undefined,
     createdAt: p.createdAt ? (p.createdAt instanceof Date ? p.createdAt.toISOString().split("T")[0] : p.createdAt) : "2025-06-08",
   };
 }

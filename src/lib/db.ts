@@ -47,7 +47,10 @@ async function resolveMongoSrv(srvUri: string): Promise<string> {
       shardList = records.map((r: any) => `${r.name}:${r.port}`).join(",");
     } catch (err) {
       console.warn("MongoDB SRV lookup failed, falling back to static shard list resolution.", err);
-      shardList = "ac-7icklru-shard-00-00.wx9o96c.mongodb.net:27017,ac-7icklru-shard-00-01.wx9o96c.mongodb.net:27017,ac-7icklru-shard-00-02.wx9o96c.mongodb.net:27017";
+      shardList = process.env.MONGODB_SHARD_LIST || "";
+      if (!shardList) {
+        console.error("MONGODB_SHARD_LIST environment variable is not defined. Connection might fail.");
+      }
     }
 
     const pathname = parsedUrl.pathname;
@@ -114,12 +117,16 @@ export async function connectToDatabase() {
       })
       .catch((err) => {
         console.error("MongoDB connection failed:", err.message);
+        cached.promise = null;
         return null;
       });
   }
 
   try {
     cached.conn = await cached.promise;
+    if (!cached.conn) {
+      cached.promise = null;
+    }
   } catch (e) {
     cached.promise = null;
     console.error("Failed to resolve MongoDB connection promise:", e);

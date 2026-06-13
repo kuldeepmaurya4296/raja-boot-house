@@ -23,6 +23,7 @@ export default function CheckoutPage() {
   const [step, setStep] = useState<1 | 2 | 3>(1);
   const [done, setDone] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [placedOrderId, setPlacedOrderId] = useState<string | null>(null);
 
   // Saved Addresses State
   const [savedAddresses, setSavedAddresses] = useState<any[]>([]);
@@ -36,6 +37,43 @@ export default function CheckoutPage() {
   const [city, setCity] = useState("");
   const [state, setState] = useState("");
   const [zip, setZip] = useState("");
+
+  // Stock validation state
+  const [stockErrors, setStockErrors] = useState<Record<string, string>>({});
+  const [checkingStock, setCheckingStock] = useState(false);
+
+  useEffect(() => {
+    if (lines.length === 0) return;
+
+    const checkStock = async () => {
+      setCheckingStock(true);
+      try {
+        const errors: Record<string, string> = {};
+        for (const line of lines) {
+          const res = await fetch(`/api/products/${line.productId}`);
+          if (res.ok) {
+            const product = await res.json();
+            const variant = product.variants?.find((v: any) => v.size === line.size && v.color === line.color);
+            const key = `${line.productId}-${line.size}-${line.color}`;
+            if (!variant) {
+              errors[key] = "Variant unavailable";
+            } else if (variant.stock === 0) {
+              errors[key] = "Out of Stock";
+            } else if (variant.stock < line.quantity) {
+              errors[key] = `Only ${variant.stock} left in stock`;
+            }
+          }
+        }
+        setStockErrors(errors);
+      } catch (err) {
+        console.error("Failed to validate stock:", err);
+      } finally {
+        setCheckingStock(false);
+      }
+    };
+
+    checkStock();
+  }, [lines]);
 
   useEffect(() => {
     if (!session?.user?.id) {
@@ -167,8 +205,9 @@ export default function CheckoutPage() {
     toast.info("Coupon removed");
   };
 
-  const tax = Math.round(subtotal * (settings.taxRate / 100));
-  const total = Math.max(0, subtotal + shippingCost + tax - couponDiscount);
+  const taxableAmount = Math.max(0, subtotal - couponDiscount);
+  const tax = Math.round(taxableAmount * (settings.taxRate / 100));
+  const total = Math.max(0, taxableAmount + shippingCost + tax);
 
   const handleShippingChange = (name: string, price: number) => {
     setShippingMethod(name);
@@ -238,6 +277,7 @@ export default function CheckoutPage() {
       // 2. Handle payment based on paymentMethod
       if (paymentMethod === "COD") {
         toast.success("Order placed successfully (Cash on Delivery)!");
+        setPlacedOrderId(orderId);
         clear();
         setDone(true);
         return;
@@ -288,6 +328,7 @@ export default function CheckoutPage() {
               const verifyData = await verifyRes.json();
               if (verifyRes.ok && verifyData.success) {
                 toast.success("Payment verified and order confirmed!");
+                setPlacedOrderId(orderId);
                 clear();
                 setDone(true);
               } else {
@@ -330,6 +371,7 @@ export default function CheckoutPage() {
             const verifyData = await verifyRes.json();
             if (verifyRes.ok && verifyData.success) {
               toast.success("Payment simulated successfully! Order confirmed.");
+              setPlacedOrderId(orderId);
               clear();
               setDone(true);
             } else {
@@ -360,7 +402,7 @@ export default function CheckoutPage() {
   }
 
   if (done) {
-    return <OrderConfirmation />;
+    return <OrderConfirmation orderId={placedOrderId || undefined} />;
   }
 
   return (
@@ -485,7 +527,7 @@ export default function CheckoutPage() {
                       onClick={couponApplied ? handleRemoveCoupon : handleApplyCoupon}
                       className={`px-5 py-2 rounded-xl text-xs font-semibold cursor-pointer transition ${
                         couponApplied
-                          ? "bg-red-50 text-red-650 hover:bg-red-100/50"
+                          ? "bg-red-50 text-red-600 hover:bg-red-100/50"
                           : "bg-primary/10 text-primary hover:bg-primary/20"
                       }`}
                     >
@@ -541,8 +583,12 @@ export default function CheckoutPage() {
               </button>
 
               <button
-                disabled={loading}
+                disabled={loading || Object.keys(stockErrors).length > 0}
                 onClick={() => {
+                  if (Object.keys(stockErrors).length > 0) {
+                    toast.error("Please remove out of stock items from your cart to proceed.");
+                    return;
+                  }
                   if (step === 1) {
                     if (!fullName.trim()) { toast.error("Full name is required"); return; }
                     if (!phone.trim()) { toast.error("Phone number is required"); return; }
@@ -578,16 +624,25 @@ export default function CheckoutPage() {
                     Items ({lines.length})
                   </p>
                   <div className="space-y-3 max-h-60 overflow-y-auto pr-1">
-                    {lines.map(l => (
-                      <div key={l.productId + l.size + l.color} className="flex gap-3 text-sm">
-                        <img src={l.image} alt="" className="h-12 w-12 rounded object-cover" />
-                        <div className="flex-1 min-w-0">
-                          <div className="font-medium leading-tight truncate">{l.name}</div>
-                          <div className="text-xs text-muted-foreground mt-0.5">×{l.quantity} · {l.size}</div>
+                    {lines.map(l => {
+                      const key = `${l.productId}-${l.size}-${l.color}`;
+                      const errorMsg = stockErrors[key];
+                      return (
+                        <div key={l.productId + l.size + l.color} className="flex gap-3 text-sm">
+                          <img src={l.image} alt="" className="h-12 w-12 rounded object-cover" />
+                          <div className="flex-1 min-w-0">
+                            <div className="font-medium leading-tight truncate">{l.name}</div>
+                            <div className="text-xs text-muted-foreground mt-0.5">×{l.quantity} · {l.size}</div>
+                            {errorMsg && (
+                              <div className="text-[10px] font-bold text-destructive mt-1 animate-pulse">
+                                {errorMsg}
+                              </div>
+                            )}
+                          </div>
+                          <div className="font-semibold">{formatINR(l.price * l.quantity)}</div>
                         </div>
-                        <div className="font-semibold">{formatINR(l.price * l.quantity)}</div>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 </div>
               }

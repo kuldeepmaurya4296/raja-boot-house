@@ -2,6 +2,7 @@
 
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
 import type { Product } from "@/data/products";
+import { useSession } from "next-auth/react";
 
 export interface CartLine { productId: string; name: string; price: number; image: string; size: number; color: string; quantity: number; slug: string; }
 
@@ -23,6 +24,7 @@ const WKEY = "rbh-wish-v1";
 const lineKey = (l: { productId: string; size: number; color: string }) => `${l.productId}-${l.size}-${l.color}`;
 
 export function CartProvider({ children }: { children: ReactNode }) {
+  const { status } = useSession();
   const [lines, setLines] = useState<CartLine[]>([]);
   const [wishlist, setWishlist] = useState<string[]>([]);
 
@@ -32,8 +34,32 @@ export function CartProvider({ children }: { children: ReactNode }) {
       const w = localStorage.getItem(WKEY); if (w) setWishlist(JSON.parse(w));
     } catch {}
   }, []);
+
   useEffect(() => { try { localStorage.setItem(KEY, JSON.stringify(lines)); } catch {} }, [lines]);
   useEffect(() => { try { localStorage.setItem(WKEY, JSON.stringify(wishlist)); } catch {} }, [wishlist]);
+
+  // Sync wishlist on login
+  useEffect(() => {
+    if (status === "authenticated") {
+      const syncWishlist = async () => {
+        try {
+          const localWish = JSON.parse(localStorage.getItem(WKEY) || "[]");
+          const res = await fetch("/api/user/wishlist", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ productIds: localWish }),
+          });
+          if (res.ok) {
+            const merged = await res.json();
+            setWishlist(merged);
+          }
+        } catch (err) {
+          console.error("Wishlist sync failed:", err);
+        }
+      };
+      syncWishlist();
+    }
+  }, [status]);
 
   const add: CartCtx["add"] = (p, { size, color, quantity = 1 }) => {
     setLines(prev => {
@@ -43,10 +69,30 @@ export function CartProvider({ children }: { children: ReactNode }) {
       return [...prev, { productId: p.id, name: p.name, price: p.price, image: p.image, size, color, quantity, slug: p.slug }];
     });
   };
+
   const remove: CartCtx["remove"] = (key) => setLines(prev => prev.filter(l => lineKey(l) !== key));
   const setQty: CartCtx["setQty"] = (key, q) => setLines(prev => prev.map(l => lineKey(l) === key ? { ...l, quantity: Math.max(1, q) } : l));
   const clear = () => setLines([]);
-  const toggleWish: CartCtx["toggleWish"] = (id) => setWishlist(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
+
+  const toggleWish: CartCtx["toggleWish"] = async (id) => {
+    if (status === "authenticated") {
+      try {
+        const res = await fetch("/api/user/wishlist", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ productId: id }),
+        });
+        if (res.ok) {
+          const data = await res.json();
+          setWishlist(data);
+        }
+      } catch (err) {
+        console.error("Failed to toggle wishlist on server:", err);
+      }
+    } else {
+      setWishlist(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
+    }
+  };
 
   const count = lines.reduce((s, l) => s + l.quantity, 0);
   const subtotal = lines.reduce((s, l) => s + l.price * l.quantity, 0);

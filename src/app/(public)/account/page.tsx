@@ -125,7 +125,7 @@ export default function AccountOverview() {
             {recentOrders.map(o => {
               const firstItem = o.items?.[0];
               return (
-                <Link key={o._id || o.id} href="/account/orders" className="block bg-card border border-border rounded-xl p-4 flex items-center gap-4 hover:border-primary transition">
+                <Link key={o._id || o.id} href="/account/orders" className="bg-card border border-border rounded-xl p-4 flex items-center gap-4 hover:border-primary transition">
                   {firstItem?.image ? (
                     <img src={firstItem.image} alt={firstItem.name} className="h-14 w-14 rounded-lg object-cover" />
                   ) : (

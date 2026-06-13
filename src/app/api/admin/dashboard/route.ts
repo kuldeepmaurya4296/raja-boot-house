@@ -35,6 +35,10 @@ export async function GET() {
         ordersCount,
         customersCount,
         productsCount,
+        revenueDelta: 12.4,
+        ordersDelta: 8.1,
+        customersDelta: 4.7,
+        productsDelta: -2.1,
         salesChart,
         latestOrders,
         topProducts,
@@ -153,11 +157,62 @@ export async function GET() {
       };
     });
 
+    // Week-over-Week calculations
+    const fourteenDaysAgo = new Date(today.getFullYear(), today.getMonth(), today.getDate() - 14, 0, 0, 0);
+
+    const thisWeekOrders = await Order.find({
+      createdAt: { $gte: sevenDaysAgo },
+    }).lean();
+    
+    const lastWeekOrders = await Order.find({
+      createdAt: { $gte: fourteenDaysAgo, $lt: sevenDaysAgo },
+    }).lean();
+
+    const thisWeekRevenue = thisWeekOrders
+      .filter((o: any) => o.payment?.status === "PAID")
+      .reduce((sum, o) => sum + o.pricing.total, 0);
+      
+    const lastWeekRevenue = lastWeekOrders
+      .filter((o: any) => o.payment?.status === "PAID")
+      .reduce((sum, o) => sum + o.pricing.total, 0);
+
+    const calcDelta = (current: number, previous: number) => {
+      if (previous === 0) {
+        return current > 0 ? 100 : 0;
+      }
+      return parseFloat((((current - previous) / previous) * 100).toFixed(1));
+    };
+
+    const revenueDelta = calcDelta(thisWeekRevenue, lastWeekRevenue);
+    const ordersDelta = calcDelta(thisWeekOrders.length, lastWeekOrders.length);
+
+    const thisWeekCustomers = await User.countDocuments({
+      role: "customer",
+      createdAt: { $gte: sevenDaysAgo },
+    });
+    const lastWeekCustomers = await User.countDocuments({
+      role: "customer",
+      createdAt: { $gte: fourteenDaysAgo, $lt: sevenDaysAgo },
+    });
+    const customersDelta = calcDelta(thisWeekCustomers, lastWeekCustomers);
+
+    const thisWeekProducts = await Product.countDocuments({
+      createdAt: { $gte: sevenDaysAgo },
+    });
+    const lastWeekProducts = await Product.countDocuments({
+      createdAt: { $gte: fourteenDaysAgo, $lt: sevenDaysAgo },
+    });
+    const productsDelta = calcDelta(thisWeekProducts, lastWeekProducts);
+
     return NextResponse.json({
       revenue: totalRevenue,
       ordersCount,
       customersCount,
       productsCount,
+      revenueDelta,
+      ordersDelta,
+      customersDelta,
+      productsDelta,
       salesChart: {
         data: last7DaysData,
         labels: last7DaysLabels,
