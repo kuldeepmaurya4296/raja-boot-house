@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { User, Package, Heart, MapPin, Settings, LogOut } from "lucide-react";
 import { useSession, signOut } from "next-auth/react";
 
@@ -18,6 +18,7 @@ export default function AccountLayout({ children }: { children: React.ReactNode 
   const pathname = usePathname();
   const router = useRouter();
   const { data: session, status } = useSession();
+  const [imgError, setImgError] = useState(false);
 
   useEffect(() => {
     if (status === "unauthenticated") {
@@ -38,9 +39,24 @@ export default function AccountLayout({ children }: { children: React.ReactNode 
 
   return (
     <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12 lg:py-16">
-      <div className="grid md:grid-cols-4 gap-8">
-        <p className="text-[11px] uppercase tracking-[0.3em] text-cognac font-semibold">My account</p>
-        <h1 className="font-serif text-3xl md:text-5xl font-bold mt-2 text-nowrap">Hello, {session.user?.name?.split(" ")[0]}</h1>
+      <div className="flex flex-col md:flex-row md:items-center gap-5 border-b border-border pb-6 mb-8">
+        <div className="h-14 w-14 md:h-16 md:w-16 rounded-full bg-cognac text-cream flex items-center justify-center font-semibold text-xl md:text-2xl uppercase shadow-sm shrink-0 overflow-hidden">
+          {!imgError && session.user?.image ? (
+            <img
+              src={session.user.image}
+              alt=""
+              className="h-full w-full object-cover"
+              onError={() => setImgError(true)}
+            />
+          ) : (
+            <span>{session.user?.name ? session.user.name.charAt(0).toUpperCase() : "U"}</span>
+          )}
+        </div>
+        <div>
+          <p className="text-[10px] uppercase tracking-[0.25em] text-cognac font-bold">My Account</p>
+          <h1 className="font-serif text-2xl md:text-3xl font-bold text-charcoal mt-0.5">Hello, {session.user?.name || "Member"}</h1>
+          <p className="text-xs text-muted-foreground mt-0.5">{session.user?.email}</p>
+        </div>
       </div>
       <div className="grid lg:grid-cols-[240px_1fr] gap-6 md:gap-10 ">
         <aside>

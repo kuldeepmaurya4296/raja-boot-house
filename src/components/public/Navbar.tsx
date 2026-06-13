@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { Search, ShoppingBag, User, Heart, Menu, X, Clock, ArrowRight, Sun, Moon } from "lucide-react";
+import { Search, ShoppingBag, User, Heart, Menu, X, Clock, ArrowRight } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import { useCart } from "@/lib/cart-store";
 import { Logo } from "@/components/shared/Logo";
@@ -10,11 +10,9 @@ import { motion, AnimatePresence } from "framer-motion";
 import { categories as fallbackCategories } from "@/data/categories";
 import { formatINR } from "@/lib/format";
 import { useSession } from "next-auth/react";
-import { useTheme } from "@/components/public/ThemeProvider";
 
 export function Navbar() {
   const { count } = useCart();
-  const { theme, toggleTheme } = useTheme();
   const { data: session } = useSession();
   const role = (session?.user as any)?.role || "customer";
   const accountLink = role === "admin" ? "/admin" : role === "vendor" ? "/vendor" : "/account";
@@ -22,6 +20,8 @@ export function Navbar() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const [menuOpen, setMenuOpen] = useState(false);
+  const [avatarError, setAvatarError] = useState(false);
+  const [drawerAvatarError, setDrawerAvatarError] = useState(false);
 
   // Hide mobile menu on scroll
   useEffect(() => {
@@ -230,14 +230,6 @@ export function Navbar() {
               <Search className="h-5 w-5" />
             </button>
 
-            <button
-              onClick={toggleTheme}
-              className="p-2 hover:bg-muted rounded-full transition cursor-pointer text-charcoal dark:text-cream"
-              aria-label="Toggle theme"
-            >
-              {theme === "dark" ? <Sun className="h-5 w-5 text-amber-500 animate-spin-once" /> : <Moon className="h-5 w-5" />}
-            </button>
-
             <Link
               href="/account/wishlist"
               className="hidden md:inline-flex p-2 hover:bg-muted rounded-full transition"
@@ -262,11 +254,16 @@ export function Navbar() {
                 className="inline-flex items-center justify-center h-8 w-8 rounded-full bg-cognac text-cream hover:bg-cognac/90 transition text-xs font-semibold uppercase shadow-sm border border-border shrink-0 ml-1"
                 title={`Account: ${session.user?.name || "User"}`}
               >
-                {session.user?.image ? (
-                  <img src={session.user.image} alt="" className="h-full w-full rounded-full object-cover" />
-                ) : (
-                  <span>{session.user?.name ? session.user.name.split(" ").map((n: any) => n[0]).join("").slice(0, 2) : "U"}</span>
-                )}
+                 {!avatarError && session.user?.image ? (
+                   <img
+                     src={session.user.image}
+                     alt=""
+                     className="h-full w-full rounded-full object-cover"
+                     onError={() => setAvatarError(true)}
+                   />
+                 ) : (
+                   <span>{session.user?.name ? session.user.name.split(" ").map((n: any) => n[0]).join("").slice(0, 2) : "U"}</span>
+                 )}
               </Link>
             ) : (
               <Link
@@ -343,8 +340,13 @@ export function Navbar() {
                 {session ? (
                   <div className="flex items-center gap-3 p-2 bg-muted/50 rounded-xl">
                     <div className="h-10 w-10 rounded-full bg-cognac text-cream flex items-center justify-center font-semibold text-sm uppercase shadow-sm shrink-0">
-                      {session.user?.image ? (
-                        <img src={session.user.image} alt="" className="h-full w-full rounded-full object-cover" />
+                      {!drawerAvatarError && session.user?.image ? (
+                        <img
+                          src={session.user.image}
+                          alt=""
+                          className="h-full w-full rounded-full object-cover"
+                          onError={() => setDrawerAvatarError(true)}
+                        />
                       ) : (
                         session.user?.name ? session.user.name.split(" ").map((n: any) => n[0]).join("").slice(0, 2) : "U"
                       )}

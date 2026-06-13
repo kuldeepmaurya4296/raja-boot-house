@@ -3,14 +3,48 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState, type ReactNode } from "react";
 import { Logo } from "@/components/shared/Logo";
-import { Menu, X, Bell, ChevronDown, LogOut, ChevronLeft } from "lucide-react";
+import {
+  Menu,
+  X,
+  Bell,
+  ChevronDown,
+  LogOut,
+  ChevronLeft,
+  LayoutDashboard,
+  Package,
+  ShoppingCart,
+  Users,
+  BarChart3,
+  Store,
+  Settings,
+  Tag,
+  Globe,
+  Ticket,
+  Wallet,
+  HelpCircle
+} from "lucide-react";
 import type { LucideIcon } from "lucide-react";
-import { signOut } from "next-auth/react";
+import { useSession, signOut } from "next-auth/react";
+
+const iconMap: Record<string, LucideIcon> = {
+  LayoutDashboard,
+  Package,
+  ShoppingCart,
+  Users,
+  BarChart3,
+  Store,
+  Settings,
+  Tag,
+  Globe,
+  Ticket,
+  Wallet,
+  HelpCircle,
+};
 
 export interface NavItem {
   to: string;
   label: string;
-  icon: LucideIcon;
+  icon: string;
   exact?: boolean;
 }
 
@@ -27,6 +61,9 @@ export function DashboardLayout({
 }) {
   const path = usePathname();
   const [open, setOpen] = useState(false);
+  const { data: session } = useSession();
+  const [headerImgError, setHeaderImgError] = useState(false);
+  const [sidebarImgError, setSidebarImgError] = useState(false);
 
   return (
     <div className="min-h-screen bg-cream flex">
@@ -48,7 +85,8 @@ export function DashboardLayout({
           </div>
         </div>
         <nav className="px-3 space-y-0.5">
-          {items.map(({ to, label, icon: Icon, exact }) => {
+          {items.map(({ to, label, icon, exact }) => {
+            const Icon = iconMap[icon] || HelpCircle;
             const active = exact ? path === to : path === to || path.startsWith(to + "/");
             const activeStyles =
               accent === "accent"
@@ -70,19 +108,41 @@ export function DashboardLayout({
             );
           })}
         </nav>
-        <div className="absolute bottom-0 inset-x-0 p-4 border-t border-sidebar-border flex flex-col gap-3">
-          <Link
-            href="/"
-            className="flex items-center gap-2 text-xs text-sidebar-foreground/60 hover:text-sidebar-foreground"
-          >
-            <ChevronLeft className="h-3.5 w-3.5" /> Back to store
-          </Link>
-          <button
-            onClick={() => signOut({ callbackUrl: "/" })}
-            className="flex items-center gap-2 text-xs text-sidebar-foreground/60 hover:text-red-400 text-left w-full cursor-pointer transition-colors"
-          >
-            <LogOut className="h-3.5 w-3.5" /> Logout
-          </button>
+        <div className="absolute bottom-0 inset-x-0 p-4 border-t border-sidebar-border flex flex-col gap-3 bg-sidebar">
+          {session?.user && (
+            <div className="flex items-center gap-2.5 p-2 bg-sidebar-accent/50 rounded-xl border border-sidebar-border/30">
+              <div className="h-9 w-9 rounded-full bg-primary text-primary-foreground flex items-center justify-center font-semibold text-sm uppercase shadow-sm shrink-0 overflow-hidden">
+                {!sidebarImgError && session.user.image ? (
+                  <img
+                    src={session.user.image}
+                    alt=""
+                    className="h-full w-full object-cover"
+                    onError={() => setSidebarImgError(true)}
+                  />
+                ) : (
+                  <span>{session.user.name ? session.user.name.charAt(0).toUpperCase() : "U"}</span>
+                )}
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-xs font-semibold text-sidebar-foreground truncate">{session.user.name || "User"}</p>
+                <p className="text-[10px] text-sidebar-foreground/60 truncate capitalize">{(session.user as any).role || "admin"}</p>
+              </div>
+            </div>
+          )}
+          <div className="flex flex-col gap-2 pt-1">
+            <Link
+              href="/"
+              className="flex items-center gap-2 text-xs text-sidebar-foreground/60 hover:text-sidebar-foreground"
+            >
+              <ChevronLeft className="h-3.5 w-3.5" /> Back to store
+            </Link>
+            <button
+              onClick={() => signOut({ callbackUrl: "/" })}
+              className="flex items-center gap-2 text-xs text-sidebar-foreground/60 hover:text-red-400 text-left w-full cursor-pointer transition-colors"
+            >
+              <LogOut className="h-3.5 w-3.5" /> Logout
+            </button>
+          </div>
         </div>
       </aside>
 
@@ -98,21 +158,36 @@ export function DashboardLayout({
             </button>
             <h1 className="font-serif text-lg md:text-xl font-semibold">{title}</h1>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-4">
             <button className="p-2 hover:bg-muted rounded-full relative">
               <Bell className="h-4.5 w-4.5" />
               <span className="absolute top-1.5 right-1.5 h-2 w-2 bg-primary rounded-full" />
             </button>
-            <button 
-              onClick={() => signOut({ callbackUrl: "/" })}
-              className="flex items-center gap-2 pl-2 pr-3 py-1.5 rounded-full hover:bg-red-50 hover:text-red-600 transition-colors cursor-pointer"
-            >
-              <div className="h-7 w-7 rounded-full bg-primary text-primary-foreground grid place-items-center text-xs font-semibold">
-                RB
+            <div className="flex items-center gap-3">
+              <div className="hidden sm:flex flex-col text-right">
+                <span className="text-xs font-semibold text-foreground">{session?.user?.name || "Admin"}</span>
+                <span className="text-[10px] text-muted-foreground capitalize">{(session?.user as any)?.role || "admin"}</span>
               </div>
-              <span className="hidden md:inline text-sm font-medium">Logout</span>
-              <LogOut className="h-3.5 w-3.5" />
-            </button>
+              <button 
+                onClick={() => signOut({ callbackUrl: "/" })}
+                className="flex items-center gap-2 pl-2 pr-3 py-1.5 rounded-full hover:bg-red-50 hover:text-red-600 transition-colors cursor-pointer"
+              >
+                <div className="h-7 w-7 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-xs font-semibold uppercase shrink-0 overflow-hidden">
+                  {!headerImgError && session?.user?.image ? (
+                    <img
+                      src={session.user.image}
+                      alt=""
+                      className="h-full w-full object-cover"
+                      onError={() => setHeaderImgError(true)}
+                    />
+                  ) : (
+                    <span>{session?.user?.name ? session.user.name.charAt(0).toUpperCase() : "U"}</span>
+                  )}
+                </div>
+                <span className="hidden md:inline text-sm font-medium">Logout</span>
+                <LogOut className="h-3.5 w-3.5" />
+              </button>
+            </div>
           </div>
         </header>
         <main className="flex-1 p-4 md:p-8">{children}</main>

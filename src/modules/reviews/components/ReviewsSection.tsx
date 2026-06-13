@@ -5,6 +5,7 @@ import { useSession } from "next-auth/react";
 import { Star, MessageSquarePlus, Check } from "lucide-react";
 import { toast } from "sonner";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import type { Review } from "@/data/reviews";
 
 interface ReviewsSectionProps {
@@ -14,6 +15,7 @@ interface ReviewsSectionProps {
 
 export function ReviewsSection({ reviews, productId }: ReviewsSectionProps) {
   const { data: session, status } = useSession();
+  const pathname = usePathname();
   const [showForm, setShowForm] = useState(false);
   const [rating, setRating] = useState(5);
   const [hoverRating, setHoverRating] = useState<number | null>(null);
@@ -114,7 +116,7 @@ export function ReviewsSection({ reviews, productId }: ReviewsSectionProps) {
         <div className="bg-card border border-border rounded-xl p-5 text-center mb-8 shadow-sm">
           <p className="text-sm text-muted-foreground mb-3">Have you purchased this product? Sign in to share your thoughts.</p>
           <Link
-            href={`/login?callbackUrl=${encodeURIComponent(typeof window !== "undefined" ? window.location.pathname : "")}`}
+            href={`/login?callbackUrl=${encodeURIComponent(pathname)}`}
             className="inline-block bg-primary text-primary-foreground px-5 py-2 rounded-full text-xs font-semibold hover:bg-primary/95 transition"
           >
             Sign In to Review
