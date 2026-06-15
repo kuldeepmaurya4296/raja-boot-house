@@ -138,7 +138,7 @@ export default function ShopClient({ categories, initialProducts, totalProducts,
     setMaxInput(activeMaxPrice);
   }, [activeMaxPrice]);
 
-  const updateFilters = (newParams: Record<string, string | null>) => {
+  const updateFilters = (newParams: Record<string, string | null>, options?: { scroll?: boolean }) => {
     const params = new URLSearchParams(searchParams.toString());
     
     // Reset limit if we are changing other filters
@@ -153,7 +153,7 @@ export default function ShopClient({ categories, initialProducts, totalProducts,
         params.set(key, val);
       }
     });
-    router.push(`/shop?${params.toString()}`);
+    router.push(`/shop?${params.toString()}`, { scroll: options?.scroll ?? true });
   };
 
   const handleToggleBrand = (b: string) => {
@@ -218,7 +218,7 @@ export default function ShopClient({ categories, initialProducts, totalProducts,
     setLoadingMore(true);
     updateFilters({
       limit: String(activeLimit + 8),
-    });
+    }, { scroll: false });
   };
 
   const hasActiveFilters =
