@@ -9,6 +9,7 @@ const items = [
   { to: "/admin/categories", label: "Categories", icon: "Tag" },
   { to: "/admin/coupons", label: "Coupons", icon: "Ticket" },
   { to: "/admin/customers", label: "Customers", icon: "Users" },
+  { to: "/admin/reviews", label: "Reviews", icon: "MessageSquare" },
   { to: "/admin/vendors", label: "Vendors", icon: "Store" },
   { to: "/admin/cms", label: "Website CMS", icon: "Globe" },
   { to: "/admin/settings", label: "Settings", icon: "Settings" },

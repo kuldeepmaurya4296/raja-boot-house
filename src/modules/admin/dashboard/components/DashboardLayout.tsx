@@ -21,7 +21,8 @@ import {
   Globe,
   Ticket,
   Wallet,
-  HelpCircle
+  HelpCircle,
+  MessageSquare
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { useSession, signOut } from "next-auth/react";
@@ -39,6 +40,7 @@ const iconMap: Record<string, LucideIcon> = {
   Ticket,
   Wallet,
   HelpCircle,
+  MessageSquare,
 };
 
 export interface NavItem {

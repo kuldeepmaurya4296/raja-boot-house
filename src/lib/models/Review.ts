@@ -22,14 +22,14 @@ const ReviewSchema: Schema = new Schema(
     title: { type: String },
     comment: { type: String },
     images: [{ type: String }], // Vercel Blob URLs
-    isApproved: { type: Boolean, default: false, index: true },
+    isApproved: { type: Boolean, default: true, index: true },
     isVerifiedPurchase: { type: Boolean, default: false, index: true },
     helpfulVotes: { type: Number, default: 0 },
   },
   { timestamps: true }
 );
 
-// Compound index to ensure a user can review a product only once
-ReviewSchema.index({ productId: 1, userId: 1 }, { unique: true });
+// Compound index (non-unique) to support fast query performance for product reviews
+ReviewSchema.index({ productId: 1, userId: 1 });
 
 export default mongoose.models.Review || mongoose.model<IReview>("Review", ReviewSchema);

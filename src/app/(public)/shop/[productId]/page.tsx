@@ -34,19 +34,37 @@ async function getProductData(productId: string) {
     .populate({ path: "userId", model: User, select: "name avatar" })
     .sort({ createdAt: -1 });
 
+  // Calculate reviewNumber chronologically per user
+  const userReviewCounts: Record<string, number> = {};
+  const sortedChronologically = [...reviewsDocs].sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+  const reviewNumbers: Record<string, number> = {};
+  sortedChronologically.forEach((r) => {
+    const uId = r.userId && typeof r.userId === "object" && "_id" in r.userId ? (r.userId as any)._id.toString() : r.userId?.toString() || "anonymous";
+    if (!userReviewCounts[uId]) {
+      userReviewCounts[uId] = 0;
+    }
+    userReviewCounts[uId]++;
+    reviewNumbers[r._id.toString()] = userReviewCounts[uId];
+  });
+
   const mappedReviews = reviewsDocs.map((r: any) => ({
     id: r._id.toString(),
     productId: r.productId.toString(),
     userName: r.userId && typeof r.userId === "object" && "name" in r.userId ? (r.userId as any).name : "Anonymous",
+    userId: r.userId && typeof r.userId === "object" && "_id" in r.userId ? (r.userId as any)._id.toString() : r.userId?.toString() || "",
+    userAvatar: r.userId && typeof r.userId === "object" && "avatar" in r.userId ? (r.userId as any).avatar : undefined,
     rating: r.rating,
     title: r.title || "",
     body: r.comment || "",
+    images: r.images || [],
     createdAt: new Date(r.createdAt).toLocaleDateString("en-IN", {
       day: "numeric",
       month: "short",
       year: "numeric"
     }),
-    verified: r.isVerifiedPurchase || false
+    verified: r.isVerifiedPurchase || false,
+    reviewNumber: reviewNumbers[r._id.toString()] || 1,
+    helpfulVotes: r.helpfulVotes || 0
   }));
 
   // Fetch related products

@@ -6,13 +6,14 @@ export interface IVariant {
   colorHex: string;
   stock: number;
   sku: string;
+  images?: { url: string; public_id: string }[];
 }
 
 export interface IProduct extends Document {
   name: string;
   slug: string;
   description: string;
-  brand: string;
+  brand: mongoose.Types.ObjectId | string;
   category: mongoose.Types.ObjectId;
   subcategory?: string;
   gender: "Men" | "Women" | "Children" | "Unisex";
@@ -43,6 +44,12 @@ const VariantSchema = new Schema({
   colorHex: { type: String, required: true },
   stock: { type: Number, required: true, default: 0 },
   sku: { type: String, required: true },
+  images: [
+    {
+      url: { type: String, required: true },
+      public_id: { type: String, required: true },
+    },
+  ],
 });
 
 const ProductSchema: Schema = new Schema(
@@ -50,7 +57,7 @@ const ProductSchema: Schema = new Schema(
     name: { type: String, required: true, trim: true },
     slug: { type: String, required: true, unique: true, index: true },
     description: { type: String, required: true },
-    brand: { type: String, required: true },
+    brand: { type: Schema.Types.ObjectId, ref: "Brand", required: true, index: true },
     vendorId: { type: Schema.Types.ObjectId, ref: "User", index: true },
     category: { type: Schema.Types.ObjectId, ref: "Category", required: true, index: true },
     subcategory: { type: String },

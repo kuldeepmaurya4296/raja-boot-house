@@ -45,3 +45,35 @@ export function normalizeProduct(p: any) {
     createdAt: p.createdAt ? (p.createdAt instanceof Date ? p.createdAt.toISOString().split("T")[0] : p.createdAt) : "2025-06-08",
   };
 }
+
+export async function updateProductRating(productId: string) {
+  const Review = mongoose.models.Review || (await import("./models/Review")).default;
+  const Product = mongoose.models.Product || (await import("./models/Product")).default;
+  
+  const allReviews = await Review.find({ productId, isApproved: true });
+  
+  // Group reviews by userId
+  const reviewsByUser: Record<string, any[]> = {};
+  allReviews.forEach((r) => {
+    const uId = r.userId.toString();
+    if (!reviewsByUser[uId]) {
+      reviewsByUser[uId] = [];
+    }
+    reviewsByUser[uId].push(r);
+  });
+
+  // Select only the review with the highest rating for each user
+  const selectedReviews = Object.values(reviewsByUser).map((userReviews) => {
+    return userReviews.reduce((highest, current) => {
+      return current.rating > highest.rating ? current : highest;
+    });
+  });
+
+  const count = selectedReviews.length;
+  const average = count > 0 ? selectedReviews.reduce((sum, r) => sum + r.rating, 0) / count : 0;
+
+  await Product.findByIdAndUpdate(productId, {
+    "rating.average": parseFloat(average.toFixed(1)),
+    "rating.count": count,
+  });
+}

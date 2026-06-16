@@ -1,13 +1,14 @@
 "use client";
 import Link from "next/link";
-import { Heart } from "lucide-react";
+import { Heart, ShoppingBag } from "lucide-react";
 import { motion } from "framer-motion";
 import type { Product } from "@/data/products";
 import { formatINR } from "@/lib/format";
 import { useCart } from "@/lib/cart-store";
+import { toast } from "sonner";
 
 export function ProductCard({ product, index = 0 }: { product: Product; index?: number }) {
-  const { wishlist, toggleWish } = useCart();
+  const { wishlist, toggleWish, add } = useCart();
   const wished = wishlist.includes(product.id);
 
   return (
@@ -44,15 +45,36 @@ export function ProductCard({ product, index = 0 }: { product: Product; index?: 
           <button
             onClick={(e) => {
               e.preventDefault();
+              e.stopPropagation();
               toggleWish(product.id);
             }}
-            className="absolute top-3 right-3 h-9 w-9 rounded-full bg-cream/90 backdrop-blur grid place-items-center hover:bg-cream transition"
+            className="absolute top-3 right-3 h-9 w-9 rounded-full bg-cream/90 backdrop-blur grid place-items-center hover:bg-cream transition z-10 cursor-pointer border-0"
             aria-label="Wishlist"
           >
             <Heart
               className={`h-4 w-4 transition ${wished ? "fill-primary text-primary" : "text-charcoal"}`}
             />
           </button>
+          
+          {/* Add to Cart button overlay */}
+          <div className="absolute inset-x-3 bottom-3 md:translate-y-12 md:opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-300 z-10">
+            <button
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                const defaultSize = product.sizes?.[0] || 7;
+                const defaultColor = product.colors?.[0] || "Default";
+                add(product, { size: defaultSize, color: defaultColor, quantity: 1 });
+                toast.success(`Added ${product.name} to cart!`, {
+                  description: `Size: UK/IND ${defaultSize} · Color: ${defaultColor}`,
+                });
+              }}
+              className="w-full py-2.5 bg-primary hover:bg-primary/95 text-primary-foreground text-xs font-bold rounded-lg transition shadow-md flex items-center justify-center gap-1.5 cursor-pointer border-0"
+            >
+              <ShoppingBag className="h-3.5 w-3.5" />
+              <span>Add to Cart</span>
+            </button>
+          </div>
         </div>
         <div className="mt-3 space-y-1">
           <p className="text-[11px] uppercase tracking-wider text-muted-foreground">

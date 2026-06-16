@@ -22,6 +22,7 @@ export function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [avatarError, setAvatarError] = useState(false);
   const [drawerAvatarError, setDrawerAvatarError] = useState(false);
+  const [mounted, setMounted] = useState(false);
 
   // Hide mobile menu on scroll
   useEffect(() => {
@@ -71,6 +72,7 @@ export function Navbar() {
       const stored = localStorage.getItem("rbh-recent-searches");
       if (stored) setRecentSearches(JSON.parse(stored));
     } catch { }
+    setMounted(true);
   }, []);
 
   // Debounced search query
@@ -240,7 +242,7 @@ export function Navbar() {
 
             <Link href="/cart" className="relative p-2 hover:bg-muted rounded-full transition" aria-label="Cart">
               <ShoppingBag className="h-5 w-5 text-charcoal hover:text-primary transition-colors" />
-              {count > 0 && (
+              {mounted && count > 0 && (
                 <span className="absolute -top-0.5 -right-0.5 bg-cognac text-cream text-[10px] font-bold rounded-full h-5 w-5 flex items-center justify-center animate-pulse">
                   {count}
                 </span>
