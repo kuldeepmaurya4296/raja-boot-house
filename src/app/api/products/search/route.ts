@@ -39,16 +39,23 @@ export async function GET(request: Request) {
     });
     const categoryIds = matchingCategories.map((c) => c._id);
 
+    // Fetch brands matching the query
+    const Brand = (await import("@/lib/models/Brand")).default;
+    const matchingBrands = await Brand.find({ name: regex });
+    const brandIds = matchingBrands.map((b: any) => b._id);
+
     const products = await Product.find({
       isActive: true,
       $or: [
         { name: regex },
-        { brand: regex },
         { description: regex },
         { tags: regex },
         { category: { $in: categoryIds } },
+        ...(brandIds.length > 0 ? [{ brand: { $in: brandIds } }] : []),
       ],
-    }).populate({ path: "category", model: Category });
+    })
+      .populate({ path: "category", model: Category })
+      .populate({ path: "brand", model: Brand });
 
     const normalized = products.map((p: any) => normalizeProduct(p));
 

@@ -4,6 +4,7 @@ import { Metadata } from "next";
 import { ensureDbReady, normalizeProduct } from "@/lib/db-utils";
 import Product from "@/lib/models/Product";
 import Category from "@/lib/models/Category";
+import Brand from "@/lib/models/Brand";
 import Settings from "@/lib/models/Settings";
 import { OCCASIONS } from "@/data/occasions";
 import { Hero } from "@/components/public/Hero";
@@ -45,7 +46,10 @@ async function getHomepageData() {
       console.warn("Database connection is not ready. Returning empty homepage product list.");
       return [];
     }
-    const rawProducts = await Product.find({ isActive: true }).populate({ path: "category", model: Category }).sort({ createdAt: -1 });
+    const rawProducts = await Product.find({ isActive: true })
+      .populate({ path: "category", model: Category })
+      .populate({ path: "brand", model: Brand })
+      .sort({ createdAt: -1 });
     return rawProducts.map((p: any) => normalizeProduct(p));
   } catch (err) {
     console.error("Failed to load homepage data:", err);

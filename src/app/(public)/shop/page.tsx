@@ -4,6 +4,7 @@ import mongoose from "mongoose";
 import { ensureDbReady, normalizeProduct } from "@/lib/db-utils";
 import Product from "@/lib/models/Product";
 import Category from "@/lib/models/Category";
+import Brand from "@/lib/models/Brand";
 import ShopClient from "@/modules/products/components/ShopClient";
 
 interface PageProps {
@@ -19,6 +20,7 @@ interface PageProps {
     limit?: string;
     gender?: string;
     color?: string;
+    collection?: string;
   }>;
 }
 
@@ -40,8 +42,9 @@ async function getFilterMetadata() {
   }
 
   try {
-    const brands = await Product.distinct("brand", { isActive: true });
-    const sortedBrands = brands.filter(Boolean).sort();
+    const brandIds = await Product.distinct("brand", { isActive: true });
+    const activeBrands = await Brand.find({ _id: { $in: brandIds.filter(Boolean) } }).select("name").lean();
+    const sortedBrands = activeBrands.map((b: any) => b.name).sort();
 
     const sizesAgg = await Product.aggregate([
       { $match: { isActive: true } },
@@ -112,7 +115,7 @@ async function getShopData(filters: any) {
     };
   }
 
-  const { category, brand, occasion, search, sort, minPrice, maxPrice, size, limit, gender, color } = filters;
+  const { category, brand, occasion, search, sort, minPrice, maxPrice, size, limit, gender, color, collection } = filters;
   const currentLimit = parseInt(limit || "8", 10);
 
   // 1. Fetch categories with active items
@@ -121,6 +124,17 @@ async function getShopData(filters: any) {
 
   // 2. Fetch products
   let query: any = { isActive: true };
+
+  // Collection filter
+  if (collection) {
+    const Collection = mongoose.models.Collection || (await import("@/lib/models/Collection")).default;
+    const collectionDoc = await Collection.findOne({ slug: collection, isActive: true });
+    if (collectionDoc) {
+      query._id = { $in: collectionDoc.products };
+    } else {
+      query._id = new mongoose.Types.ObjectId(); // force empty results
+    }
+  }
 
   if (category && category !== "all") {
     const categoryDoc = await Category.findOne({ slug: category });
@@ -132,8 +146,12 @@ async function getShopData(filters: any) {
   }
 
   if (brand) {
-    const brandArray = brand.split(",").map((b: string) => new RegExp(`^${escapeRegExp(b.trim())}$`, "i"));
-    query.brand = { $in: brandArray };
+    const brandNames = brand.split(",").map((b: string) => b.trim());
+    const matchedBrands = await Brand.find({
+      name: { $in: brandNames.map((b: string) => new RegExp(`^${escapeRegExp(b)}$`, "i")) }
+    }).select("_id").lean();
+    const brandIds = matchedBrands.map((b: any) => b._id);
+    query.brand = { $in: brandIds };
   }
 
   if (occasion) {
@@ -142,12 +160,17 @@ async function getShopData(filters: any) {
 
   if (search) {
     const regex = new RegExp(escapeRegExp(search), "i");
+    const matchedBrands = await Brand.find({ name: regex }).select("_id").lean();
+    const brandIds = matchedBrands.map((b: any) => b._id);
+
     query.$or = [
       { name: regex },
-      { brand: regex },
       { description: regex },
       { tags: regex }
     ];
+    if (brandIds.length > 0) {
+      query.$or.push({ brand: { $in: brandIds } });
+    }
   }
 
   if (minPrice || maxPrice) {
@@ -187,7 +210,9 @@ async function getShopData(filters: any) {
   }
 
   const total = await Product.countDocuments(query);
-  let mongooseQuery = Product.find(query).populate({ path: "category", model: Category });
+  let mongooseQuery = Product.find(query)
+    .populate({ path: "category", model: Category })
+    .populate({ path: "brand", model: Brand });
 
   if (sort === "low") {
     mongooseQuery = mongooseQuery.sort({ salePrice: 1 });

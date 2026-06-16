@@ -62,7 +62,7 @@ export function CategoriesClient({ categories, totalItems = 0 }: { categories: C
     )},
     { key: "actions", header: "", className: "text-right", render: c => (
       <div className="flex gap-1 justify-end">
-        <Link href={`/admin/categories/${c.id}/edit`} className="p-1.5 hover:bg-muted rounded cursor-pointer text-foreground">
+        <Link href={`/admin/inventory/categories/${c.id}/edit`} className="p-1.5 hover:bg-muted rounded cursor-pointer text-foreground">
           <Edit className="h-3.5 w-3.5" />
         </Link>
         <button 
@@ -81,7 +81,7 @@ export function CategoriesClient({ categories, totalItems = 0 }: { categories: C
       <div className="flex flex-col sm:flex-row justify-between gap-4">
         <TableSearch placeholder="Search categories..." />
         <div className="flex gap-2">
-          <Link href="/admin/categories/new" className="bg-primary text-primary-foreground rounded-lg px-4 py-2 text-sm font-semibold flex items-center gap-1.5 cursor-pointer hover:bg-primary/90 transition-colors">
+          <Link href="/admin/inventory/categories/new" className="bg-primary text-primary-foreground rounded-lg px-4 py-2 text-sm font-semibold flex items-center gap-1.5 cursor-pointer hover:bg-primary/90 transition-colors">
             <Plus className="h-4 w-4" /> Add category
           </Link>
         </div>

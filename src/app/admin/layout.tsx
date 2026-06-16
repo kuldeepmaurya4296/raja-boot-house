@@ -5,8 +5,16 @@ const items = [
   { to: "/admin", label: "Overview", icon: "LayoutDashboard", exact: true },
   { to: "/admin/analytics", label: "Analytics", icon: "BarChart3" },
   { to: "/admin/orders", label: "Orders", icon: "ShoppingCart" },
-  { to: "/admin/products", label: "Products", icon: "Package" },
-  { to: "/admin/categories", label: "Categories", icon: "Tag" },
+  {
+    label: "Inventory",
+    icon: "Package",
+    items: [
+      { to: "/admin/inventory/products", label: "Products" },
+      { to: "/admin/inventory/brands", label: "Brands" },
+      { to: "/admin/inventory/categories", label: "Categories" },
+      { to: "/admin/inventory/collections", label: "Collections" },
+    ],
+  },
   { to: "/admin/coupons", label: "Coupons", icon: "Ticket" },
   { to: "/admin/customers", label: "Customers", icon: "Users" },
   { to: "/admin/reviews", label: "Reviews", icon: "MessageSquare" },

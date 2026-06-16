@@ -3,6 +3,7 @@ import { Metadata } from "next";
 import Product from "@/lib/models/Product";
 import Review from "@/lib/models/Review";
 import Category from "@/lib/models/Category";
+import Brand from "@/lib/models/Brand";
 import User from "@/lib/models/User"; // needed for reviews user populate
 import { ensureDbReady, normalizeProduct } from "@/lib/db-utils";
 import ProductClient from "@/modules/products/components/ProductClient";
@@ -20,9 +21,13 @@ async function getProductData(productId: string) {
   }
   
   // Try finding by slug first, then by ObjectId id
-  let productDoc = await Product.findOne({ slug: productId, isActive: true }).populate({ path: "category", model: Category });
+  let productDoc = await Product.findOne({ slug: productId, isActive: true })
+    .populate({ path: "category", model: Category })
+    .populate({ path: "brand", model: Brand });
   if (!productDoc && productId.match(/^[0-9a-fA-F]{24}$/)) {
-    productDoc = await Product.findOne({ _id: productId, isActive: true }).populate({ path: "category", model: Category });
+    productDoc = await Product.findOne({ _id: productId, isActive: true })
+      .populate({ path: "category", model: Category })
+      .populate({ path: "brand", model: Brand });
   }
 
   if (!productDoc) return null;

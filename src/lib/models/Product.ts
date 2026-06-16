@@ -15,7 +15,6 @@ export interface IProduct extends Document {
   description: string;
   brand: mongoose.Types.ObjectId | string;
   category: mongoose.Types.ObjectId;
-  subcategory?: string;
   gender: "Men" | "Women" | "Children" | "Unisex";
   occasion: ("Daily" | "Wedding" | "Bridal" | "Party" | "Function" | "Sports")[];
   images: { url: string; public_id: string }[];
@@ -60,7 +59,6 @@ const ProductSchema: Schema = new Schema(
     brand: { type: Schema.Types.ObjectId, ref: "Brand", required: true, index: true },
     vendorId: { type: Schema.Types.ObjectId, ref: "User", index: true },
     category: { type: Schema.Types.ObjectId, ref: "Category", required: true, index: true },
-    subcategory: { type: String },
     gender: { type: String, enum: ["Men", "Women", "Children", "Unisex"], required: true, index: true },
     occasion: [{ type: String, enum: ["Daily", "Wedding", "Bridal", "Party", "Function", "Sports"], index: true }],
     images: [

@@ -44,10 +44,11 @@ const iconMap: Record<string, LucideIcon> = {
 };
 
 export interface NavItem {
-  to: string;
+  to?: string;
   label: string;
   icon: string;
   exact?: boolean;
+  items?: { to: string; label: string }[];
 }
 
 export function DashboardLayout({
@@ -66,6 +67,18 @@ export function DashboardLayout({
   const { data: session } = useSession();
   const [headerImgError, setHeaderImgError] = useState(false);
   const [sidebarImgError, setSidebarImgError] = useState(false);
+  
+  // Track expanded parent submenus
+  const [expandedMenus, setExpandedMenus] = useState<Record<string, boolean>>({
+    Inventory: true, // open Inventory submenu by default
+  });
+
+  const toggleMenu = (lbl: string) => {
+    setExpandedMenus((prev) => ({
+      ...prev,
+      [lbl]: !prev[lbl],
+    }));
+  };
 
   return (
     <div className="min-h-screen bg-cream flex">
@@ -86,20 +99,74 @@ export function DashboardLayout({
             {title}
           </div>
         </div>
-        <nav className="px-3 space-y-0.5">
-          {items.map(({ to, label, icon, exact }) => {
+        <nav className="px-3 space-y-1">
+          {items.map(({ to, label, icon, exact, items: subItems }) => {
             const Icon = iconMap[icon] || HelpCircle;
-            const active = exact ? path === to : path === to || path.startsWith(to + "/");
+            const hasSubItems = !!subItems && subItems.length > 0;
+
+            if (hasSubItems) {
+              const isExpanded = !!expandedMenus[label];
+              const isAnyChildActive = subItems.some((sub) => path === sub.to || path.startsWith(sub.to + "/"));
+
+              return (
+                <div key={label} className="space-y-0.5">
+                  <button
+                    type="button"
+                    onClick={() => toggleMenu(label)}
+                    className={`w-full flex items-center justify-between gap-3 px-3 py-2 text-sm font-medium transition rounded-lg cursor-pointer text-sidebar-foreground/80 hover:bg-sidebar-accent hover:text-sidebar-foreground ${
+                      isAnyChildActive ? "text-brass bg-sidebar-accent/30 font-semibold" : ""
+                    }`}
+                  >
+                    <div className="flex items-center gap-3">
+                      <Icon className="h-4 w-4" />
+                      <span>{label}</span>
+                    </div>
+                    <ChevronDown
+                      className={`h-3.5 w-3.5 transition-transform duration-200 text-sidebar-foreground/50 ${
+                        isExpanded ? "rotate-180" : ""
+                      }`}
+                    />
+                  </button>
+                  {isExpanded && (
+                    <div className="pl-9 space-y-0.5 border-l border-sidebar-border/30 ml-5">
+                      {subItems.map((sub) => {
+                        const active = sub.to === path || path.startsWith(sub.to + "/");
+                        const activeStyles =
+                          accent === "accent"
+                            ? "text-accent font-semibold"
+                            : "text-brass font-semibold";
+                        return (
+                          <Link
+                            key={sub.to}
+                            href={sub.to}
+                            onClick={() => setOpen(false)}
+                            className={`block py-1.5 text-xs transition ${
+                              active
+                                ? activeStyles
+                                : "text-sidebar-foreground/60 hover:text-sidebar-foreground"
+                            }`}
+                          >
+                            {sub.label}
+                          </Link>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              );
+            }
+
+            const active = exact ? path === to : to ? (path === to || path.startsWith(to + "/")) : false;
             const activeStyles =
               accent === "accent"
                 ? "bg-sidebar-accent text-accent font-semibold"
                 : "bg-sidebar-accent text-brass font-semibold";
             return (
               <Link
-                key={to}
-                href={to}
+                key={to || label}
+                href={to || "#"}
                 onClick={() => setOpen(false)}
-                className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition ${
+                className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition ${
                   active
                     ? activeStyles
                     : "text-sidebar-foreground/80 hover:bg-sidebar-accent hover:text-sidebar-foreground"

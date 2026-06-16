@@ -60,7 +60,7 @@ export function ProductsClient({ products, totalItems = 0 }: { products: Product
     )},
     { key: "a", header: "", className: "text-right", render: p => (
       <div className="flex gap-1 justify-end">
-        <Link href={`/admin/products/${p.id}/edit`} className="p-1.5 hover:bg-muted rounded cursor-pointer text-foreground">
+        <Link href={`/admin/inventory/products/${p.id}/edit`} className="p-1.5 hover:bg-muted rounded cursor-pointer text-foreground">
           <Edit className="h-3.5 w-3.5" />
         </Link>
         <button 
@@ -79,7 +79,7 @@ export function ProductsClient({ products, totalItems = 0 }: { products: Product
       <div className="flex flex-col sm:flex-row justify-between gap-4">
         <TableSearch placeholder="Search products by name or slug..." />
         <div className="flex gap-2">
-          <Link href="/admin/products/new" className="bg-primary text-primary-foreground rounded-lg px-4 py-2 text-sm font-semibold flex items-center gap-1.5 cursor-pointer hover:bg-primary/90 transition-colors">
+          <Link href="/admin/inventory/products/new" className="bg-primary text-primary-foreground rounded-lg px-4 py-2 text-sm font-semibold flex items-center gap-1.5 cursor-pointer hover:bg-primary/90 transition-colors">
             <Plus className="h-4 w-4" /> Add product
           </Link>
         </div>

@@ -1,7 +1,9 @@
 import { NextResponse } from "next/server";
+import mongoose from "mongoose";
 import { connectToDatabase } from "@/lib/db";
 import Product from "@/lib/models/Product";
 import Category from "@/lib/models/Category";
+import Brand from "@/lib/models/Brand";
 import { ensureDbReady, normalizeProduct } from "@/lib/db-utils";
 
 function escapeRegExp(string: string) {
@@ -37,7 +39,12 @@ export async function GET(request: Request) {
 
     // 2. Brand filter
     if (brand) {
-      query.brand = new RegExp(`^${escapeRegExp(brand)}$`, "i");
+      const brandDoc = await Brand.findOne({ name: new RegExp(`^${escapeRegExp(brand)}$`, "i") });
+      if (brandDoc) {
+        query.brand = brandDoc._id;
+      } else {
+        query.brand = new mongoose.Types.ObjectId(); // force empty results
+      }
     }
 
     // 3. Occasion filter
@@ -53,15 +60,22 @@ export async function GET(request: Request) {
     // 5. Search query matching name, description, brand, tags
     if (searchQuery) {
       const regex = new RegExp(escapeRegExp(searchQuery), "i");
+      const matchedBrands = await Brand.find({ name: regex }).select("_id").lean();
+      const brandIds = matchedBrands.map((b: any) => b._id);
+
       query.$or = [
         { name: regex },
-        { brand: regex },
         { description: regex },
         { tags: regex }
       ];
+      if (brandIds.length > 0) {
+        query.$or.push({ brand: { $in: brandIds } });
+      }
     }
 
-    let mongooseQuery = Product.find(query).populate({ path: "category", model: Category });
+    let mongooseQuery = Product.find(query)
+      .populate({ path: "category", model: Category })
+      .populate({ path: "brand", model: Brand });
 
     // Sorting logic
     if (sort === "low") {

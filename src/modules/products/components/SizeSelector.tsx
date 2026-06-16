@@ -8,9 +8,10 @@ interface SizeSelectorProps {
   sizes: number[];
   selectedSize: number | null;
   onSelect: (size: number) => void;
+  availableSizes?: number[];
 }
 
-export function SizeSelector({ sizes, selectedSize, onSelect }: SizeSelectorProps) {
+export function SizeSelector({ sizes, selectedSize, onSelect, availableSizes = [] }: SizeSelectorProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<"chart" | "measure">("chart");
 
@@ -37,19 +38,32 @@ export function SizeSelector({ sizes, selectedSize, onSelect }: SizeSelectorProp
         </button>
       </div>
       <div className="grid grid-cols-6 gap-2">
-        {sizes.map((s) => (
-          <button
-            key={s}
-            onClick={() => onSelect(s)}
-            className={`h-12 rounded-lg border-2 text-sm font-semibold transition cursor-pointer ${
-              selectedSize === s
-                ? "border-primary bg-primary text-primary-foreground"
-                : "border-border hover:border-charcoal"
-            }`}
-          >
-            {s}
-          </button>
-        ))}
+        {sizes.map((s) => {
+          const isAvailable = availableSizes.length === 0 || availableSizes.includes(s);
+          const isSelected = selectedSize === s;
+          return (
+            <button
+              key={s}
+              type="button"
+              disabled={!isAvailable}
+              onClick={() => isAvailable && onSelect(s)}
+              className={`h-12 rounded-lg border-2 text-sm font-semibold transition relative cursor-pointer disabled:cursor-not-allowed ${
+                isSelected
+                  ? "border-primary bg-primary text-primary-foreground"
+                  : isAvailable
+                    ? "border-border hover:border-charcoal bg-background"
+                    : "border-border/40 text-muted-foreground bg-muted/20 opacity-40 line-through"
+              }`}
+            >
+              {s}
+              {!isAvailable && (
+                <span className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                  <span className="w-[80%] h-[1.5px] bg-muted-foreground/30 rotate-45 transform origin-center" />
+                </span>
+              )}
+            </button>
+          );
+        })}
       </div>
 
       {/* Size Guide Modal Overlay */}

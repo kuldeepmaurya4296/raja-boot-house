@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 
 interface ProductGalleryProps {
@@ -8,6 +8,10 @@ interface ProductGalleryProps {
 
 export function ProductGallery({ gallery, name }: ProductGalleryProps) {
   const [gIdx, setGIdx] = useState(0);
+
+  useEffect(() => {
+    setGIdx(0);
+  }, [gallery]);
 
   return (
     <div className="space-y-3">

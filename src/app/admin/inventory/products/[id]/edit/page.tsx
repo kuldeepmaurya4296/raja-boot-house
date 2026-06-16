@@ -3,6 +3,7 @@ import { ProductForm } from "../../ProductForm";
 import { connectToDatabase as dbConnect } from "@/lib/db";
 import Product from "@/lib/models/Product";
 import Category from "@/lib/models/Category";
+import Brand from "@/lib/models/Brand";
 import { notFound } from "next/navigation";
 
 export const dynamic = "force-dynamic";
@@ -11,9 +12,10 @@ export default async function EditProductPage({ params }: { params: Promise<{ id
   await dbConnect();
   const { id } = await params;
   
-  const [productRaw, categoriesRaw] = await Promise.all([
+  const [productRaw, categoriesRaw, brandsRaw] = await Promise.all([
     Product.findById(id).lean(),
-    Category.find({ isActive: true }).select("name _id").lean()
+    Category.find({ isActive: true }).select("name _id").lean(),
+    Brand.find({ isActive: true }).select("name _id").sort({ name: 1 }).lean()
   ]);
   
   if (!productRaw) {
@@ -25,12 +27,17 @@ export default async function EditProductPage({ params }: { params: Promise<{ id
     name: c.name,
   }));
 
+  const brands = brandsRaw.map((b: any) => ({
+    id: b._id.toString(),
+    name: b.name,
+  }));
+
   // Clean up MongoDB object before passing to client component
   const initialData = {
     name: productRaw.name,
     slug: productRaw.slug,
     description: productRaw.description,
-    brand: productRaw.brand,
+    brand: productRaw.brand?.toString() || "",
     category: productRaw.category?.toString() || "",
     gender: productRaw.gender,
     occasion: productRaw.occasion || [],
@@ -41,6 +48,7 @@ export default async function EditProductPage({ params }: { params: Promise<{ id
       colorHex: v.colorHex,
       stock: v.stock,
       sku: v.sku,
+      images: v.images?.map((img: any) => ({ url: img.url, public_id: img.public_id })) || [],
     })) || [],
     price: productRaw.price,
     salePrice: productRaw.salePrice,
@@ -53,7 +61,7 @@ export default async function EditProductPage({ params }: { params: Promise<{ id
   return (
     <DashboardPage eyebrow="Catalog" title="Edit Product">
       <div className="py-6">
-        <ProductForm initialData={initialData} id={id} categories={categories} />
+        <ProductForm initialData={initialData} id={id} categories={categories} brands={brands} />
       </div>
     </DashboardPage>
   );

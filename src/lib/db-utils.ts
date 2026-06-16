@@ -8,13 +8,15 @@ export async function ensureDbReady() {
 }
 
 export function normalizeProduct(p: any) {
-  const brandName = p.brand || (
-    p.vendorId === "v1" ? "Lakhani" : 
-    p.vendorId === "v2" ? "Touch" : 
-    p.vendorId === "v3" ? "Paragon" : 
-    p.vendorId === "v4" ? "Goldstar" : 
-    p.vendorId || "Raja Boot House"
-  );
+  const brandName = (p.brand && typeof p.brand === "object" && "name" in p.brand)
+    ? p.brand.name
+    : (p.brand || (
+        p.vendorId === "v1" ? "Lakhani" : 
+        p.vendorId === "v2" ? "Touch" : 
+        p.vendorId === "v3" ? "Paragon" : 
+        p.vendorId === "v4" ? "Goldstar" : 
+        p.vendorId || "Raja Boot House"
+      ));
 
   return {
     id: p._id ? p._id.toString() : p.id,
@@ -22,6 +24,7 @@ export function normalizeProduct(p: any) {
     name: p.name,
     category: p.category && p.category.slug ? p.category.slug : "shoes",
     brand: brandName,
+    brandId: p.brand && p.brand._id ? p.brand._id.toString() : (typeof p.brand === "string" ? p.brand : undefined),
     vendorId: p._id ? (p.vendorId ? p.vendorId.toString() : undefined) : p.vendorId,
     price: p.salePrice !== undefined ? p.salePrice : p.price,
     compareAt: p.salePrice !== undefined ? p.price : p.compareAt,
@@ -31,6 +34,7 @@ export function normalizeProduct(p: any) {
       colorHex: v.colorHex,
       stock: v.stock,
       sku: v.sku,
+      images: v.images ? v.images.map((img: any) => ({ url: img.url, public_id: img.public_id })) : [],
     })) : [],
     image: p.images && p.images[0] ? p.images[0].url : (p.image || "/assets/product-placeholder.jpg"),
     gallery: p.images ? p.images.map((img: any) => img.url) : (p.gallery || []),

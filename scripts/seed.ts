@@ -25,6 +25,7 @@ import Settings from "../src/lib/models/Settings";
 import Review from "../src/lib/models/Review";
 import Brand from "../src/lib/models/Brand";
 import NewsletterSubscriber from "../src/lib/models/NewsletterSubscriber";
+import Collection from "../src/lib/models/Collection";
 
 // Load environment variables manually from .env file
 function loadEnv() {
@@ -79,6 +80,7 @@ async function runSeed() {
     await Settings.deleteMany({});
     await Review.deleteMany({});
     await Brand.deleteMany({});
+    await Collection.deleteMany({});
     await NewsletterSubscriber.deleteMany({});
     console.log("Database cleaned.");
 
@@ -144,7 +146,26 @@ async function runSeed() {
 
     console.log(`Seeded Users: ${adminUser.email}, ${mockCustomer1.email}, ${vendor1.email}`);
 
-    // 3. Seed Categories
+    // 3. Seed Brands
+    console.log("Seeding Brands...");
+    const sampleBrands = [
+      { name: "Lakhani", order: 1, isActive: true },
+      { name: "Touch Footwear", order: 2, isActive: true },
+      { name: "Paragon", order: 3, isActive: true },
+      { name: "Goldstar Shoes", order: 4, isActive: true },
+      { name: "Raja Exclusive", order: 5, isActive: true },
+      { name: "Touch Heels", order: 6, isActive: true },
+      { name: "Lakhani Canvas", order: 7, isActive: true },
+      { name: "Paragon Comfort", order: 8, isActive: true },
+    ];
+    const createdBrands = await Brand.create(sampleBrands);
+    const brandMap: Record<string, any> = {};
+    createdBrands.forEach((b: any) => {
+      brandMap[b.name] = b;
+    });
+    console.log(`Seeded ${createdBrands.length} brands.`);
+
+    // 4. Seed Categories
     console.log("Seeding Categories...");
     const categoryData = [
       { name: "Men", slug: "men", description: "Men's footwear collection including formal, casual, and daily wear." },
@@ -161,9 +182,9 @@ async function runSeed() {
     }
     console.log(`Seeded ${Object.keys(categoryMap).length} categories.`);
 
-    // 4. Seed Products
+    // 5. Seed Products
     console.log("Seeding Products...");
-    const brands = ["Raja Classics", "Lakhani", "Paragon", "Touch", "Goldstar"];
+    const brandsList = ["Lakhani", "Paragon", "Touch Footwear", "Goldstar Shoes", "Raja Exclusive"];
     const images = [
       "https://images.unsplash.com/photo-1542291026-7eec264c27ff?q=80&w=800&auto=format&fit=crop",
       "https://images.unsplash.com/photo-1549298916-b41d501d3772?q=80&w=800&auto=format&fit=crop",
@@ -176,7 +197,8 @@ async function runSeed() {
     
     for (const cat of categoryData) {
       for (let i = 1; i <= 5; i++) {
-        const brand = brands[(i - 1) % brands.length];
+        const brandName = brandsList[(i - 1) % brandsList.length];
+        const brandObj = brandMap[brandName] || brandMap["Raja Exclusive"];
         const img = images[i - 1];
         const price = 500 + (i * 200) + (Math.floor(Math.random() * 5) * 100);
         const salePrice = Math.round(price * 0.8); // 20% discount
@@ -190,30 +212,32 @@ async function runSeed() {
         if (cat.name === "Bridal") occasion = ["Wedding", "Party"];
         else if (cat.name === "Sports") occasion = ["Sports"];
 
+        const productImages = [{ url: img, public_id: `unsplash-img-${i}` }];
+
         const created = await Product.create({
-          name: `${brand} Premium ${cat.name} Style ${i}`,
-          slug: `${brand.toLowerCase().replace(" ", "-")}-${cat.slug}-style-${i}`,
-          description: `High-quality ${cat.name} footwear by ${brand}. Perfect for daily use and special occasions. Features a comfortable sole and durable materials.`,
-          brand: brand,
-          vendorId: brand === "Lakhani" ? vendor1._id : undefined,
+          name: `${brandName} Premium ${cat.name} Style ${i}`,
+          slug: `${brandName.toLowerCase().replace(" ", "-")}-${cat.slug}-style-${i}`,
+          description: `<p>High-quality <strong>${cat.name} footwear</strong> by ${brandName}.</p><p>Perfect for daily use and special occasions. Features a comfortable sole and durable materials.</p><ul><li>Premium styling</li><li>Flexible sole construction</li><li>Hand-finished detailing</li></ul>`,
+          brand: brandObj._id,
+          vendorId: brandName === "Lakhani" ? vendor1._id : undefined,
           category: categoryMap[cat.slug]._id,
           subcategory: "Classics",
           gender: gender,
           occasion: occasion,
-          images: [{ url: img, public_id: `unsplash-img-${i}` }],
+          images: productImages,
           variants: [
-            { size: 7, color: "Black", colorHex: "#000000", stock: 15, sku: `SKU-${cat.slug}-${i}-7-BK` },
-            { size: 8, color: "Brown", colorHex: "#5C4033", stock: 20, sku: `SKU-${cat.slug}-${i}-8-BR` },
-            { size: 9, color: "White", colorHex: "#FFFFFF", stock: 10, sku: `SKU-${cat.slug}-${i}-9-WH` },
+            { size: 7, color: "Black", colorHex: "#000000", stock: 15, sku: `SKU-${cat.slug}-${i}-7-BK`, images: productImages },
+            { size: 8, color: "Brown", colorHex: "#5C4033", stock: 20, sku: `SKU-${cat.slug}-${i}-8-BR`, images: productImages },
+            { size: 9, color: "White", colorHex: "#FFFFFF", stock: 10, sku: `SKU-${cat.slug}-${i}-9-WH`, images: productImages },
           ],
           price: price,
           salePrice: salePrice,
           isFeatured: i === 1,
           isNewArrival: i === 2,
           isActive: true,
-          tags: [cat.slug, brand.toLowerCase(), "footwear"],
-          metaTitle: `${brand} ${cat.name} Style ${i} - Raja Boot House`,
-          metaDescription: `Buy ${brand} ${cat.name} Style ${i} at the best price.`
+          tags: [cat.slug, brandName.toLowerCase(), "footwear"],
+          metaTitle: `${brandName} ${cat.name} Style ${i} - Raja Boot House`,
+          metaDescription: `Buy ${brandName} ${cat.name} Style ${i} at the best price.`
         });
         
         seededProducts.push(created);
@@ -221,7 +245,36 @@ async function runSeed() {
     }
     console.log(`Seeded ${seededProducts.length} products.`);
 
-    // 5. Seed Banners
+    // 6. Seed Collections
+    console.log("Seeding Collections...");
+    const newArrivalProducts = seededProducts.filter((p) => p.isNewArrival).map((p) => p._id);
+    const featuredProducts = seededProducts.filter((p) => p.isFeatured).map((p) => p._id);
+
+    const sampleCollections = [
+      {
+        name: "Trending Styles",
+        slug: "trending-styles",
+        description: "Explore the most popular designs and customer favorites this season.",
+        imageUrl: "https://images.unsplash.com/photo-1549298916-b41d501d3772?q=80&w=800&auto=format&fit=crop",
+        isFeatured: true,
+        isActive: true,
+        products: featuredProducts,
+      },
+      {
+        name: "Fresh Drops",
+        slug: "fresh-drops",
+        description: "Check out the latest hand-finished footwear, fresh from our design bench.",
+        imageUrl: "https://images.unsplash.com/photo-1560769629-975ec94e6a86?q=80&w=800&auto=format&fit=crop",
+        isFeatured: false,
+        isActive: true,
+        products: newArrivalProducts,
+      }
+    ];
+
+    await Collection.create(sampleCollections);
+    console.log("Seeded sample marketing collections.");
+
+    // 7. Seed Banners
     console.log("Seeding Banners...");
     await Banner.create([
       {
@@ -271,22 +324,7 @@ async function runSeed() {
     ]);
     console.log("Seeded homepage banners.");
 
-    // 6. Seed Brands
-    console.log("Seeding Brands...");
-    const sampleBrands = [
-      { name: "Lakhani", order: 1, isActive: true },
-      { name: "Touch Footwear", order: 2, isActive: true },
-      { name: "Paragon", order: 3, isActive: true },
-      { name: "Goldstar Shoes", order: 4, isActive: true },
-      { name: "Raja Exclusive", order: 5, isActive: true },
-      { name: "Touch Heels", order: 6, isActive: true },
-      { name: "Lakhani Canvas", order: 7, isActive: true },
-      { name: "Paragon Comfort", order: 8, isActive: true },
-    ];
-    await Brand.create(sampleBrands);
-    console.log("Seeded sample marquee brands.");
-
-    // 7. Seed Newsletter Subscribers
+    // 8. Seed Newsletter Subscribers
     console.log("Seeding Subscribers...");
     await NewsletterSubscriber.create([
       { name: "Rahul Maurya", email: "rahul.maurya@example.com", phone: "9876543210", message: "Looking for premium shoes." },
@@ -294,7 +332,7 @@ async function runSeed() {
     ]);
     console.log("Seeded sample newsletter subscribers.");
 
-    // 8. Seed Default Trust Badges in Settings
+    // 9. Seed Default Trust Badges in Settings
     console.log("Seeding Default Trust Badges in Settings...");
     await Settings.create({
       key: "trust_badges",

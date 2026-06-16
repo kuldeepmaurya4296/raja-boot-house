@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { Heart, ShoppingBag, Star } from "lucide-react";
 import { useCart } from "@/lib/cart-store";
 import { ProductCard } from "@/modules/products/components/ProductCard";
@@ -31,11 +31,62 @@ export default function ProductClient({ product, initialReviews, relatedProducts
   const [qty, setQty] = useState(1);
   const [recentlyViewed, setRecentlyViewed] = useState<any[]>([]);
 
+  // Map color names to their corresponding hex values from variants
+  const colorsWithHex = useMemo(() => {
+    const map = new Map<string, string>();
+    if (product.variants) {
+      product.variants.forEach((v: any) => {
+        if (v.color && v.colorHex) {
+          map.set(v.color.toLowerCase(), v.colorHex);
+        }
+      });
+    }
+    return (product.colors || []).map((c: string) => ({
+      name: c,
+      hex: map.get(c.toLowerCase()) || "#cccccc"
+    }));
+  }, [product.colors, product.variants]);
+
+  // Find which sizes are actually available (stock > 0) for the selected color
+  const availableSizesForColor = useMemo(() => {
+    if (!color || !product.variants) return [];
+    return product.variants
+      .filter((v: any) => v.color?.toLowerCase() === color.toLowerCase() && v.stock > 0)
+      .map((v: any) => v.size);
+  }, [color, product.variants]);
+
+  // Find the exact variant matching the selected color and size
+  const selectedVariant = useMemo(() => {
+    if (!color || !size || !product.variants) return null;
+    return product.variants.find(
+      (v: any) => v.color?.toLowerCase() === color.toLowerCase() && v.size === size
+    );
+  }, [color, size, product.variants]);
+
+  // Find if there's any variant matching the selected color that has custom images
+  const activeGallery = useMemo(() => {
+    if (!color || !product.variants) return product.gallery;
+    const match = product.variants.find(
+      (v: any) => v.color?.toLowerCase() === color.toLowerCase() && v.images && v.images.length > 0
+    );
+    if (match) {
+      return match.images.map((img: any) => img.url);
+    }
+    return product.gallery;
+  }, [color, product.gallery, product.variants]);
+
   useEffect(() => {
     if (product && !color && product.colors?.length > 0) {
       setColor(product.colors[0]);
     }
   }, [product, color]);
+
+  // If color changes and currently selected size is not available, reset size selection
+  useEffect(() => {
+    if (color && size !== null && !availableSizesForColor.includes(size)) {
+      setSize(null);
+    }
+  }, [color, availableSizesForColor, size]);
 
   useEffect(() => {
     if (typeof window === "undefined" || !product) return;
@@ -68,6 +119,10 @@ export default function ProductClient({ product, initialReviews, relatedProducts
       toast.error("Please select a size before adding to bag");
       return;
     }
+    if (selectedVariant && selectedVariant.stock <= 0) {
+      toast.error("This color/size combination is out of stock");
+      return;
+    }
     add(product, { size, color, quantity: qty });
     router.push("/cart");
   };
@@ -84,7 +139,7 @@ export default function ProductClient({ product, initialReviews, relatedProducts
 
       <div className="grid md:grid-cols-2 gap-8 md:gap-16">
         {/* Gallery */}
-        <ProductGallery gallery={product.gallery} name={product.name} />
+        <ProductGallery gallery={activeGallery} name={product.name} />
 
         {/* Info */}
         <div className="space-y-6">
@@ -103,20 +158,46 @@ export default function ProductClient({ product, initialReviews, relatedProducts
               <span className="font-serif text-3xl font-bold">{formatINR(product.price)}</span>
               {product.compareAt && <span className="text-muted-foreground line-through">{formatINR(product.compareAt)}</span>}
             </div>
-            <p className="mt-5 text-muted-foreground leading-relaxed">{product.description}</p>
+            <div 
+              className="mt-5 text-muted-foreground leading-relaxed prose prose-stone max-w-none text-sm space-y-1"
+              dangerouslySetInnerHTML={{ __html: product.description }}
+            />
           </div>
 
           {/* Color Selector */}
-          <ColorSelector colors={product.colors} selectedColor={color} onSelect={setColor} />
+          <ColorSelector colors={colorsWithHex} selectedColor={color} onSelect={setColor} />
 
           {/* Size Selector */}
-          <SizeSelector sizes={product.sizes} selectedSize={size} onSelect={setSize} />
+          <SizeSelector sizes={product.sizes} selectedSize={size} onSelect={setSize} availableSizes={availableSizesForColor} />
+
+          {/* Stock Feedback */}
+          {size !== null && selectedVariant && (
+            <div className="text-xs font-semibold px-1 py-0.5 animate-in fade-in duration-200">
+              {selectedVariant.stock === 0 ? (
+                <span className="text-destructive flex items-center gap-1.5 font-bold">
+                  <span className="h-2 w-2 rounded-full bg-destructive animate-pulse" /> Out of stock
+                </span>
+              ) : selectedVariant.stock <= 5 ? (
+                <span className="text-cognac flex items-center gap-1.5 font-bold">
+                  <span className="h-2 w-2 rounded-full bg-cognac animate-pulse" /> Only {selectedVariant.stock} left in stock - order soon!
+                </span>
+              ) : (
+                <span className="text-emerald-600 flex items-center gap-1.5 font-bold">
+                  <span className="h-2 w-2 rounded-full bg-emerald-500" /> In stock (ready to ship)
+                </span>
+              )}
+            </div>
+          )}
 
           {/* Qty + CTA */}
           <div className="flex gap-3 items-center pt-2">
             <QuantitySelector quantity={qty} onChange={setQty} />
-            <button onClick={handleAdd} className="flex-1 bg-primary text-primary-foreground rounded-full h-12 font-semibold flex items-center justify-center gap-2 hover:bg-primary/90 transition cursor-pointer">
-              <ShoppingBag className="h-4 w-4" /> Add to bag
+            <button 
+              onClick={handleAdd} 
+              disabled={size !== null && selectedVariant && selectedVariant.stock <= 0}
+              className="flex-1 bg-primary text-primary-foreground rounded-full h-12 font-semibold flex items-center justify-center gap-2 hover:bg-primary/90 transition cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+            >
+              <ShoppingBag className="h-4 w-4" /> {size !== null && selectedVariant && selectedVariant.stock <= 0 ? "Out of stock" : "Add to bag"}
             </button>
             <button onClick={() => toggleWish(product.id)} className="h-12 w-12 grid place-items-center border border-border rounded-full hover:bg-muted transition cursor-pointer">
               <Heart className={`h-4 w-4 ${wished ? "fill-primary text-primary" : ""}`} />
