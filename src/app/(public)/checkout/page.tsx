@@ -7,7 +7,7 @@ import { formatINR } from "@/lib/format";
 import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import { toast } from "sonner";
-import { Plus, ArrowRight } from "lucide-react";
+import { Plus, ArrowRight, ShieldCheck } from "lucide-react";
 import { useSettings } from "@/lib/settings-context";
 
 // Shared and sub-components
@@ -41,6 +41,9 @@ export default function CheckoutPage() {
   // Stock validation state
   const [stockErrors, setStockErrors] = useState<Record<string, string>>({});
   const [checkingStock, setCheckingStock] = useState(false);
+
+  // Legal Policy Agreement
+  const [policyAccepted, setPolicyAccepted] = useState(false);
 
   useEffect(() => {
     if (lines.length === 0) return;
@@ -602,6 +605,58 @@ export default function CheckoutPage() {
                     Secure digital payment checkout is powered by Razorpay. Supported features: Direct UPI, Cards, Net Banking, and Wallet apps.
                   </div>
                 )}
+
+                {/* Legal Policy Agreement */}
+                <div className="mt-6 border-t border-border/40 pt-6">
+                  <div className="flex items-start gap-3">
+                    <div className="relative mt-0.5">
+                      <input
+                        id="policy-accept"
+                        type="checkbox"
+                        checked={policyAccepted}
+                        onChange={(e) => setPolicyAccepted(e.target.checked)}
+                        className="peer sr-only"
+                      />
+                      <label
+                        htmlFor="policy-accept"
+                        className={`flex items-center justify-center h-5 w-5 rounded-md border-2 cursor-pointer transition-all duration-300 ${
+                          policyAccepted
+                            ? "bg-cognac border-cognac shadow-sm shadow-cognac/30"
+                            : "border-border/80 bg-card hover:border-cognac/50"
+                        }`}
+                      >
+                        {policyAccepted && (
+                          <svg className="h-3 w-3 text-cream" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                          </svg>
+                        )}
+                      </label>
+                    </div>
+                    <label htmlFor="policy-accept" className="text-xs leading-relaxed text-muted-foreground cursor-pointer select-none">
+                      I have read and agree to the store&apos;s{" "}
+                      <Link href="/privacy-policy" target="_blank" className="text-cognac font-bold underline underline-offset-2 hover:text-charcoal transition-colors">
+                        Privacy Policy
+                      </Link>,{" "}
+                      <Link href="/terms" target="_blank" className="text-cognac font-bold underline underline-offset-2 hover:text-charcoal transition-colors">
+                        Terms &amp; Conditions
+                      </Link>,{" "}
+                      <Link href="/delivery-policy" target="_blank" className="text-cognac font-bold underline underline-offset-2 hover:text-charcoal transition-colors">
+                        Delivery Policy
+                      </Link>, and{" "}
+                      <Link href="/refund-policy" target="_blank" className="text-cognac font-bold underline underline-offset-2 hover:text-charcoal transition-colors">
+                        Refund &amp; Returns Policy
+                      </Link>.
+                    </label>
+                  </div>
+                  {!policyAccepted && (
+                    <div className="flex items-center gap-2 mt-3 ml-8 animate-in fade-in slide-in-from-top-1">
+                      <ShieldCheck className="h-3.5 w-3.5 text-brass" />
+                      <span className="text-[10px] font-bold text-brass uppercase tracking-wider">
+                        Policy acceptance is required to proceed
+                      </span>
+                    </div>
+                  )}
+                </div>
               </>
             )}
 
@@ -615,7 +670,7 @@ export default function CheckoutPage() {
               </button>
 
               <button
-                disabled={loading || Object.keys(stockErrors).length > 0}
+                disabled={loading || Object.keys(stockErrors).length > 0 || (step === 3 && !policyAccepted)}
                 onClick={() => {
                   if (Object.keys(stockErrors).length > 0) {
                     toast.error("Please remove out of stock items from your cart to proceed.");
@@ -634,6 +689,10 @@ export default function CheckoutPage() {
                   } else if (step === 2) {
                     setStep(3);
                   } else {
+                    if (!policyAccepted) {
+                      toast.error("Please accept the legal policies before placing your order.");
+                      return;
+                    }
                     handlePlaceOrder();
                   }
                 }}

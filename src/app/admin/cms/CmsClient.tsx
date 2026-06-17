@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { Plus, Trash2, Edit, Mail, Send, CheckCircle, ShieldAlert } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Plus, Trash2, Edit, Mail, Send, CheckCircle, ShieldAlert, Scale, FileText, Shield, Info, Truck } from "lucide-react";
 import { 
   saveBanner, 
   deleteBanner, 
@@ -15,6 +15,7 @@ import { updateCategory } from "@/app/admin/actions";
 import { toast } from "sonner";
 import { DataTable, type Column } from "@/modules/admin/shared/components/DataTable";
 import { ImageUploader } from "@/modules/admin/shared/components/ImageUploader";
+import { RichTextEditor } from "@/modules/admin/shared/components/RichTextEditor";
 
 const DEFAULT_TRUST_BADGES = [
   { icon: "Award", title: "Official Retailer", subtitle: "Lakhani, Touch, Paragon, Goldstar" },
@@ -36,7 +37,7 @@ export function CmsClient({
   brands?: any[],
   subscribers?: any[]
 }) {
-  const [tab, setTab] = useState<"banners" | "categories" | "brands" | "trust_badges" | "newsletter" | "settings">("banners");
+  const [tab, setTab] = useState<"banners" | "categories" | "brands" | "trust_badges" | "newsletter" | "settings" | "legal">("banners");
 
   return (
     <div className="space-y-6">
@@ -73,6 +74,12 @@ export function CmsClient({
           Newsletter & Blast
         </button>
         <button
+          onClick={() => setTab("legal")}
+          className={`px-4 py-2 font-medium text-sm border-b-2 transition-colors ${tab === "legal" ? "border-primary text-foreground" : "border-transparent text-muted-foreground hover:text-foreground"}`}
+        >
+          Legal Policies
+        </button>
+        <button
           onClick={() => setTab("settings")}
           className={`px-4 py-2 font-medium text-sm border-b-2 transition-colors ${tab === "settings" ? "border-primary text-foreground" : "border-transparent text-muted-foreground hover:text-foreground"}`}
         >
@@ -86,6 +93,7 @@ export function CmsClient({
       {tab === "brands" && <BrandsTab brands={brands} />}
       {tab === "trust_badges" && <TrustBadgesTab settings={settings} />}
       {tab === "newsletter" && <NewsletterTab subscribers={subscribers} />}
+      {tab === "legal" && <LegalTab settings={settings} />}
       {tab === "settings" && <SettingsTab settings={settings} />}
     </div>
   );
@@ -672,5 +680,119 @@ function SettingsTab({ settings }: { settings: any[] }) {
         <button type="submit" disabled={isSubmitting} className="px-6 py-2 bg-primary text-primary-foreground rounded font-medium disabled:opacity-50">Save Settings</button>
       </div>
     </form>
+  );
+}
+
+// Legal Policies Management Tab Component
+function LegalTab({ settings }: { settings: any[] }) {
+  const getVal = (key: string) => settings.find(s => s.key === key)?.value || "";
+
+  const [activeKey, setActiveKey] = useState<"privacyPolicy" | "termsCondition" | "deliveryPolicy" | "refundPolicy">("privacyPolicy");
+  const [editorVal, setEditorVal] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  useEffect(() => {
+    setEditorVal(getVal(activeKey));
+  }, [activeKey]);
+
+  const handleSave = async () => {
+    setIsSubmitting(true);
+    const res = await saveSetting(activeKey, editorVal);
+    setIsSubmitting(false);
+    if (res.success) {
+      toast.success("Policy updated successfully and cache purged!");
+      // Reload page to reflect fresh DB settings prop in CMS UI
+      window.location.reload();
+    } else {
+      toast.error(res.error || "Failed to update policy");
+    }
+  };
+
+  const policiesList = [
+    { key: "privacyPolicy", label: "Privacy Policy", icon: Shield, desc: "Customer data collection, protection, & rights" },
+    { key: "termsCondition", label: "Terms & Conditions", icon: Scale, desc: "E-commerce general agreement & legal terms" },
+    { key: "deliveryPolicy", label: "Shipping & Delivery", icon: Truck, desc: "Shipping speeds, zones, rates & delays" },
+    { key: "refundPolicy", label: "Returns & Refunds", icon: Info, desc: "Return window, refunds processing & condition" },
+  ];
+
+  const activePolicy = policiesList.find(p => p.key === activeKey);
+  const ActiveIcon = activePolicy?.icon || FileText;
+
+  return (
+    <div className="grid grid-cols-1 lg:grid-cols-[280px_1fr] gap-6">
+      {/* Sidebar Selector */}
+      <div className="space-y-2">
+        <div className="px-3 py-2">
+          <h3 className="font-semibold text-sm text-foreground">Policies Menu</h3>
+          <p className="text-[11px] text-muted-foreground">Select a legal policy page to edit</p>
+        </div>
+        <div className="bg-card border border-border p-2 rounded-xl space-y-1 shadow-sm">
+          {policiesList.map(p => {
+            const Icon = p.icon;
+            const isSelected = activeKey === p.key;
+            return (
+              <button
+                key={p.key}
+                onClick={() => setActiveKey(p.key as any)}
+                className={`w-full text-left px-3 py-2.5 rounded-lg flex items-start gap-3 transition-colors cursor-pointer ${
+                  isSelected 
+                    ? "bg-primary/10 text-primary font-semibold" 
+                    : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                }`}
+              >
+                <Icon className={`h-4.5 w-4.5 mt-0.5 shrink-0 ${isSelected ? "text-primary" : "text-muted-foreground/75"}`} />
+                <div className="min-w-0">
+                  <p className="text-xs leading-snug">{p.label}</p>
+                  <p className="text-[10px] text-muted-foreground/80 leading-normal truncate">{p.desc}</p>
+                </div>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Editor Content Area */}
+      <div className="bg-card border border-border rounded-xl p-6 flex flex-col justify-between min-h-[520px] shadow-sm">
+        <div className="space-y-4">
+          <div className="flex items-center gap-3 border-b border-border pb-4">
+            <div className="p-2 bg-primary/10 text-primary rounded-lg">
+              <ActiveIcon className="h-5 w-5" />
+            </div>
+            <div>
+              <h3 className="font-semibold text-base">{activePolicy?.label}</h3>
+              <p className="text-xs text-muted-foreground">
+                This content is displayed publicly at{" "}
+                <code className="bg-muted px-1.5 py-0.5 rounded text-[11px] font-mono text-charcoal dark:text-cream/90">
+                  /{activeKey === "privacyPolicy" ? "privacy-policy" : activeKey === "termsCondition" ? "terms" : activeKey === "deliveryPolicy" ? "delivery-policy" : "refund-policy"}
+                </code>
+              </p>
+            </div>
+          </div>
+
+          <RichTextEditor
+            value={editorVal}
+            onChange={setEditorVal}
+            placeholder={`Enter full content for ${activePolicy?.label} using headings, lists, bold/italic markup, and links...`}
+          />
+        </div>
+
+        <div className="pt-6 border-t border-border mt-6 flex justify-end">
+          <button
+            onClick={handleSave}
+            disabled={isSubmitting}
+            className="px-6 py-2.5 bg-primary text-primary-foreground font-semibold rounded-lg text-sm disabled:opacity-50 flex items-center gap-2 cursor-pointer shadow-sm hover:opacity-95 transition"
+          >
+            {isSubmitting ? (
+              <>
+                <span className="h-4 w-4 border-2 border-primary-foreground border-t-transparent rounded-full animate-spin"></span>
+                Saving Policy...
+              </>
+            ) : (
+              "Save Changes"
+            )}
+          </button>
+        </div>
+      </div>
+    </div>
   );
 }

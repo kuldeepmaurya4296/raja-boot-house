@@ -345,6 +345,138 @@ async function runSeed() {
     });
     console.log("Seeded default trust badges settings.");
 
+    // 10. Seed Default Legal Policies in Settings
+    console.log("Seeding Legal Policies in Settings...");
+    await Settings.create([
+      {
+        key: "privacyPolicy",
+        value: `<h2>Privacy Policy for Raja Boot House</h2>
+<p>Effective Date: June 17, 2026</p>
+<p>Welcome to Raja Boot House (accessible from e-commerce portal and physical stores). We value your privacy and are committed to protecting your personal data in compliance with the Information Technology Act, 2000 and consumer protection guidelines. This Privacy Policy details how we collect, use, and secure your information when you buy our footwear or browse our styles.</p>
+
+<h3>1. Information We Collect</h3>
+<p>We collect direct details necessary to fulfill your orders and customize your style experience:</p>
+<ul>
+  <li><strong>Identity & Contact:</strong> Full name, billing and shipping address, email address, and mobile number.</li>
+  <li><strong>Transactions & Billing:</strong> Payment details (processed securely via UPI or third-party card processors), order history, and invoices.</li>
+  <li><strong>Device & Interaction:</strong> IP address, browser type, site navigation paths, and cart items to improve platform speed and design.</li>
+</ul>
+
+<h3>2. How We Use Your Information</h3>
+<p>We use your personal data to power operations and ensure smooth deliveries:</p>
+<ul>
+  <li>Processing checkouts, verifying payments (Razorpay), and arranging courier delivery.</li>
+  <li>Sending real-time email/SMS updates for order placement, shipment tracking, and returns.</li>
+  <li>Providing support, responding to sizing inquiries, and addressing refund requests.</li>
+  <li>Delivering personalized recommendations and newsletter announcements if you join the Raja Footwear Club.</li>
+</ul>
+
+<h3>3. Data Sharing with Partners</h3>
+<p>We do NOT sell or rent your personal information to third parties. We only share transaction-specific data with trusted service partners for operation:</p>
+<ul>
+  <li><strong>Logistics Partners:</strong> Courier companies (Delhivery, Blue Dart, Speed Post) to deliver packages.</li>
+  <li><strong>Payment Gateway:</strong> Razorpay to authorize transactions securely (we do not store credit card CVVs or net banking passwords).</li>
+  <li><strong>System Administrators:</strong> Database and server hosting services (MongoDB Atlas, Vercel) to maintain app availability.</li>
+</ul>
+
+<h3>4. Data Security</h3>
+<p>Our platform uses 256-bit Secure Socket Layer (SSL) encryption to safeguard data transmission. We restrict access to personal customer details to authorized staff who require it for packing and customer support. While we employ industry-standard defenses, please note that no digital transmission is 100% secure.</p>
+
+<h3>5. Cookies Policy</h3>
+<p>We use essential cookies to recognize you on return visits, preserve items inside your shopping bag, and optimize dashboard logins. You can choose to disable cookies through your browser settings, though doing so might affect cart functionality.</p>
+
+<h3>6. Your Rights & Contacts</h3>
+<p>You have the right to request access, correction, or deletion of your profile data. If you have questions regarding this policy or wish to opt-out of notifications, contact us at <strong>care@rajaboothouse.com</strong>.</p>`
+      },
+      {
+        key: "termsCondition",
+        value: `<h2>Terms & Conditions (Terms of Service)</h2>
+<p>Effective Date: June 17, 2026</p>
+<p>These Terms & Conditions govern your use of the Raja Boot House e-commerce platform and purchases made on our site. By browsing our catalog, setting up an account, or placing an order, you agree to abide by these terms. Please read them carefully.</p>
+
+<h3>1. Account Registration & Eligibility</h3>
+<p>To place checkouts or save addresses, you must create a profile. You are responsible for keeping your login credentials secure. You must provide current, accurate details. If we suspect fraudulent activity or unauthorized logins, we reserve the right to suspend accounts immediately.</p>
+
+<h3>2. Sizing, Pricing & Product Details</h3>
+<p>We display high-resolution images of handcrafted leather shoes, bridal juttis, and athletic footwear. Sizing grids (UK/India standards) are provided as guides; handmade styles may have minor artisan variances. All prices are listed in Indian Rupees (INR) and are inclusive of GST. In the rare case of pricing typographical errors, we reserve the right to cancel orders and process full refunds.</p>
+
+<h3>3. Payments & Gateway Transactions</h3>
+<p>We accept secure online transactions via Credit/Debit Cards, UPI, Net Banking (powered by Razorpay), and Cash on Delivery (COD). In case of payment failures where money was deducted, the gateway processes refunds automatically within 3–5 bank working days. For COD orders, we require SMS/phone verification before dispatching packages.</p>
+
+<h3>4. Intellectual Property</h3>
+<p>All website designs, custom product photographs, brand logos, code, and banners are the intellectual property of Raja Boot House and its developers. Downloading, replicating, or using site media for commercial purposes without written consent is strictly prohibited.</p>
+
+<h3>5. Limitation of Liability</h3>
+<p>Raja Boot House and its founders shall not be liable for any direct, indirect, or incidental damages arising out of your purchase or usage of footwear. Sizing comfort and material wear are subject to standard usage; handmade leather items require proper moisture care.</p>
+
+<h3>6. Jurisdiction & Disputes</h3>
+<p>These terms are governed by the laws of India. Any legal actions, claims, or disputes arising out of website usage or purchases shall be subject to the exclusive jurisdiction of the competent courts in Rewa, Madhya Pradesh.</p>`
+      },
+      {
+        key: "deliveryPolicy",
+        value: `<h2>Shipping & Delivery Policy</h2>
+<p>Welcome to the Shipping & Delivery guide of Raja Boot House. We work with leading Indian logistics aggregators to ensure your footwear reaches your doorstep safely, clean, and in double-walled boxes.</p>
+
+<h3>1. Delivery Coverage</h3>
+<p>We ship nationwide across India, covering over 19,000 pin codes. We currently do not support international shipping. Deliveries cannot be completed to military PO boxes or unauthorized collection spots.</p>
+
+<h3>2. Shipping Costs</h3>
+<ul>
+  <li><strong>Standard Delivery:</strong> FREE on all orders with a total value of ₹2,000 or above. For orders under ₹2,000, a flat fee of ₹100 is added at checkout.</li>
+  <li><strong>Express Shipping:</strong> Available on checkout for a flat charge of ₹150 (regardless of order value).</li>
+  <li><strong>Same-day Local Delivery:</strong> Available inside Rewa city limits for ₹350 (orders must be placed before 12:00 PM IST).</li>
+</ul>
+
+<h3>3. Processing & Delivery Timelines</h3>
+<p>Orders are packed and dispatched from our Rewa warehouse within 24–48 hours of order confirmation (excluding Sundays and national holidays):</p>
+<ul>
+  <li><strong>Standard Shipping:</strong> Expect delivery in 5–7 business days depending on location.</li>
+  <li><strong>Express Shipping:</strong> Expect delivery in 2–3 business days for tier-1 cities.</li>
+  <li><strong>Same-day Local (Rewa):</strong> Delivered on the same day before 9:00 PM.</li>
+</ul>
+
+<h3>4. Order Tracking</h3>
+<p>As soon as your shipment is picked up by our courier partners (Delhivery, Blue Dart, or Speed Post), we will send you an email and SMS containing your tracking number and live tracking link. You can also view shipment stages from your Account Dashboard.</p>
+
+<h3>5. Damage & Refused Deliveries</h3>
+<p>Please do not accept any box that is open, heavily crushed, or tampered with. Take a photograph of the package and immediately contact care@rajaboothouse.com so we can file a courier claim and ship a replacement style to you.</p>`
+      },
+      {
+        key: "refundPolicy",
+        value: `<h2>Return, Exchange & Refund Policy</h2>
+<p>At Raja Boot House, we take pride in the design and quality of our footwear. If your shoe size does not fit or if you are not fully satisfied with your purchase, we offer a flexible return and exchange window.</p>
+
+<h3>1. 30-Day Policy Window</h3>
+<p>We provide a <strong>30-day return or exchange window</strong> starting from the day the package was marked delivered by our courier partner. Return or exchange requests submitted after 30 days will not be accepted.</p>
+
+<h3>2. Conditions for Returns</h3>
+<p>To qualify for a refund or size exchange, returned footwear must meet the following guidelines:</p>
+<ul>
+  <li>Footwear must be completely unworn, clean, and show zero crease marks on the leather or wear on the outsoles. We recommend trying your shoes on carpeted surfaces first.</li>
+  <li>Items must be returned inside the original brand box, wrapped in protective paper, and include all tags, shoe trees, and accessories.</li>
+  <li>Handmade juttis with delicate embroidery must not have loose threads or moisture damage.</li>
+</ul>
+
+<h3>3. How to Initiate a Return</h3>
+<ol>
+  <li>Log in to your <strong>Account Overview</strong> and click on the "Orders" page.</li>
+  <li>Locate the order you wish to return and click "Request Return/Exchange". Select the reason and specify if you want a size exchange or a refund.</li>
+  <li>Once approved, our courier will pick up the package from your address within 24–48 hours. Ensure the box is sealed securely in a shipping outer bag.</li>
+</ol>
+
+<h3>4. Refund Timelines & Banking Credit</h3>
+<p>After the package arrives back at our Rewa warehouse, our quality control team inspects the shoe quality (usually completed within 48 hours). Once approved:</p>
+<ul>
+  <li><strong>Prepaid Orders:</strong> Refunds are credited back to the original bank account, credit card, or UPI ID used during Razorpay checkout. The funds usually reflect within 5–7 business days depending on your bank.</li>
+  <li><strong>Cash on Delivery (COD) Orders:</strong> Refunds are sent via bank NEFT transfer or issued as Store Credit Coupons. You will be requested to secure your bank account details on our platform during the return submission.</li>
+</ul>
+
+<h3>5. Exceptions & Non-Returnable Items</h3>
+<p>Customized bridal juttis made to custom measurements and items purchased from clearance sections labeled "Final Sale" cannot be returned or exchanged unless they arrive with physical manufacturing defects.</p>`
+      }
+    ]);
+    console.log("Seeded default legal policies settings.");
+
     console.log("\nDatabase Seeding Completed Successfully!");
   } catch (err: any) {
     console.error("Error seeding database:", err);

@@ -22,6 +22,13 @@ const customerLinks = [
   { label: "Register / Login", href: "/login" },
 ];
 
+const legalLinks = [
+  { label: "Privacy Policy", href: "/privacy-policy" },
+  { label: "Terms & Conditions", href: "/terms" },
+  { label: "Shipping & Delivery", href: "/delivery-policy" },
+  { label: "Return & Refund Policy", href: "/refund-policy" },
+];
+
 export function Footer() {
   const { theme, toggleTheme } = useTheme();
 
@@ -30,7 +37,7 @@ export function Footer() {
 
 
       {/* Main Links Grid */}
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-10 lg:py-16 grid grid-cols-1 md:grid-cols-4 gap-8 md:gap-10">
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-10 lg:py-16 grid grid-cols-1 md:grid-cols-5 gap-8 md:gap-10">
         <div className="md:col-span-2">
           <Logo size={44} />
           <p className="mt-4 text-sm text-muted-foreground max-w-xs leading-relaxed">
@@ -72,6 +79,22 @@ export function Footer() {
           <h4 className="text-[10px] font-bold mb-4 uppercase tracking-[0.2em] text-cognac">Customer Service</h4>
           <ul className="space-y-2.5">
             {customerLinks.map(l => (
+              <li key={l.label}>
+                <Link
+                  href={l.href}
+                  className="text-sm text-muted-foreground hover:text-charcoal dark:hover:text-cream transition-colors"
+                >
+                  {l.label}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        <div>
+          <h4 className="text-[10px] font-bold mb-4 uppercase tracking-[0.2em] text-cognac">Legal &amp; Policy</h4>
+          <ul className="space-y-2.5">
+            {legalLinks.map(l => (
               <li key={l.label}>
                 <Link
                   href={l.href}

@@ -43,6 +43,10 @@ export async function saveSetting(key: string, value: any) {
     await Settings.findOneAndUpdate({ key }, { key, value }, { upsert: true });
     revalidatePath("/admin/cms");
     revalidatePath("/");
+    revalidatePath("/privacy-policy");
+    revalidatePath("/terms");
+    revalidatePath("/delivery-policy");
+    revalidatePath("/refund-policy");
     return { success: true };
   } catch (err: any) {
     return { success: false, error: err.message };
