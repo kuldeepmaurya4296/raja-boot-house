@@ -11,9 +11,12 @@ export interface Product {
   slug: string;
   name: string;
   category: string;
-  vendorId: string;
+  brand?: string;
+  brandId?: string;
+  vendorId?: string;
   price: number;
   compareAt?: number;
+  variants?: { size: number; color: string; colorHex: string; stock: number; sku: string; images: { url: string; public_id: string }[] }[];
   image: string;
   gallery: string[];
   description: string;

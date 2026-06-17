@@ -79,11 +79,13 @@ async function getProductData(productId: string) {
     isActive: true
   }).limit(4).populate({ path: "category", model: Category });
 
-  return {
+  // JSON round-trip to guarantee all values are plain serializable objects
+  // (strips any residual Mongoose/BSON types that slipped through normalizeProduct)
+  return JSON.parse(JSON.stringify({
     product: normalizedProduct,
     reviews: mappedReviews,
     related: relatedDocs.map(p => normalizeProduct(p))
-  };
+  }));
 }
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {

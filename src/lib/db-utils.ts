@@ -7,46 +7,73 @@ export async function ensureDbReady() {
   return { db, isReady };
 }
 
+// Helper to safely convert any Mongoose ObjectId / BSON value to a plain string
+function toStr(val: any): string | undefined {
+  if (val == null) return undefined;
+  if (typeof val === "string") return val;
+  if (typeof val.toString === "function") return val.toString();
+  return undefined;
+}
+
 export function normalizeProduct(p: any) {
-  const brandName = (p.brand && typeof p.brand === "object" && "name" in p.brand)
-    ? p.brand.name
-    : (p.brand || (
-        p.vendorId === "v1" ? "Lakhani" : 
-        p.vendorId === "v2" ? "Touch" : 
-        p.vendorId === "v3" ? "Paragon" : 
-        p.vendorId === "v4" ? "Goldstar" : 
-        p.vendorId || "Raja Boot House"
-      ));
+  // Resolve brand name — handle populated doc, raw ObjectId, or plain string
+  let brandName: string;
+  if (p.brand && typeof p.brand === "object" && "name" in p.brand) {
+    brandName = p.brand.name;
+  } else if (typeof p.brand === "string") {
+    brandName = p.brand;
+  } else {
+    brandName =
+      p.vendorId === "v1" ? "Lakhani" :
+      p.vendorId === "v2" ? "Touch" :
+      p.vendorId === "v3" ? "Paragon" :
+      p.vendorId === "v4" ? "Goldstar" :
+      "Raja Boot House";
+  }
+
+  // Resolve brandId — only keep it as a string
+  let brandId: string | undefined;
+  if (p.brand && typeof p.brand === "object" && p.brand._id) {
+    brandId = p.brand._id.toString();
+  } else if (typeof p.brand === "string") {
+    brandId = p.brand;
+  }
+
+  // Resolve category slug safely
+  const category =
+    (p.category && typeof p.category === "object" && p.category.slug)
+      ? p.category.slug
+      : (typeof p.category === "string" ? p.category : "shoes");
 
   return {
-    id: p._id ? p._id.toString() : p.id,
-    slug: p.slug,
-    name: p.name,
-    category: p.category && p.category.slug ? p.category.slug : "shoes",
+    id: p._id ? p._id.toString() : (p.id || ""),
+    slug: p.slug || "",
+    name: p.name || "",
+    category,
     brand: brandName,
-    brandId: p.brand && p.brand._id ? p.brand._id.toString() : (typeof p.brand === "string" ? p.brand : undefined),
-    vendorId: p._id ? (p.vendorId ? p.vendorId.toString() : undefined) : p.vendorId,
-    price: p.salePrice !== undefined ? p.salePrice : p.price,
-    compareAt: p.salePrice !== undefined ? p.price : p.compareAt,
+    brandId,
+    vendorId: toStr(p.vendorId),
+    price: p.salePrice !== undefined ? Number(p.salePrice) : Number(p.price || 0),
+    compareAt: p.salePrice !== undefined ? Number(p.price) : (p.compareAt !== undefined ? Number(p.compareAt) : undefined),
     variants: p.variants ? p.variants.map((v: any) => ({
       size: v.size,
-      color: v.color,
-      colorHex: v.colorHex,
-      stock: v.stock,
-      sku: v.sku,
-      images: v.images ? v.images.map((img: any) => ({ url: img.url, public_id: img.public_id })) : [],
+      color: v.color || "",
+      colorHex: v.colorHex || "",
+      stock: Number(v.stock || 0),
+      sku: v.sku || "",
+      images: v.images ? v.images.map((img: any) => ({ url: String(img.url || ""), public_id: String(img.public_id || "") })) : [],
     })) : [],
-    image: p.images && p.images[0] ? p.images[0].url : (p.image || "/assets/product-placeholder.jpg"),
-    gallery: p.images ? p.images.map((img: any) => img.url) : (p.gallery || []),
-    description: p.description,
-    details: p.tags && p.tags.length > 0 ? p.tags : (p.details || ["Premium craftsmanship", "Durability assured"]),
-    colors: Array.from(new Set(p.variants ? p.variants.map((v: any) => v.color) : (p.colors || []))) as string[],
-    sizes: Array.from(new Set(p.variants ? p.variants.map((v: any) => v.size) : (p.sizes || []))) as number[],
-    stock: p.variants ? p.variants.reduce((acc: number, v: any) => acc + v.stock, 0) : (p.stock !== undefined ? p.stock : 0),
-    rating: p.rating ? (typeof p.rating === "number" ? p.rating : p.rating.average) : 4.5,
-    reviewsCount: p.rating ? (typeof p.rating === "number" ? p.reviewsCount : p.rating.count) : (p.reviewsCount || 0),
+    image: p.images && p.images[0] ? String(p.images[0].url) : (p.image || "/assets/product-placeholder.jpg"),
+    gallery: p.images ? p.images.map((img: any) => String(img.url)) : (p.gallery || []),
+    description: p.description || "",
+    details: p.tags && p.tags.length > 0 ? p.tags.map(String) : (p.details || ["Premium craftsmanship", "Durability assured"]),
+    colors: Array.from(new Set(p.variants ? p.variants.map((v: any) => String(v.color || "")) : (p.colors || []))) as string[],
+    sizes: Array.from(new Set(p.variants ? p.variants.map((v: any) => Number(v.size)) : (p.sizes || []))) as number[],
+    stock: p.variants ? p.variants.reduce((acc: number, v: any) => acc + Number(v.stock || 0), 0) : (p.stock !== undefined ? Number(p.stock) : 0),
+    rating: p.rating ? (typeof p.rating === "number" ? p.rating : Number(p.rating.average || 4.5)) : 4.5,
+    reviewsCount: p.rating ? (typeof p.rating === "number" ? (p.reviewsCount || 0) : Number(p.rating.count || 0)) : (p.reviewsCount || 0),
     badge: (p.isFeatured ? "bestseller" : p.isNewArrival ? "new" : p.badge) as "new" | "bestseller" | "sale" | undefined,
-    createdAt: p.createdAt ? (p.createdAt instanceof Date ? p.createdAt.toISOString().split("T")[0] : p.createdAt) : "2025-06-08",
+    createdAt: p.createdAt ? (p.createdAt instanceof Date ? p.createdAt.toISOString().split("T")[0] : String(p.createdAt)) : "2025-06-08",
   };
 }
 
