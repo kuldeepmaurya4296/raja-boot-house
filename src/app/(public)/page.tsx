@@ -24,17 +24,17 @@ const ICON_MAP: Record<string, any> = {
 
 const DEFAULT_TRUST_BADGES = [
   { icon: "Award", title: "Official Retailer", subtitle: "Lakhani, Touch, Paragon, Goldstar" },
-  { icon: "ShieldCheck", title: "Gupta Brothers Craft", subtitle: "Since 1972 quality assurance" },
+  { icon: "ShieldCheck", title: "Gupta Brothers Craft", subtitle: "Premium quality assurance" },
   { icon: "Truck", title: "Free Shipping", subtitle: "Orders above ₹2000" },
   { icon: "RotateCcw", title: "Simple Exchanges", subtitle: "Within 30 days hassle-free" },
 ];
 
 export const metadata: Metadata = {
   title: "Raja Boot House — Handcrafted Leather Boots & Premium Footwear",
-  description: "Handcrafted luxury footwear and premium Indian leather craftsmanship since 1972. Explore men's, women's, sports, and bridal collections.",
+  description: "Handcrafted luxury footwear and premium Indian leather craftsmanship. Explore men's, women's, sports, and bridal collections.",
   openGraph: {
     title: "Raja Boot House — Handcrafted Premium Footwear",
-    description: "Explore handcrafted luxury footwear and leather designs since 1972.",
+    description: "Explore handcrafted luxury footwear and leather designs.",
     images: [{ url: "/assets/hero-boots.jpg" }]
   }
 };
@@ -83,20 +83,24 @@ export default async function Home() {
       <Hero />
 
       {/* Trust Badges section */}
-      <section className="border-y border-border bg-cream/60">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 lg:py-12 grid grid-cols-2 md:grid-cols-4 gap-4 text-center md:text-left">
-          {trustBadges.map((badge, index) => {
-            const IconComponent = ICON_MAP[badge.icon] || HelpCircle;
-            return (
-              <div key={index} className="flex items-center gap-3 justify-center md:justify-start">
-                <IconComponent className="h-5 w-5 text-cognac shrink-0" />
-                <div className="text-left">
-                  <div className="text-sm font-semibold text-charcoal">{badge.title}</div>
-                  <div className="text-[11px] text-muted-foreground">{badge.subtitle}</div>
+      <section className="border-y border-border bg-card/60 backdrop-blur-sm">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 lg:py-10">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-0 divide-x divide-border/60">
+            {trustBadges.map((badge, index) => {
+              const IconComponent = ICON_MAP[badge.icon] || HelpCircle;
+              return (
+                <div key={index} className="flex flex-col sm:flex-row items-center sm:items-start gap-3 px-4 md:px-6 py-4 text-center sm:text-left group">
+                  <div className="h-10 w-10 rounded-xl bg-cognac/10 border border-cognac/20 flex items-center justify-center shrink-0 group-hover:bg-cognac/15 transition-colors">
+                    <IconComponent className="h-5 w-5 text-cognac" />
+                  </div>
+                  <div>
+                    <div className="text-xs font-bold text-charcoal tracking-wide">{badge.title}</div>
+                    <div className="text-[10px] text-muted-foreground mt-0.5 leading-relaxed">{badge.subtitle}</div>
+                  </div>
                 </div>
-              </div>
-            );
-          })}
+              );
+            })}
+          </div>
         </div>
       </section>
 
@@ -164,14 +168,32 @@ export default async function Home() {
 
       {/* Premium Newsletter Sign-up */}
       <section className="container mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-16 lg:py-24">
-        <div className="bg-cream border border-border rounded-2xl p-8 md:p-14 text-center max-w-3xl mx-auto shadow-sm relative overflow-hidden">
-          <div className="absolute inset-0 grain opacity-20" />
-          <p className="text-[11px] uppercase tracking-[0.3em] text-cognac font-semibold mb-3 relative">Raja Footwear Club</p>
-          <h3 className="font-serif text-3xl md:text-4xl font-bold text-charcoal relative">Join the Raja Footwear Club</h3>
-          <p className="text-sm text-muted-foreground mt-3 max-w-lg mx-auto relative z-10">
-            Sign up to receive updates on premium leather footwear, bridal collection drops, and exclusive festive discount alerts in Gorakhpur and across Central India.
-          </p>
-          <NewsletterFormClient />
+        <div className="relative bg-charcoal text-cream rounded-3xl p-8 md:p-14 text-center max-w-3xl mx-auto overflow-hidden shadow-elevated">
+          {/* Decorative gradient orbs */}
+          <div className="absolute -top-10 -left-10 h-48 w-48 rounded-full bg-brass/20 blur-3xl pointer-events-none" />
+          <div className="absolute -bottom-10 -right-10 h-48 w-48 rounded-full bg-cognac/20 blur-3xl pointer-events-none" />
+          {/* Grain texture */}
+          <div className="absolute inset-0 grain opacity-10 pointer-events-none" />
+
+          <div className="relative z-10">
+            <span className="inline-block mb-4 px-4 py-1.5 bg-brass/15 border border-brass/25 text-brass text-[10px] uppercase tracking-[0.3em] font-bold rounded-full">
+              Raja Footwear Club
+            </span>
+            <h3 className="font-serif text-3xl md:text-4xl font-bold text-cream mt-1">
+              Members Get Exclusive Benefits
+            </h3>
+            <p className="text-sm text-cream/60 mt-3 max-w-md mx-auto leading-relaxed">
+              Join to receive early access to bridal collection drops, premium leather arrivals, and festive discount alerts across Gorakhpur and Central India.
+            </p>
+            <div className="flex flex-wrap justify-center gap-3 mt-5 mb-6">
+              {["Early Access", "10% Festive Discount", "New Arrivals", "Size Notifications"].map(perk => (
+                <span key={perk} className="text-[10px] font-bold px-3 py-1 rounded-full bg-cream/10 border border-cream/20 text-cream/70">
+                  ✦ {perk}
+                </span>
+              ))}
+            </div>
+            <NewsletterFormClient />
+          </div>
         </div>
       </section>
     </>

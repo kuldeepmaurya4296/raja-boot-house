@@ -38,10 +38,10 @@ export function Hero() {
     {
       id: "b1",
       title: "Crafted for Character",
-      subtitle: "Hand-finished leather boots stitched using 50 years of family bootmaking tradition. Structured to age beautifully with you.",
+      subtitle: "Hand-finished leather boots stitched using family bootmaking tradition. Structured to age beautifully with you.",
       cta: "Shop the collection",
       href: "/shop",
-      tagline: "Artisan Leather · Since 1972",
+      tagline: "Artisan Leather",
       badgeTitle: "Oxford Welted Boot",
       badgePrice: "From ₹2,499",
       image: "https://images.unsplash.com/photo-1520639888713-7851133b1ed0?q=80&w=800&auto=format&fit=crop",
@@ -88,7 +88,7 @@ export function Hero() {
   if (banners.length === 0) {
     return (
       <div className="h-[500px] w-full bg-cream flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-primary"></div>
+        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-cognac"></div>
       </div>
     );
   }
@@ -123,7 +123,7 @@ export function Hero() {
   const active = slides[current];
 
   return (
-    <section className="relative bg-cream border-b border-border py-10 md:py-16 lg:py-24 flex items-center min-h-[580px]">
+    <section className="relative bg-cream border-b border-border/40 py-10 md:py-16 lg:py-20 flex items-center min-h-[580px]">
       <motion.div
         drag="x"
         dragConstraints={{ left: 0, right: 0 }}
@@ -152,7 +152,7 @@ export function Hero() {
                   transition={{ duration: 0.5 }}
                   className="space-y-4 md:space-y-6 flex flex-col items-center md:items-start"
                 >
-                  <span className="inline-block text-[9px] md:text-[10px] tracking-[0.3em] uppercase text-cognac font-bold border border-cognac/30 rounded-full px-3 py-1 bg-cream shadow-xs">
+                  <span className="inline-block text-[9px] md:text-[10px] tracking-[0.3em] uppercase text-cognac font-extrabold border border-brass/35 rounded-full px-3 py-1 bg-cream/80 backdrop-blur-xs shadow-2xs">
                     {active.tagline}
                   </span>
                   
@@ -167,7 +167,7 @@ export function Hero() {
                   <div className="flex items-center gap-3 pt-2">
                     <Link
                       href={active.href}
-                      className="inline-flex items-center gap-2 bg-primary text-primary-foreground px-6 py-3.5 rounded-full text-xs md:text-sm font-semibold hover:bg-primary/90 transition group cursor-pointer shadow-md"
+                      className="inline-flex items-center gap-2 bg-charcoal text-cream hover:bg-cognac px-6 py-3.5 rounded-full text-xs md:text-sm font-bold uppercase tracking-wider transition-all duration-300 group cursor-pointer shadow-md hover:shadow-lg hover:scale-102"
                     >
                       {active.cta} <ArrowRight className="h-4 w-4 transition group-hover:translate-x-1" />
                     </Link>
@@ -187,7 +187,7 @@ export function Hero() {
                   transition={{ duration: 0.6 }}
                   className="relative w-full"
                 >
-                  <div className="relative aspect-[4/3] md:aspect-[4/5] rounded-2xl overflow-hidden shadow-elevated border border-border bg-white">
+                  <div className="relative aspect-[4/3] md:aspect-[4/5] rounded-2xl overflow-hidden shadow-elevated border border-border/60 bg-white">
                     <img
                       src={active.image}
                       alt="Raja Boot House"
@@ -197,12 +197,12 @@ export function Hero() {
                   </div>
 
                   {/* Floating Spec Badge */}
-                  <div className="absolute -bottom-4 left-6 md:-left-4 md:bottom-6 bg-cream/95 backdrop-blur-sm border border-border rounded-xl shadow-card px-4 py-3 max-w-[220px]">
-                    <div className="text-[9px] uppercase tracking-widest text-muted-foreground">Featured Style</div>
+                  <div className="absolute -bottom-4 left-6 md:-left-4 md:bottom-6 bg-cream/95 backdrop-blur-sm border border-brass/25 rounded-2xl shadow-card px-4 py-3 max-w-[220px]">
+                    <div className="text-[9px] uppercase tracking-widest text-muted-foreground font-semibold">Featured Style</div>
                     <div className="font-serif font-bold text-xs md:text-sm mt-1 text-charcoal truncate">
                       {active.badgeTitle}
                     </div>
-                    <div className="text-[11px] text-primary font-bold mt-1">
+                    <div className="text-[11px] text-cognac font-bold mt-1">
                       {active.badgePrice}
                     </div>
                   </div>
@@ -219,14 +219,14 @@ export function Hero() {
         <div className="hidden md:flex absolute bottom-8 right-8 gap-2 z-10">
           <button
             onClick={prevSlide}
-            className="h-10 w-10 border border-border bg-cream hover:bg-muted text-charcoal rounded-full grid place-items-center transition cursor-pointer"
+            className="h-10 w-10 border border-border/80 bg-cream hover:bg-muted text-charcoal hover:text-cognac rounded-full grid place-items-center transition cursor-pointer"
             aria-label="Previous banner"
           >
             <ChevronLeft className="h-5 w-5" />
           </button>
           <button
             onClick={nextSlide}
-            className="h-10 w-10 border border-border bg-cream hover:bg-muted text-charcoal rounded-full grid place-items-center transition cursor-pointer"
+            className="h-10 w-10 border border-border/80 bg-cream hover:bg-muted text-charcoal hover:text-cognac rounded-full grid place-items-center transition cursor-pointer"
             aria-label="Next banner"
           >
             <ChevronRight className="h-5 w-5" />
@@ -242,7 +242,7 @@ export function Hero() {
               key={i}
               onClick={() => setCurrent(i)}
               className={`h-1.5 rounded-full transition-all duration-300 ${
-                current === i ? "w-6 bg-primary" : "w-1.5 bg-muted-foreground/30 hover:bg-muted-foreground/60"
+                current === i ? "w-6 bg-cognac" : "w-1.5 bg-muted-foreground/30 hover:bg-muted-foreground/60"
               }`}
               aria-label={`Go to slide ${i + 1}`}
             />

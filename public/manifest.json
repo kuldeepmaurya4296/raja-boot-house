@@ -1,7 +1,7 @@
 {
   "name": "Raja Boot House",
   "short_name": "Raja Boot",
-  "description": "Handcrafted Leather Boots & Premium Footwear since 1972.",
+  "description": "Handcrafted Leather Boots & Premium Footwear.",
   "start_url": "/",
   "display": "standalone",
   "orientation": "portrait",

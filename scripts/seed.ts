@@ -284,7 +284,7 @@ async function runSeed() {
         linkUrl: "/shop",
         order: 1,
         isActive: true,
-        tagline: "Artisan Leather · Since 1972",
+        tagline: "Artisan Leather",
         badgeTitle: "Oxford Welted Boot",
         badgePrice: "From ₹2,499",
       },
@@ -338,7 +338,7 @@ async function runSeed() {
       key: "trust_badges",
       value: [
         { icon: "Award", title: "Official Retailer", subtitle: "Lakhani, Touch, Paragon, Goldstar" },
-        { icon: "ShieldCheck", title: "Gupta Brothers Craft", subtitle: "Since 1972 quality assurance" },
+        { icon: "ShieldCheck", title: "Gupta Brothers Craft", subtitle: "Premium quality assurance" },
         { icon: "Truck", title: "Free Shipping", subtitle: "Orders above ₹2000" },
         { icon: "RotateCcw", title: "Simple Exchanges", subtitle: "Within 30 days hassle-free" },
       ]

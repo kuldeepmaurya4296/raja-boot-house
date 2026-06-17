@@ -6,11 +6,11 @@ interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
 export function Input({ label, wide, className = "", ...props }: InputProps) {
   return (
     <label className={`block ${wide ? "md:col-span-2" : ""}`}>
-      <span className="block text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1.5">
+      <span className="block text-[10px] font-extrabold text-muted-foreground uppercase tracking-widest mb-1.5">
         {label}
       </span>
       <input
-        className={`w-full bg-background border border-input rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-ring transition-all ${className}`}
+        className={`w-full bg-cream/35 border border-border/80 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-cognac focus:ring-1 focus:ring-brass/40 transition-all duration-300 placeholder:text-muted-foreground/60 ${className}`}
         {...props}
       />
     </label>

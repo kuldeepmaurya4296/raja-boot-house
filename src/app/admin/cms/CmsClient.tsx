@@ -18,7 +18,7 @@ import { ImageUploader } from "@/modules/admin/shared/components/ImageUploader";
 
 const DEFAULT_TRUST_BADGES = [
   { icon: "Award", title: "Official Retailer", subtitle: "Lakhani, Touch, Paragon, Goldstar" },
-  { icon: "ShieldCheck", title: "Gupta Brothers Craft", subtitle: "Since 1972 quality assurance" },
+  { icon: "ShieldCheck", title: "Gupta Brothers Craft", subtitle: "Premium quality assurance" },
   { icon: "Truck", title: "Free Shipping", subtitle: "Orders above ₹2000" },
   { icon: "RotateCcw", title: "Simple Exchanges", subtitle: "Within 30 days hassle-free" },
 ];

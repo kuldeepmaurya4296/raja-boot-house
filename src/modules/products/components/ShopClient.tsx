@@ -30,11 +30,11 @@ interface AccordionItemProps {
 
 function AccordionItem({ title, isOpen, onToggle, children }: AccordionItemProps) {
   return (
-    <div className="border-b border-border/50 py-3.5 last:border-0">
+    <div className="border-b border-border/40 py-3 last:border-0">
       <button
         type="button"
         onClick={onToggle}
-        className="w-full flex items-center justify-between py-2 text-left font-serif font-bold text-sm tracking-wide text-charcoal cursor-pointer hover:text-primary transition-colors outline-none"
+        className="w-full flex items-center justify-between py-2 text-left font-serif font-bold text-sm tracking-wide text-charcoal cursor-pointer hover:text-cognac transition-colors outline-none"
       >
         <span>{title}</span>
         <motion.span
@@ -42,7 +42,7 @@ function AccordionItem({ title, isOpen, onToggle, children }: AccordionItemProps
           transition={{ duration: 0.2 }}
           className="text-muted-foreground shrink-0"
         >
-          <ChevronDown className="h-4 w-4" />
+          <ChevronDown className="h-4 w-4 text-brass" />
         </motion.span>
       </button>
       <AnimatePresence initial={false}>
@@ -51,10 +51,10 @@ function AccordionItem({ title, isOpen, onToggle, children }: AccordionItemProps
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: "auto", opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.2, ease: "easeInOut" }}
-            className="overflow-hidden mt-3"
+            transition={{ duration: 0.25, ease: "easeInOut" }}
+            className="overflow-hidden mt-2"
           >
-            <div className="pb-1">{children}</div>
+            <div className="pb-2">{children}</div>
           </motion.div>
         )}
       </AnimatePresence>
@@ -108,7 +108,7 @@ export default function ShopClient({ categories, initialProducts, totalProducts,
   const activeGender = searchParams.get("gender") || "";
   const activeColor = searchParams.get("color") || "";
 
-  // Parse comma-separated lists for brands and sizes
+  // Parse comma-separated lists for brands, sizes, genders, colors
   const activeBrands = useMemo(() => {
     return activeBrand ? activeBrand.split(",").map((b) => b.trim()).filter(Boolean) : [];
   }, [activeBrand]);
@@ -228,111 +228,145 @@ export default function ShopClient({ categories, initialProducts, totalProducts,
     activeSearch ||
     activeMinPrice ||
     activeMaxPrice ||
-    activeSize;
+    activeSize ||
+    activeGender ||
+    activeColor;
+
+  const activeFilterCount = useMemo(() => {
+    let count = 0;
+    if (activeCategory !== "all") count++;
+    count += activeBrands.length;
+    if (activeOccasion) count++;
+    if (activeSearch) count++;
+    if (activeMinPrice) count++;
+    if (activeMaxPrice) count++;
+    count += activeSizes.length;
+    count += activeGenders.length;
+    count += activeColors.length;
+    return count;
+  }, [activeCategory, activeBrands, activeOccasion, activeSearch, activeMinPrice, activeMaxPrice, activeSizes, activeGenders, activeColors]);
 
   return (
-    <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-16 lg:py-24">
+    <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-16 lg:py-20">
       {/* Breadcrumb Navigation */}
-      <div className="text-xs text-muted-foreground mb-6 flex gap-1 items-center">
-        <Link href="/" className="hover:text-primary transition">Home</Link>
-        <span>/</span>
+      <div className="text-xs text-muted-foreground mb-8 flex gap-2 items-center bg-cream/40 backdrop-blur-xs py-2 px-4 rounded-full border border-border/40 w-fit shadow-xs">
+        <Link href="/" className="hover:text-cognac transition-colors flex items-center gap-1">
+          <span>Home</span>
+        </Link>
+        <span className="text-muted-foreground/50">/</span>
         {activeCategory === "all" ? (
-          <span className="text-foreground">Shop</span>
+          <span className="text-charcoal font-semibold">Shop</span>
         ) : (
           <>
-            <Link href="/shop" className="hover:text-primary transition">Shop</Link>
-            <span>/</span>
-            <span className="text-foreground capitalize">
+            <Link href="/shop" className="hover:text-cognac transition-colors">Shop</Link>
+            <span className="text-muted-foreground/50">/</span>
+            <span className="text-charcoal font-semibold capitalize">
               {categories.find(c => c.slug === activeCategory)?.name || activeCategory}
             </span>
           </>
         )}
       </div>
 
-      <div className="mb-6">
-        <p className="text-[11px] uppercase tracking-[0.3em] text-cognac font-semibold">The Collection</p>
-        <h1 className="font-serif text-4xl md:text-6xl font-bold mt-2 text-charcoal">Footwear Catalog</h1>
-        <p className="text-muted-foreground mt-2">
-          {initialProducts.length} products · Raja Boot House
+      {/* Luxury Title Banner */}
+      <div className="relative mb-10 pb-8 border-b border-border/40">
+        <div className="absolute right-0 top-1/2 -translate-y-1/2 hidden md:flex items-center gap-4 bg-muted/20 py-2.5 px-5 rounded-2xl border border-border/40">
+          <div className="text-right">
+            <span className="block text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">Total Styles</span>
+            <span className="text-xl font-serif font-extrabold text-charcoal">{totalProducts}</span>
+          </div>
+          <div className="h-6 w-px bg-border/80" />
+          <div className="text-right">
+            <span className="block text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">Showing</span>
+            <span className="text-xl font-serif font-extrabold text-cognac">{initialProducts.length}</span>
+          </div>
+        </div>
+        <p className="text-[11px] uppercase tracking-[0.35em] text-cognac font-extrabold mb-1.5">The Collection</p>
+        <h1 className="font-serif text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight text-charcoal">Footwear Catalog</h1>
+        <p className="text-muted-foreground text-sm mt-3 max-w-2xl leading-relaxed">
+          Step into craftsmanship with our premium range of hand-finished leather shoes, formal dress boots, and elegant casual styles.
         </p>
       </div>
 
       {/* Filter Chips Bar */}
       {hasActiveFilters && (
-        <div className="flex flex-wrap items-center gap-2 mb-6">
-          <span className="text-xs text-muted-foreground font-semibold mr-1">Active Filters:</span>
+        <motion.div 
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="flex flex-wrap items-center gap-2 mb-8 bg-brass/5 p-4 rounded-2xl border border-brass/15"
+        >
+          <span className="text-xs text-cognac font-bold mr-2 uppercase tracking-wider">Active Filters:</span>
           {activeCategory !== "all" && (
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-brass/10 text-cognac rounded-full text-xs font-semibold">
-              Category: {categories.find(c => c.slug === activeCategory)?.name || activeCategory}
-              <button onClick={() => updateFilters({ category: "all" })} className="hover:opacity-70 cursor-pointer"><X className="h-3 w-3" /></button>
+            <span className="inline-flex items-center gap-2 px-3 py-1.5 bg-cream border border-brass/25 text-cognac rounded-xl text-xs font-semibold shadow-xs">
+              <span>Category: {categories.find(c => c.slug === activeCategory)?.name || activeCategory}</span>
+              <button onClick={() => updateFilters({ category: "all" })} className="hover:text-destructive cursor-pointer transition-colors"><X className="h-3.5 w-3.5" /></button>
             </span>
           )}
           {activeBrands.map((b) => (
-            <span key={b} className="inline-flex items-center gap-1.5 px-3 py-1 bg-brass/10 text-cognac rounded-full text-xs font-semibold">
-              Brand: {b}
-              <button onClick={() => handleToggleBrand(b)} className="hover:opacity-70 cursor-pointer"><X className="h-3 w-3" /></button>
+            <span key={b} className="inline-flex items-center gap-2 px-3 py-1.5 bg-cream border border-brass/25 text-cognac rounded-xl text-xs font-semibold shadow-xs">
+              <span>Brand: {b}</span>
+              <button onClick={() => handleToggleBrand(b)} className="hover:text-destructive cursor-pointer transition-colors"><X className="h-3.5 w-3.5" /></button>
             </span>
           ))}
           {activeOccasion && (
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-brass/10 text-cognac rounded-full text-xs font-semibold">
-              Occasion: {activeOccasion}
-              <button onClick={() => updateFilters({ occasion: null })} className="hover:opacity-70 cursor-pointer"><X className="h-3 w-3" /></button>
+            <span className="inline-flex items-center gap-2 px-3 py-1.5 bg-cream border border-brass/25 text-cognac rounded-xl text-xs font-semibold shadow-xs">
+              <span>Occasion: {activeOccasion}</span>
+              <button onClick={() => updateFilters({ occasion: null })} className="hover:text-destructive cursor-pointer transition-colors"><X className="h-3.5 w-3.5" /></button>
             </span>
           )}
           {activeSearch && (
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-brass/10 text-cognac rounded-full text-xs font-semibold">
-              Query: "{activeSearch}"
-              <button onClick={() => updateFilters({ search: null })} className="hover:opacity-70 cursor-pointer"><X className="h-3 w-3" /></button>
+            <span className="inline-flex items-center gap-2 px-3 py-1.5 bg-cream border border-brass/25 text-cognac rounded-xl text-xs font-semibold shadow-xs">
+              <span>Query: "{activeSearch}"</span>
+              <button onClick={() => updateFilters({ search: null })} className="hover:text-destructive cursor-pointer transition-colors"><X className="h-3.5 w-3.5" /></button>
             </span>
           )}
           {activeMinPrice && (
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-brass/10 text-cognac rounded-full text-xs font-semibold">
-              Min: ₹{activeMinPrice}
-              <button onClick={() => updateFilters({ minPrice: null })} className="hover:opacity-70 cursor-pointer"><X className="h-3 w-3" /></button>
+            <span className="inline-flex items-center gap-2 px-3 py-1.5 bg-cream border border-brass/25 text-cognac rounded-xl text-xs font-semibold shadow-xs">
+              <span>Min: ₹{activeMinPrice}</span>
+              <button onClick={() => updateFilters({ minPrice: null })} className="hover:text-destructive cursor-pointer transition-colors"><X className="h-3.5 w-3.5" /></button>
             </span>
           )}
           {activeMaxPrice && (
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-brass/10 text-cognac rounded-full text-xs font-semibold">
-              Max: ₹{activeMaxPrice}
-              <button onClick={() => updateFilters({ maxPrice: null })} className="hover:opacity-70 cursor-pointer"><X className="h-3 w-3" /></button>
+            <span className="inline-flex items-center gap-2 px-3 py-1.5 bg-cream border border-brass/25 text-cognac rounded-xl text-xs font-semibold shadow-xs">
+              <span>Max: ₹{activeMaxPrice}</span>
+              <button onClick={() => updateFilters({ maxPrice: null })} className="hover:text-destructive cursor-pointer transition-colors"><X className="h-3.5 w-3.5" /></button>
             </span>
           )}
           {activeSizes.map((sStr) => (
-            <span key={sStr} className="inline-flex items-center gap-1.5 px-3 py-1 bg-brass/10 text-cognac rounded-full text-xs font-semibold">
-              Size: UK/IND {sStr}
-              <button onClick={() => handleToggleSize(sStr)} className="hover:opacity-70 cursor-pointer"><X className="h-3 w-3" /></button>
+            <span key={sStr} className="inline-flex items-center gap-2 px-3 py-1.5 bg-cream border border-brass/25 text-cognac rounded-xl text-xs font-semibold shadow-xs">
+              <span>Size: UK {sStr}</span>
+              <button onClick={() => handleToggleSize(sStr)} className="hover:text-destructive cursor-pointer transition-colors"><X className="h-3.5 w-3.5" /></button>
             </span>
           ))}
           {activeGenders.map((g) => (
-            <span key={g} className="inline-flex items-center gap-1.5 px-3 py-1 bg-brass/10 text-cognac rounded-full text-xs font-semibold">
-              Gender: {g}
-              <button onClick={() => handleToggleGender(g)} className="hover:opacity-70 cursor-pointer"><X className="h-3 w-3" /></button>
+            <span key={g} className="inline-flex items-center gap-2 px-3 py-1.5 bg-cream border border-brass/25 text-cognac rounded-xl text-xs font-semibold shadow-xs">
+              <span>Gender: {g}</span>
+              <button onClick={() => handleToggleGender(g)} className="hover:text-destructive cursor-pointer transition-colors"><X className="h-3.5 w-3.5" /></button>
             </span>
           ))}
           {activeColors.map((c) => (
-            <span key={c} className="inline-flex items-center gap-1.5 px-3 py-1 bg-brass/10 text-cognac rounded-full text-xs font-semibold">
-              Color: {c}
-              <button onClick={() => handleToggleColor(c)} className="hover:opacity-70 cursor-pointer"><X className="h-3 w-3" /></button>
+            <span key={c} className="inline-flex items-center gap-2 px-3 py-1.5 bg-cream border border-brass/25 text-cognac rounded-xl text-xs font-semibold shadow-xs">
+              <span>Color: {c}</span>
+              <button onClick={() => handleToggleColor(c)} className="hover:text-destructive cursor-pointer transition-colors"><X className="h-3.5 w-3.5" /></button>
             </span>
           ))}
           <button
             onClick={handleClearAll}
-            className="text-xs font-bold text-muted-foreground hover:text-primary flex items-center gap-1 cursor-pointer py-1 px-2 hover:bg-muted rounded transition ml-auto"
+            className="text-xs font-bold text-muted-foreground hover:text-destructive flex items-center gap-1.5 cursor-pointer py-1.5 px-3 hover:bg-muted/80 rounded-xl transition-colors ml-auto"
           >
-            <RotateCcw className="h-3 w-3" /> Clear filters
+            <RotateCcw className="h-3.5 w-3.5" /> Clear Filters
           </button>
-        </div>
+        </motion.div>
       )}
 
       {/* Main Filter & Sort Controls Grid */}
-      <div className="sticky top-16 md:top-20 z-20 -mx-4 md:mx-0 px-4 md:px-2 py-3 bg-cream/90 backdrop-blur border-y border-border md:border-0 md:rounded-xl md:bg-card md:border md:p-4 md:shadow-card mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div className="sticky top-16 md:top-20 z-20 -mx-4 md:mx-0 px-4 md:px-3 py-3.5 bg-cream/80 backdrop-blur-md border-y border-border/80 md:border md:rounded-2xl md:bg-card/90 md:p-5 md:shadow-lg mb-10 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 transition-all duration-300">
         {/* Categories scrollable container */}
-        <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide pb-2 sm:pb-0 px-4 sm:px-0 -mx-4 sm:mx-0">
+        <div className="flex items-center gap-2.5 overflow-x-auto scrollbar-hide pb-2 lg:pb-0 px-1 sm:px-0">
           <button
             onClick={() => updateFilters({ category: "all" })}
-            className={`px-4 py-2 rounded-full text-xs font-bold whitespace-nowrap cursor-pointer transition ${activeCategory === "all"
-              ? "bg-primary text-primary-foreground"
-              : "bg-muted text-foreground hover:bg-secondary"
+            className={`px-4.5 py-2 rounded-full text-xs font-bold whitespace-nowrap cursor-pointer transition-all duration-300 shadow-xs ${activeCategory === "all"
+              ? "bg-charcoal text-cream shadow-md scale-102"
+              : "bg-cream/60 text-muted-foreground hover:bg-cream hover:text-charcoal border border-border/50"
               }`}
           >
             All Styles
@@ -341,9 +375,9 @@ export default function ShopClient({ categories, initialProducts, totalProducts,
             <button
               key={c.id || c._id}
               onClick={() => updateFilters({ category: c.slug })}
-              className={`px-4 py-2 rounded-full text-xs font-bold whitespace-nowrap cursor-pointer transition ${activeCategory === c.slug
-                ? "bg-primary text-primary-foreground"
-                : "bg-muted text-foreground hover:bg-secondary"
+              className={`px-4.5 py-2 rounded-full text-xs font-bold whitespace-nowrap cursor-pointer transition-all duration-300 shadow-xs ${activeCategory === c.slug
+                ? "bg-charcoal text-cream shadow-md scale-102"
+                : "bg-cream/60 text-muted-foreground hover:bg-cream hover:text-charcoal border border-border/50"
                 }`}
             >
               {c.name}
@@ -352,38 +386,53 @@ export default function ShopClient({ categories, initialProducts, totalProducts,
         </div>
 
         {/* Sort + Filter drawer toggle */}
-        <div className="flex items-center justify-between sm:justify-end gap-3 text-sm px-4 sm:px-0 border-t border-border/40 pt-2 sm:border-0 sm:pt-0 shrink-0">
+        <div className="flex items-center justify-between lg:justify-end gap-4 text-sm px-1 sm:px-0 border-t border-border/30 pt-3 lg:border-0 lg:pt-0 shrink-0">
           <button
             onClick={() => setFilterOpen(true)}
-            className="flex items-center gap-1.5 bg-card border border-input rounded-lg px-3 py-2 text-xs font-semibold cursor-pointer hover:bg-muted transition"
+            className="flex items-center gap-2 bg-cream/80 hover:bg-cream border border-border/80 rounded-xl px-4 py-2.5 text-xs font-semibold cursor-pointer hover:shadow-sm hover:border-brass/50 transition duration-200"
           >
-            <SlidersHorizontal className="h-3.5 w-3.5" />
-            <span>Filter</span>
+            <SlidersHorizontal className="h-4 w-4 text-cognac" />
+            <span className="text-charcoal">Filter Options</span>
+            {activeFilterCount > 0 && (
+              <span className="ml-1 bg-cognac text-cream text-[10px] w-4.5 h-4.5 rounded-full flex items-center justify-center font-extrabold animate-pulse">
+                {activeFilterCount}
+              </span>
+            )}
           </button>
           <div className="flex items-center gap-2">
-            <span className="text-xs text-muted-foreground font-semibold">Sort:</span>
-            <select
-              value={activeSort}
-              onChange={(e) => updateFilters({ sort: e.target.value })}
-              className="bg-card border border-input rounded-lg px-3 py-2 text-xs font-medium outline-none cursor-pointer"
-            >
-              <option value="new">Newest Arrivals</option>
-              <option value="low">Price: Low to High</option>
-              <option value="high">Price: High to Low</option>
-              <option value="rating">Highest Rated</option>
-            </select>
+            <span className="text-xs text-muted-foreground font-semibold">Sort By:</span>
+            <div className="relative">
+              <select
+                value={activeSort}
+                onChange={(e) => updateFilters({ sort: e.target.value })}
+                className="appearance-none bg-cream/85 border border-border/85 rounded-xl pl-4 pr-10 py-2.5 text-xs font-bold text-charcoal outline-none cursor-pointer focus:border-brass/60 focus:ring-1 focus:ring-brass/30 transition-all duration-200"
+              >
+                <option value="new">Newest Arrivals</option>
+                <option value="low">Price: Low to High</option>
+                <option value="high">Price: High to Low</option>
+                <option value="rating">Highest Rated</option>
+              </select>
+              <ChevronDown className="absolute right-3.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground pointer-events-none" />
+            </div>
           </div>
         </div>
       </div>
 
+      {/* Catalog Grid */}
       {initialProducts.length === 0 ? (
-        <div className="py-20 text-center border border-dashed border-border rounded-2xl bg-card">
-          <p className="text-base text-muted-foreground">No footwear styles found matching these filters.</p>
+        <div className="py-20 px-6 text-center border border-dashed border-brass/30 rounded-3xl bg-cream/30 backdrop-blur-xs flex flex-col items-center justify-center max-w-xl mx-auto my-12 shadow-xs">
+          <div className="h-16 w-16 bg-brass/10 rounded-full flex items-center justify-center mb-6 text-cognac">
+            <SlidersHorizontal className="h-8 w-8" />
+          </div>
+          <h3 className="font-serif text-xl font-bold text-charcoal mb-2">No Matching Styles Found</h3>
+          <p className="text-sm text-muted-foreground max-w-sm mb-6">
+            We couldn't find any footwear in our current catalog matching your filters. Try clearing some filters or searching for something else.
+          </p>
           <button
             onClick={handleClearAll}
-            className="mt-4 bg-primary text-primary-foreground px-5 py-2.5 rounded-full text-xs font-semibold cursor-pointer"
+            className="bg-charcoal text-cream hover:bg-cognac px-6 py-3 rounded-full text-xs font-bold tracking-wider uppercase transition-all duration-300 shadow-md hover:shadow-lg cursor-pointer"
           >
-            Reset Catalog
+            Reset All Filters
           </button>
         </div>
       ) : (
@@ -394,22 +443,32 @@ export default function ShopClient({ categories, initialProducts, totalProducts,
         </div>
       )}
 
+      {/* Pagination progress bar and load more button */}
       {initialProducts.length > 0 && initialProducts.length < totalProducts && (
-        <div className="mt-14 flex justify-center">
+        <div className="mt-16 flex flex-col items-center gap-3">
+          <p className="text-xs text-muted-foreground font-semibold">
+            Showing {initialProducts.length} of {totalProducts} footwear styles
+          </p>
+          <div className="w-48 h-1 bg-border/40 rounded-full overflow-hidden mb-2.5">
+            <div 
+              className="h-full bg-cognac rounded-full transition-all duration-500" 
+              style={{ width: `${(initialProducts.length / totalProducts) * 100}%` }}
+            />
+          </div>
           <button
             onClick={handleLoadMore}
             disabled={loadingMore}
-            className="px-8 py-3 bg-primary text-primary-foreground text-xs font-bold rounded-full hover:bg-primary/90 transition flex items-center gap-2 cursor-pointer shadow-sm hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
+            className="px-8 py-3.5 bg-charcoal text-cream hover:bg-cognac text-xs font-bold uppercase tracking-wider rounded-full transition-all duration-300 flex items-center gap-2 cursor-pointer shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {loadingMore ? (
               <>
-                <span className="h-3 w-3 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                <span className="h-3.5 w-3.5 border-2 border-cream/35 border-t-cream rounded-full animate-spin" />
                 Loading Styles…
               </>
             ) : (
               <>
                 Load More Styles
-                <ArrowRight className="h-3.5 w-3.5" />
+                <ArrowRight className="h-4 w-4" />
               </>
             )}
           </button>
@@ -423,10 +482,10 @@ export default function ShopClient({ categories, initialProducts, totalProducts,
             {/* Backdrop overlay */}
             <motion.div
               initial={{ opacity: 0 }}
-              animate={{ opacity: 0.45 }}
+              animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={() => setFilterOpen(false)}
-              className="fixed inset-0 bg-charcoal/45 z-40 backdrop-blur-xs"
+              className="fixed inset-0 bg-charcoal/40 backdrop-blur-sm z-40"
             />
 
             {/* Side Drawer menu */}
@@ -434,24 +493,26 @@ export default function ShopClient({ categories, initialProducts, totalProducts,
               initial={{ x: "-100%" }}
               animate={{ x: 0 }}
               exit={{ x: "-100%" }}
-              transition={{ type: "tween", duration: 0.3, ease: "easeInOut" }}
-              className="fixed top-0 left-0 bottom-0 h-full w-[80vw] max-w-[320px] bg-card border-r border-border shadow-2xl z-50 flex flex-col p-6 overflow-y-auto"
+              transition={{ type: "spring", damping: 25, stiffness: 200 }}
+              className="fixed top-0 left-0 bottom-0 h-full w-[85vw] max-w-[340px] bg-cream/95 backdrop-blur-md border-r border-border/80 shadow-2xl z-50 flex flex-col p-6 overflow-hidden"
             >
               {/* Drawer Header */}
-              <div className="flex items-center justify-between border-b border-border pb-4 mb-6">
-                <span className="font-serif font-bold text-lg text-charcoal">
-                  Filter Catalog
+              <div className="flex items-center justify-between border-b border-border/40 pb-4 mb-4">
+                <span className="font-serif font-bold text-lg text-charcoal flex items-center gap-2">
+                  <SlidersHorizontal className="h-4.5 w-4.5 text-cognac" />
+                  <span>Filter Catalog</span>
                 </span>
                 <button
                   onClick={() => setFilterOpen(false)}
-                  className="p-1.5 hover:bg-muted rounded-full transition"
+                  className="p-1.5 hover:bg-muted/80 rounded-full transition cursor-pointer"
                   aria-label="Close filters"
                 >
                   <X className="h-5 w-5 text-muted-foreground" />
                 </button>
               </div>
+
               {/* Drawer Sections - Accordion System */}
-              <div className="flex flex-col flex-grow overflow-y-auto pr-1">
+              <div className="flex-grow overflow-y-auto pr-1 scrollbar-thin space-y-1">
                 {/* Category Accordion */}
                 <AccordionItem
                   title="Category"
@@ -465,14 +526,14 @@ export default function ShopClient({ categories, initialProducts, totalProducts,
                         <button
                           key={c.id || c._id}
                           onClick={() => updateFilters({ category: isSelected ? "all" : c.slug })}
-                          className={`flex items-center justify-between px-3 py-2 rounded-lg border text-left text-xs font-semibold transition cursor-pointer ${
+                          className={`flex items-center justify-between px-3.5 py-2.5 rounded-xl border text-left text-xs font-semibold transition cursor-pointer ${
                             isSelected
-                              ? "bg-primary/5 border-primary text-primary"
-                              : "border-border/80 hover:bg-muted text-foreground"
+                              ? "bg-cognac/5 border-cognac/40 text-cognac"
+                              : "border-border/60 hover:bg-muted/60 text-foreground"
                           }`}
                         >
                           <span>{c.name}</span>
-                          {isSelected && <div className="h-1.5 w-1.5 rounded-full bg-primary" />}
+                          {isSelected && <div className="h-1.5 w-1.5 rounded-full bg-cognac" />}
                         </button>
                       );
                     })}
@@ -493,10 +554,10 @@ export default function ShopClient({ categories, initialProducts, totalProducts,
                           <button
                             key={g}
                             onClick={() => handleToggleGender(g)}
-                            className={`flex items-center justify-between px-3 py-2 rounded-lg border text-left text-xs font-semibold transition cursor-pointer ${
+                            className={`flex items-center justify-between px-3.5 py-2.5 rounded-xl border text-left text-xs font-semibold transition cursor-pointer ${
                               isSelected
-                                ? "bg-primary/5 border-primary text-primary"
-                                : "border-border/80 hover:bg-muted text-foreground"
+                                ? "bg-cognac/5 border-cognac/40 text-cognac"
+                                : "border-border/60 hover:bg-muted/60 text-foreground"
                             }`}
                           >
                             <div className="flex items-center gap-2.5">
@@ -504,7 +565,7 @@ export default function ShopClient({ categories, initialProducts, totalProducts,
                                 type="checkbox"
                                 checked={isSelected}
                                 readOnly
-                                className="h-4 w-4 rounded border-border text-primary focus:ring-primary cursor-pointer"
+                                className="h-4 w-4 rounded border-border text-cognac focus:ring-cognac cursor-pointer accent-cognac"
                               />
                               <span>{g}</span>
                             </div>
@@ -529,10 +590,10 @@ export default function ShopClient({ categories, initialProducts, totalProducts,
                           <button
                             key={b}
                             onClick={() => handleToggleBrand(b)}
-                            className={`flex items-center justify-between px-3 py-2.5 rounded-lg border text-left text-xs font-semibold transition cursor-pointer ${
+                            className={`flex items-center justify-between px-3.5 py-2.5 rounded-xl border text-left text-xs font-semibold transition cursor-pointer ${
                               isSelected
-                                ? "bg-primary/5 border-primary text-primary"
-                                : "border-border/80 hover:bg-muted text-foreground"
+                                ? "bg-cognac/5 border-cognac/40 text-cognac"
+                                : "border-border/60 hover:bg-muted/60 text-foreground"
                             }`}
                           >
                             <div className="flex items-center gap-2.5">
@@ -540,7 +601,7 @@ export default function ShopClient({ categories, initialProducts, totalProducts,
                                 type="checkbox"
                                 checked={isSelected}
                                 readOnly
-                                className="h-4 w-4 rounded border-border text-primary focus:ring-primary cursor-pointer"
+                                className="h-4 w-4 rounded border-border text-cognac focus:ring-cognac cursor-pointer accent-cognac"
                               />
                               <span>{b}</span>
                             </div>
@@ -566,13 +627,13 @@ export default function ShopClient({ categories, initialProducts, totalProducts,
                           <button
                             key={s}
                             onClick={() => handleToggleSize(sStr)}
-                            className={`py-2 border text-xs font-bold rounded-lg transition cursor-pointer ${
+                            className={`py-2 border text-xs font-bold rounded-xl transition cursor-pointer ${
                               isSelected
-                                ? "bg-primary text-primary-foreground border-primary"
-                                : "border-border hover:border-primary/50 text-foreground"
+                                ? "bg-cognac text-cream border-cognac shadow-xs"
+                                : "border-border/80 hover:border-brass/50 text-foreground bg-cream/40"
                             }`}
                           >
-                            UK/IND {s}
+                            UK {s}
                           </button>
                         );
                       })}
@@ -594,10 +655,10 @@ export default function ShopClient({ categories, initialProducts, totalProducts,
                           <button
                             key={c.name}
                             onClick={() => handleToggleColor(c.name)}
-                            className={`flex items-center gap-2 px-3 py-2 rounded-lg border text-left text-xs font-semibold transition cursor-pointer ${
+                            className={`flex items-center gap-2 px-3 py-2.5 rounded-xl border text-left text-xs font-semibold transition cursor-pointer ${
                               isSelected
-                                ? "bg-primary/5 border-primary text-primary"
-                                : "border-border/80 hover:bg-muted text-foreground"
+                                ? "bg-cognac/5 border-cognac/40 text-cognac"
+                                : "border-border/60 hover:bg-muted/60 text-foreground"
                             }`}
                           >
                             <span
@@ -628,8 +689,8 @@ export default function ShopClient({ categories, initialProducts, totalProducts,
                             onClick={() => updateFilters({ occasion: isSelected ? null : o })}
                             className={`px-3 py-1.5 rounded-full text-xs font-semibold transition border cursor-pointer ${
                               isSelected
-                                ? "bg-primary text-primary-foreground border-primary"
-                                : "border-border/80 hover:bg-muted text-muted-foreground"
+                                ? "bg-cognac text-cream border-cognac shadow-xs"
+                                : "border-border/80 hover:bg-muted text-muted-foreground bg-cream/40"
                             }`}
                           >
                             {o}
@@ -655,7 +716,7 @@ export default function ShopClient({ categories, initialProducts, totalProducts,
                           placeholder="Min"
                           value={minInput}
                           onChange={(e) => setMinInput(e.target.value)}
-                          className="w-full pl-6 pr-2 py-1.5 bg-background border border-input rounded-lg text-xs outline-none focus:border-primary transition"
+                          className="w-full pl-6 pr-2 py-2 bg-cream border border-border/80 rounded-xl text-xs outline-none focus:border-cognac transition"
                         />
                       </div>
                       <span className="text-xs text-muted-foreground">-</span>
@@ -666,13 +727,13 @@ export default function ShopClient({ categories, initialProducts, totalProducts,
                           placeholder={`Max (${Math.ceil(filterMetadata.maxPrice)})`}
                           value={maxInput}
                           onChange={(e) => setMaxInput(e.target.value)}
-                          className="w-full pl-6 pr-2 py-1.5 bg-background border border-input rounded-lg text-xs outline-none focus:border-primary transition"
+                          className="w-full pl-6 pr-2 py-2 bg-cream border border-border/80 rounded-xl text-xs outline-none focus:border-cognac transition"
                         />
                       </div>
                     </div>
                     <button
                       type="submit"
-                      className="w-full py-1.5 bg-primary/10 text-primary text-xs font-semibold rounded-lg hover:bg-primary/25 transition cursor-pointer"
+                      className="w-full py-2 bg-cognac/10 text-cognac text-xs font-bold rounded-xl hover:bg-cognac hover:text-cream transition cursor-pointer"
                     >
                       Apply Price
                     </button>
@@ -680,17 +741,17 @@ export default function ShopClient({ categories, initialProducts, totalProducts,
                 </AccordionItem>
               </div>
 
-              {/* Bottom Actions */}
-              <div className="mt-8 border-t border-border pt-4 flex gap-2.5">
+              {/* Bottom Actions - Sticky at bottom */}
+              <div className="mt-4 border-t border-border/40 pt-4 flex gap-2.5 shrink-0 bg-cream/95">
                 <button
                   onClick={handleClearAll}
-                  className="flex-1 py-2.5 border border-border rounded-full text-xs font-semibold hover:bg-muted transition cursor-pointer"
+                  className="flex-1 py-3 border border-border rounded-full text-xs font-bold hover:bg-muted transition cursor-pointer text-charcoal"
                 >
                   Reset All
                 </button>
                 <button
                   onClick={() => setFilterOpen(false)}
-                  className="flex-grow py-2.5 bg-primary text-primary-foreground rounded-full text-xs font-semibold hover:bg-primary/95 transition cursor-pointer"
+                  className="flex-grow py-3 bg-charcoal text-cream hover:bg-cognac rounded-full text-xs font-bold transition cursor-pointer shadow-md"
                 >
                   View Results
                 </button>

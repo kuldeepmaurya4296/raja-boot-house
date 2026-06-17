@@ -15,35 +15,35 @@ export function OrderSummary({ subtotal, shipping, tax, couponDiscount = 0, coup
   const finalTotal = Math.max(0, subtotal + shipping + tax - couponDiscount);
 
   return (
-    <div className="bg-card border border-border rounded-xl p-6 space-y-4 shadow-sm">
-      <h2 className="font-serif text-xl font-bold">Order Summary</h2>
-      <div className="space-y-2 text-sm">
+    <div className="bg-card/70 backdrop-blur-md border border-border/80 rounded-2xl p-6 space-y-5 shadow-md sticky top-28">
+      <h2 className="font-serif text-xl font-bold text-charcoal border-b border-border/40 pb-3">Order Summary</h2>
+      <div className="space-y-3 text-xs md:text-sm">
         <div className="flex justify-between">
-          <span className="text-muted-foreground">Subtotal</span>
-          <span>{formatINR(subtotal)}</span>
+          <span className="text-muted-foreground font-medium">Subtotal</span>
+          <span className="font-semibold text-charcoal">{formatINR(subtotal)}</span>
         </div>
         <div className="flex justify-between">
-          <span className="text-muted-foreground">Shipping</span>
-          <span>{shipping === 0 ? "Free" : formatINR(shipping)}</span>
+          <span className="text-muted-foreground font-medium">Shipping</span>
+          <span className="font-semibold text-charcoal">{shipping === 0 ? "Free" : formatINR(shipping)}</span>
         </div>
         <div className="flex justify-between">
-          <span className="text-muted-foreground">CGST (4%)</span>
-          <span>{formatINR(cgst)}</span>
+          <span className="text-muted-foreground font-medium">CGST (4%)</span>
+          <span className="font-semibold text-charcoal">{formatINR(cgst)}</span>
         </div>
         <div className="flex justify-between">
-          <span className="text-muted-foreground">SGST (4%)</span>
-          <span>{formatINR(sgst)}</span>
+          <span className="text-muted-foreground font-medium">SGST (4%)</span>
+          <span className="font-semibold text-charcoal">{formatINR(sgst)}</span>
         </div>
         {couponDiscount > 0 && (
-          <div className="flex justify-between text-green-600 font-medium">
+          <div className="flex justify-between text-green-600 font-bold bg-green-50/50 px-2.5 py-1.5 rounded-xl border border-green-200/50">
             <span>Discount {couponCode ? `(${couponCode})` : ""}</span>
             <span>-{formatINR(couponDiscount)}</span>
           </div>
         )}
       </div>
-      <div className="border-t border-border pt-4 flex justify-between font-semibold">
-        <span>Total</span>
-        <span className="font-serif text-xl">{formatINR(finalTotal)}</span>
+      <div className="border-t border-border/40 pt-4 flex justify-between items-baseline font-bold text-charcoal">
+        <span className="text-sm">Total Amount</span>
+        <span className="font-serif text-2xl text-cognac">{formatINR(finalTotal)}</span>
       </div>
       {actionButton}
     </div>

@@ -237,7 +237,7 @@ async function getShopData(filters: any) {
 export async function generateMetadata({ searchParams }: PageProps): Promise<Metadata> {
   const { category, search } = await searchParams;
   let title = "Footwear Catalog — Raja Boot House";
-  let description = "Browse our exclusive handcrafted leather collection since 1972.";
+  let description = "Browse our exclusive handcrafted leather collection.";
 
   if (category && category !== "all") {
     title = `${category.charAt(0).toUpperCase() + category.slice(1)} Footwear — Raja Boot House`;

@@ -9,7 +9,7 @@ export const metadata: Metadata = {
     default: "Raja Boot House — Handcrafted Leather Boots & Premium Footwear",
     template: "%s | Raja Boot House"
   },
-  description: "Footwear retail brand established since 1972. Offers a wide range of premium footwear for men, women, and children from Lakhani, Touch, Paragon, Goldstar, and more.",
+  description: "Footwear retail brand. Offers a wide range of premium footwear for men, women, and children from Lakhani, Touch, Paragon, Goldstar, and more.",
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
@@ -38,7 +38,7 @@ export const metadata: Metadata = {
   twitter: {
     card: "summary_large_image",
     title: "Raja Boot House",
-    description: "Handcrafted luxury footwear and premium Indian leather craftsmanship since 1972.",
+    description: "Handcrafted luxury footwear and premium Indian leather craftsmanship.",
     images: ["/assets/hero-boots.jpg"]
   }
 };
