@@ -5,7 +5,22 @@ import { useSession } from "next-auth/react";
 import { StatusBadge } from "@/modules/admin/shared/components/DataTable";
 import { formatINR, formatDate } from "@/lib/format";
 import Link from "next/link";
-import { ChevronDown, ChevronUp, Clock, AlertTriangle } from "lucide-react";
+import { 
+  ChevronDown, 
+  ChevronUp, 
+  Clock, 
+  AlertTriangle, 
+  Package, 
+  Calendar, 
+  TrendingUp, 
+  RotateCcw,
+  CheckCircle2,
+  Truck,
+  ArrowRight,
+  ShieldCheck,
+  ShoppingBag,
+  HelpCircle
+} from "lucide-react";
 import { ReturnModal } from "./components/ReturnModal";
 import { CancelModal } from "./components/CancelModal";
 
@@ -62,6 +77,7 @@ export default function AccountOrdersPage() {
   const { data: session } = useSession();
   const [orders, setOrders] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState<"active" | "past" | "returns">("active");
   const [expandedOrders, setExpandedOrders] = useState<Record<string, boolean>>({});
   const [returnModalOrder, setReturnModalOrder] = useState<any>(null);
   const [returnModalDaysLeft, setReturnModalDaysLeft] = useState(0);
@@ -104,28 +120,66 @@ export default function AccountOrdersPage() {
     fetchOrders();
   };
 
+  // Categorize orders
+  const activeOrders = orders.filter(o => 
+    !["DELIVERED", "CANCELLED", "RETURN_REQUESTED", "RETURNED", "REFUNDED"].includes(o.status)
+  );
+
+  const pastPurchases = orders.filter(o => 
+    ["DELIVERED", "CANCELLED"].includes(o.status)
+  );
+
+  const returnedOrRefunded = orders.filter(o => 
+    ["RETURN_REQUESTED", "RETURNED", "REFUNDED"].includes(o.status)
+  );
+
+  const getVisibleOrders = () => {
+    if (activeTab === "active") return activeOrders;
+    if (activeTab === "past") return pastPurchases;
+    return returnedOrRefunded;
+  };
+
+  const visibleOrders = getVisibleOrders();
+
+  const getActiveTimelineStep = (status: string) => {
+    if (status === "PLACED") return 1;
+    if (["CONFIRMED", "PACKED"].includes(status)) return 2;
+    if (["SHIPPED", "OUT_FOR_DELIVERY"].includes(status)) return 3;
+    if (status === "DELIVERED") return 4;
+    return 1;
+  };
+
   if (loading) {
     return (
-      <div className="space-y-4 animate-pulse">
-        <h2 className="font-serif text-2xl font-bold">My orders</h2>
+      <div className="space-y-6 animate-pulse">
+        <div className="flex justify-between items-center">
+          <div className="h-8 w-36 bg-muted rounded-lg"></div>
+          <div className="h-5 w-24 bg-muted rounded-full"></div>
+        </div>
+        
+        {/* Tabs skeleton */}
+        <div className="flex gap-4 border-b border-border/60 pb-3">
+          <div className="h-5 w-24 bg-muted rounded"></div>
+          <div className="h-5 w-24 bg-muted rounded"></div>
+          <div className="h-5 w-24 bg-muted rounded"></div>
+        </div>
+
         {[1, 2].map(i => (
-          <div key={i} className="bg-card border border-border rounded-xl p-5 shadow-sm space-y-4">
-            <div className="flex justify-between pb-4 border-b border-border">
+          <div key={i} className="bg-card border border-border rounded-2xl p-6 shadow-sm space-y-5">
+            <div className="flex justify-between items-center pb-4 border-b border-border/60">
               <div className="space-y-2">
-                <div className="h-4 w-24 bg-muted rounded"></div>
+                <div className="h-4 w-32 bg-muted rounded"></div>
+                <div className="h-3 w-20 bg-muted rounded"></div>
+              </div>
+              <div className="h-6 w-20 bg-muted rounded-full"></div>
+            </div>
+            <div className="flex items-center gap-4">
+              <div className="h-16 w-16 rounded-xl bg-muted shrink-0"></div>
+              <div className="flex-1 space-y-2">
+                <div className="h-4 w-48 bg-muted rounded"></div>
                 <div className="h-3 w-32 bg-muted rounded"></div>
               </div>
-              <div className="h-6 w-20 bg-muted rounded"></div>
-            </div>
-            <div className="space-y-3">
-              <div className="flex items-center gap-3">
-                <div className="h-14 w-14 rounded-lg bg-muted"></div>
-                <div className="flex-1 space-y-2">
-                  <div className="h-4 w-40 bg-muted rounded"></div>
-                  <div className="h-3 w-24 bg-muted rounded"></div>
-                </div>
-                <div className="h-4 w-16 bg-muted rounded"></div>
-              </div>
+              <div className="h-4 w-16 bg-muted rounded"></div>
             </div>
           </div>
         ))}
@@ -133,199 +187,393 @@ export default function AccountOrdersPage() {
     );
   }
 
-  if (orders.length === 0) {
-    return (
-      <div className="space-y-4">
-        <h2 className="font-serif text-2xl font-bold">My orders</h2>
-        <div className="bg-card border border-border rounded-xl p-10 text-center">
-          <p className="text-muted-foreground mb-4">You haven't placed any orders yet.</p>
-          <Link href="/shop" className="bg-primary text-primary-foreground px-6 py-2.5 rounded-full text-sm font-semibold inline-block">Start Shopping</Link>
-        </div>
-      </div>
-    );
-  }
-
   return (
-    <div className="space-y-4">
-      <h2 className="font-serif text-2xl font-bold">My orders</h2>
-      {orders.map(o => {
-        const returnInfo = getReturnEligibility(o);
+    <div className="space-y-6">
+      <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-2">
+        <div>
+          <h2 className="font-serif text-2xl font-bold text-foreground">Order History</h2>
+          <p className="text-xs text-muted-foreground mt-0.5">Track, cancel, or request returns for your purchases</p>
+        </div>
+        {orders.length > 0 && (
+          <span className="text-[11px] font-semibold text-muted-foreground bg-muted px-3 py-1.5 rounded-full w-fit">
+            Total Orders: <strong className="text-foreground">{orders.length}</strong>
+          </span>
+        )}
+      </div>
 
-        return (
-          <div key={o._id || o.id} className="bg-card border border-border rounded-xl p-5 shadow-sm">
-            <div className="flex flex-wrap items-center justify-between gap-3 pb-4 border-b border-border">
-              <div>
-                <p className="font-semibold text-sm sm:text-base">{o.orderId || o.number}</p>
-                <p className="text-xs text-muted-foreground">Placed {formatDate(o.createdAt)}</p>
-              </div>
-              <div className="flex items-center gap-3">
-                <StatusBadge status={o.status} />
-                <p className="font-serif font-bold text-sm sm:text-base">{formatINR(o.pricing?.total || o.total)}</p>
-              </div>
+      {orders.length === 0 ? (
+        <div className="text-center py-16 bg-card border border-border rounded-2xl shadow-sm">
+          <div className="h-14 w-14 bg-muted/60 text-muted-foreground rounded-full flex items-center justify-center mx-auto mb-4">
+            <Package className="h-7 w-7" />
+          </div>
+          <p className="font-serif text-lg font-bold text-foreground">No orders found</p>
+          <p className="text-sm text-muted-foreground mt-1 max-w-sm mx-auto">
+            You haven't placed any orders yet. Discover our premium footwear collections and place your first order.
+          </p>
+          <Link href="/shop" className="mt-6 inline-flex items-center gap-2 bg-primary hover:bg-cognac text-primary-foreground rounded-full px-6 py-2.5 text-xs font-bold shadow-md transition-all">
+            <ShoppingBag className="h-4 w-4" />
+            <span>Start Shopping</span>
+          </Link>
+        </div>
+      ) : (
+        <>
+          {/* Custom Tabs */}
+          <div className="flex border-b border-border/60 gap-1 sm:gap-6 overflow-x-auto scrollbar-hide py-1">
+            <button
+              onClick={() => setActiveTab("active")}
+              className={`pb-3 text-xs sm:text-sm font-semibold border-b-2 transition-all flex items-center gap-2 whitespace-nowrap cursor-pointer ${
+                activeTab === "active"
+                  ? "border-primary text-foreground font-bold"
+                  : "border-transparent text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              <span>Active Orders</span>
+              <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                activeTab === "active" ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"
+              }`}>
+                {activeOrders.length}
+              </span>
+            </button>
+            <button
+              onClick={() => setActiveTab("past")}
+              className={`pb-3 text-xs sm:text-sm font-semibold border-b-2 transition-all flex items-center gap-2 whitespace-nowrap cursor-pointer ${
+                activeTab === "past"
+                  ? "border-primary text-foreground font-bold"
+                  : "border-transparent text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              <span>Past Purchases</span>
+              <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                activeTab === "past" ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"
+              }`}>
+                {pastPurchases.length}
+              </span>
+            </button>
+            <button
+              onClick={() => setActiveTab("returns")}
+              className={`pb-3 text-xs sm:text-sm font-semibold border-b-2 transition-all flex items-center gap-2 whitespace-nowrap cursor-pointer ${
+                activeTab === "returns"
+                  ? "border-primary text-foreground font-bold"
+                  : "border-transparent text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              <span>Returns & Refunds</span>
+              <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                activeTab === "returns" ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"
+              }`}>
+                {returnedOrRefunded.length}
+              </span>
+            </button>
+          </div>
+
+          {/* Orders List */}
+          {visibleOrders.length === 0 ? (
+            <div className="text-center py-14 bg-card border border-border/50 rounded-2xl">
+              <Package className="h-9 w-9 text-muted-foreground/40 mx-auto mb-3" />
+              <p className="text-sm font-bold text-muted-foreground">No orders in this tab</p>
+              <p className="text-xs text-muted-foreground mt-0.5">Any orders matching this status will appear here.</p>
             </div>
-            <div className="pt-4 space-y-3">
-              {o.items.map((it: any, i: number) => (
-                <div key={i} className="flex items-center gap-3">
-                  <img src={it.image} alt="" className="h-14 w-14 rounded-lg object-cover" />
-                  <div className="flex-1 min-w-0">
-                    <p className="font-medium text-sm truncate">{it.name}</p>
-                    <p className="text-xs text-muted-foreground">Size {it.size} · {it.color} · ×{it.quantity || it.qty}</p>
-                  </div>
-                  <p className="text-sm font-semibold whitespace-nowrap">{formatINR(it.price * (it.quantity || it.qty))}</p>
-                </div>
-              ))}
-            </div>
+          ) : (
+            <div className="space-y-5">
+              {visibleOrders.map(o => {
+                const returnInfo = getReturnEligibility(o);
+                const activeTimelineStep = getActiveTimelineStep(o.status);
 
-            {/* Return Eligibility Section */}
-            {o.status === "DELIVERED" && (
-              <div className="mt-4 pt-3 border-t border-border">
-                {returnInfo.eligible ? (
-                  <div className="flex flex-wrap items-center justify-between gap-3">
-                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                      <Clock className="h-3.5 w-3.5 text-amber-500" />
-                      <span>
-                        Return window: <strong className="text-foreground">{returnInfo.daysRemaining} day{returnInfo.daysRemaining !== 1 ? "s" : ""} remaining</strong>
-                      </span>
-                    </div>
-                    <button
-                      onClick={() => openReturnModal(o, returnInfo.daysRemaining)}
-                      className="text-xs font-semibold flex items-center gap-1.5 px-4 py-2 rounded-full bg-orange-600 hover:bg-orange-700 text-white transition cursor-pointer shadow-sm"
-                    >
-                      Return / Refund
-                    </button>
-                  </div>
-                ) : returnInfo.maxReturnDays > 0 ? (
-                  <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                    <AlertTriangle className="h-3.5 w-3.5 text-muted-foreground/50" />
-                    <span>Return window expired ({returnInfo.maxReturnDays}-day policy ended {returnInfo.daysElapsed - returnInfo.maxReturnDays} day{(returnInfo.daysElapsed - returnInfo.maxReturnDays) !== 1 ? "s" : ""} ago)</span>
-                  </div>
-                ) : null}
-              </div>
-            )}
-
-            {/* Return Request Pending Banner */}
-            {o.status === "RETURN_REQUESTED" && (
-              <div className="mt-4 pt-3 border-t border-border">
-                <div className="flex items-start gap-2.5 bg-yellow-500/10 border border-yellow-500/20 rounded-lg p-3">
-                  <Clock className="h-4 w-4 text-yellow-600 mt-0.5 shrink-0" />
-                  <div>
-                    <p className="text-xs font-semibold text-yellow-800 dark:text-yellow-300">Return Request Under Review</p>
-                    <p className="text-[11px] text-yellow-700 dark:text-yellow-400 mt-0.5 leading-relaxed">
-                      Your return request has been submitted and is being reviewed by our team. We'll update the status once it's processed.
-                    </p>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* Action Buttons */}
-            <div className="mt-4 pt-3 border-t border-border flex justify-between items-center gap-3">
-              <div>
-                {(o.status === "PLACED" || o.status === "CONFIRMED" || o.status === "PACKED") && (
-                  <button
-                    onClick={() => setCancelModalOrder(o)}
-                    className="text-xs font-semibold px-4 py-2 rounded-full border border-red-200 text-red-600 hover:bg-red-50 transition cursor-pointer"
-                  >
-                    Cancel Order
-                  </button>
-                )}
-              </div>
-
-              <button
-                onClick={() => toggleExpand(o._id || o.id)}
-                className="text-xs font-semibold flex items-center gap-1 hover:text-primary transition cursor-pointer text-muted-foreground border border-border px-3.5 py-1.5 rounded-full hover:bg-muted"
-              >
-                {expandedOrders[o._id || o.id] ? (
-                  <>Hide Tracking <ChevronUp className="h-3 w-3" /></>
-                ) : (
-                  <>Track Order <ChevronDown className="h-3 w-3" /></>
-                )}
-              </button>
-            </div>
-
-            {/* Timeline Tracking Details */}
-            {expandedOrders[o._id || o.id] && (
-              <div className="mt-4 pt-4 border-t border-border space-y-4">
-                <div className="flex justify-between items-center">
-                  <h4 className="text-xs uppercase font-bold tracking-wider text-cognac">Order Tracking Timeline</h4>
-                  <span className="text-[10px] text-muted-foreground font-medium bg-muted px-2 py-0.5 rounded-full">
-                    Current Status: <span className="font-bold text-foreground capitalize">{o.status.toLowerCase().replace(/_/g, " ")}</span>
-                  </span>
-                </div>
-                
-                <div className="relative border-l border-border pl-6 ml-3 py-1 space-y-6">
-                  {(() => {
-                    const steps = getTimelineSteps(o);
-                    return steps.map((step: string, idx: number) => {
-                      const h = o.statusHistory?.find((x: any) => x.status === step);
-                      const isCompleted = !!h;
-                      const lastCompletedIdx = steps.reduce(
-                        (acc: number, s: string, i: number) => o.statusHistory?.some((x: any) => x.status === s) ? i : acc,
-                        0
-                      );
-                      const isActive = idx === lastCompletedIdx;
-                      
-                      return (
-                        <div key={idx} className="relative">
-                          {/* Bullet marker */}
-                          <span className={`absolute -left-[31px] top-1 flex h-4.5 w-4.5 items-center justify-center rounded-full text-[9px] font-bold shadow-sm ${
-                            isCompleted
-                              ? isActive 
-                                ? "bg-primary text-primary-foreground ring-4 ring-primary/20" 
-                                : "bg-muted text-muted-foreground"
-                              : "bg-background border border-border text-muted-foreground/40"
-                          }`}>
-                            {isCompleted ? "✓" : idx + 1}
-                          </span>
-                          <div className={isCompleted ? "" : "opacity-50"}>
-                            <p className={`text-sm font-semibold capitalize ${isCompleted ? "text-foreground" : "text-muted-foreground"}`}>
-                              {step.toLowerCase().replace(/_/g, " ")}
-                            </p>
-                            {isCompleted && h ? (
-                              <>
-                                <p className="text-[11px] text-muted-foreground mt-0.5">
-                                  {new Date(h.timestamp).toLocaleString("en-IN", {
-                                    day: "numeric",
-                                    month: "short",
-                                    year: "numeric",
-                                    hour: "2-digit",
-                                    minute: "2-digit",
-                                    hour12: true
-                                  })}
-                                </p>
-                                {h.note && (
-                                  <p className="text-xs text-muted-foreground mt-1.5 bg-muted/70 p-2.5 rounded-lg border border-border/40 leading-relaxed">
-                                    {h.note}
-                                  </p>
-                                )}
-                                {step === "REFUNDED" && o.refundDetails && (
-                                  <div className="text-xs mt-1.5 bg-primary/5 p-2.5 rounded-lg border border-primary/10 space-y-1">
-                                    <p className="font-semibold text-primary">Refund Details:</p>
-                                    <p className="text-muted-foreground">
-                                      <span className="font-medium">Method:</span> {o.refundDetails.method === "ONLINE" ? "Online (Razorpay / UPI)" : "Cash / Offline"}
-                                    </p>
-                                    {o.refundDetails.transactionId && (
-                                      <p className="text-muted-foreground">
-                                        <span className="font-medium">Transaction ID:</span> <code className="bg-muted px-1.5 py-0.5 rounded text-[11px] select-all">{o.refundDetails.transactionId}</code>
-                                      </p>
-                                    )}
-                                  </div>
-                                )}
-                              </>
-                            ) : (
-                              <p className="text-[11px] text-muted-foreground/60 mt-0.5 italic">Pending</p>
-                            )}
+                return (
+                  <div key={o._id || o.id} className="bg-card border border-border rounded-2xl overflow-hidden shadow-sm hover:border-brass/25 transition-all">
+                    {/* Card Header */}
+                    <div className="bg-muted/30 border-b border-border/60 px-5 py-4 flex flex-wrap items-center justify-between gap-4">
+                      <div className="flex items-center gap-4">
+                        <div className="p-2 bg-cream/10 border border-border rounded-xl shrink-0">
+                          <Package className="h-5 w-5 text-brass" />
+                        </div>
+                        <div>
+                          <p className="font-semibold text-sm tracking-tight">{o.orderId || o.number}</p>
+                          <div className="flex items-center gap-2 mt-0.5 text-xs text-muted-foreground">
+                            <Calendar className="h-3 w-3" />
+                            <span>Ordered {formatDate(o.createdAt)}</span>
                           </div>
                         </div>
-                      );
-                    });
-                  })()}
-                </div>
-              </div>
-            )}
-          </div>
-        );
-      })}
+                      </div>
+
+                      <div className="flex items-center gap-3">
+                        <StatusBadge status={o.status} />
+                        <span className="font-serif font-bold text-sm sm:text-base text-cognac">
+                          {formatINR(o.pricing?.total || o.total)}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Card Body (Products) */}
+                    <div className="p-5 space-y-4">
+                      {o.items.map((it: any, i: number) => (
+                        <div key={i} className="flex gap-4 items-center">
+                          {it.image ? (
+                            <img 
+                              src={it.image} 
+                              alt={it.name} 
+                              className="h-16 w-16 rounded-xl object-cover border border-border/50 shrink-0" 
+                            />
+                          ) : (
+                            <div className="h-16 w-16 rounded-xl bg-muted flex items-center justify-center shrink-0 border border-border/50">
+                              <Package className="h-6 w-6 text-muted-foreground/60" />
+                            </div>
+                          )}
+                          <div className="flex-1 min-w-0">
+                            <p className="font-bold text-sm text-foreground truncate hover:text-primary transition-colors">
+                              {it.name}
+                            </p>
+                            <p className="text-xs text-muted-foreground mt-0.5">
+                              Size: UK/IND {it.size} · Color: {it.color} · Qty: {it.quantity || it.qty}
+                            </p>
+                          </div>
+                          <div className="text-right shrink-0">
+                            <p className="text-sm font-bold">{formatINR(it.price * (it.quantity || it.qty))}</p>
+                            <p className="text-[10px] text-muted-foreground mt-0.5">{formatINR(it.price)} each</p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* Quick Active Tracker (shown on card directly for in-transit orders) */}
+                    {activeTab === "active" && (
+                      <div className="px-5 pb-5 pt-2 border-t border-border/40">
+                        <div className="max-w-xl mx-auto pt-2">
+                          <div className="relative flex justify-between items-center">
+                            {/* Visual connector line */}
+                            <div className="absolute top-4 left-4 right-4 h-1 bg-muted rounded z-0" />
+                            <div 
+                              className="absolute top-4 left-4 h-1 bg-primary rounded z-0 transition-all duration-500" 
+                              style={{ 
+                                width: `${
+                                  activeTimelineStep === 1 ? 0 : 
+                                  activeTimelineStep === 2 ? 33 : 
+                                  activeTimelineStep === 3 ? 66 : 100
+                                }%` 
+                              }}
+                            />
+
+                            {/* Node 1: Placed */}
+                            <div className="relative z-10 flex flex-col items-center">
+                              <div className={`h-8 w-8 rounded-full flex items-center justify-center border-2 transition-all ${
+                                activeTimelineStep >= 1 
+                                  ? "bg-primary border-primary text-cream shadow-sm" 
+                                  : "bg-background border-muted text-muted-foreground"
+                              }`}>
+                                <Calendar className="h-3.5 w-3.5" />
+                              </div>
+                              <span className="text-[9px] uppercase font-bold tracking-wider text-muted-foreground mt-1">Placed</span>
+                            </div>
+
+                            {/* Node 2: Confirmed/Packed */}
+                            <div className="relative z-10 flex flex-col items-center">
+                              <div className={`h-8 w-8 rounded-full flex items-center justify-center border-2 transition-all ${
+                                activeTimelineStep >= 2 
+                                  ? "bg-primary border-primary text-cream shadow-sm" 
+                                  : "bg-background border-muted text-muted-foreground"
+                              }`}>
+                                <Clock className="h-3.5 w-3.5" />
+                              </div>
+                              <span className="text-[9px] uppercase font-bold tracking-wider text-muted-foreground mt-1">Processing</span>
+                            </div>
+
+                            {/* Node 3: Shipped */}
+                            <div className="relative z-10 flex flex-col items-center">
+                              <div className={`h-8 w-8 rounded-full flex items-center justify-center border-2 transition-all ${
+                                activeTimelineStep >= 3 
+                                  ? "bg-primary border-primary text-cream shadow-sm" 
+                                  : "bg-background border-muted text-muted-foreground"
+                              }`}>
+                                <Truck className="h-3.5 w-3.5" />
+                              </div>
+                              <span className="text-[9px] uppercase font-bold tracking-wider text-muted-foreground mt-1">Shipped</span>
+                            </div>
+
+                            {/* Node 4: Delivered */}
+                            <div className="relative z-10 flex flex-col items-center">
+                              <div className={`h-8 w-8 rounded-full flex items-center justify-center border-2 transition-all ${
+                                activeTimelineStep >= 4 
+                                  ? "bg-primary border-primary text-cream shadow-sm" 
+                                  : "bg-background border-muted text-muted-foreground"
+                              }`}>
+                                <CheckCircle2 className="h-3.5 w-3.5" />
+                              </div>
+                              <span className="text-[9px] uppercase font-bold tracking-wider text-muted-foreground mt-1">Delivered</span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Return eligibility banner or current requested return status */}
+                    {o.status === "DELIVERED" && returnInfo.maxReturnDays > 0 && (
+                      <div className="mx-5 p-3.5 bg-muted/40 border border-border/40 rounded-xl mb-4 flex flex-wrap items-center justify-between gap-3">
+                        {returnInfo.eligible ? (
+                          <>
+                            <div className="flex items-center gap-2 text-xs text-muted-foreground font-medium">
+                              <Clock className="h-4 w-4 text-amber-500 shrink-0" />
+                              <span>
+                                Return window: <strong className="text-foreground">{returnInfo.daysRemaining} day{returnInfo.daysRemaining !== 1 ? "s" : ""} remaining</strong> (expires {formatDate(new Date(Date.now() + returnInfo.daysRemaining * 24 * 60 * 60 * 1000).toISOString())})
+                              </span>
+                            </div>
+                            <button
+                              onClick={() => openReturnModal(o, returnInfo.daysRemaining)}
+                              className="text-xs font-bold flex items-center gap-1.5 px-4.5 py-2 rounded-full bg-cognac hover:bg-cognac/95 text-white transition-colors cursor-pointer shadow-sm border-0"
+                            >
+                              <RotateCcw className="h-3.5 w-3.5" />
+                              <span>Request Return</span>
+                            </button>
+                          </>
+                        ) : (
+                          <div className="flex items-center gap-2 text-xs text-muted-foreground font-medium">
+                            <AlertTriangle className="h-4 w-4 text-muted-foreground/50 shrink-0" />
+                            <span>Return policy expired ({returnInfo.maxReturnDays}-day window ended {returnInfo.daysElapsed - returnInfo.maxReturnDays} days ago)</span>
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                    {o.status === "RETURN_REQUESTED" && (
+                      <div className="mx-5 p-3.5 bg-amber-500/10 border border-amber-500/20 rounded-xl mb-4">
+                        <div className="flex items-start gap-3">
+                          <Clock className="h-4.5 w-4.5 text-amber-600 mt-0.5 shrink-0" />
+                          <div>
+                            <p className="text-xs font-bold text-amber-800">Return Request Under Review</p>
+                            <p className="text-[11px] text-amber-700/90 mt-0.5 leading-relaxed font-medium">
+                              We have received your return request for this order. Our fulfillment team is processing the request, and we will update you shortly via email.
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Card Footer (Actions) */}
+                    <div className="bg-muted/10 border-t border-border/40 px-5 py-3.5 flex justify-between items-center gap-4">
+                      <div>
+                        {(o.status === "PLACED" || o.status === "CONFIRMED" || o.status === "PACKED") && (
+                          <button
+                            onClick={() => setCancelModalOrder(o)}
+                            className="text-xs font-bold px-4 py-2 rounded-full border border-red-200 text-red-600 hover:bg-red-50 transition-colors cursor-pointer"
+                          >
+                            Cancel Order
+                          </button>
+                        )}
+                      </div>
+
+                      <button
+                        onClick={() => toggleExpand(o._id || o.id)}
+                        className="text-xs font-bold flex items-center gap-1.5 text-muted-foreground hover:text-foreground border border-border px-4 py-2 rounded-full hover:bg-muted transition-all cursor-pointer bg-card"
+                      >
+                        <span>{expandedOrders[o._id || o.id] ? "Hide Status Details" : "Track / View Details"}</span>
+                        {expandedOrders[o._id || o.id] ? (
+                          <ChevronUp className="h-3.5 w-3.5 text-brass" />
+                        ) : (
+                          <ChevronDown className="h-3.5 w-3.5" />
+                        )}
+                      </button>
+                    </div>
+
+                    {/* Timeline Expanded Tracking Details */}
+                    {expandedOrders[o._id || o.id] && (
+                      <div className="bg-muted/20 border-t border-border/40 px-5 py-5 space-y-4">
+                        <div className="flex justify-between items-center border-b border-border/40 pb-2.5">
+                          <h4 className="text-[10px] uppercase font-bold tracking-wider text-cognac">Fulfillment Timeline</h4>
+                          {o.shipping?.courier && (
+                            <span className="text-[10px] font-bold text-muted-foreground">
+                              Courier: <strong className="text-foreground">{o.shipping.courier} ({o.shipping.trackingNumber})</strong>
+                            </span>
+                          )}
+                        </div>
+
+                        <div className="relative border-l border-border/80 pl-6 ml-3 py-1 space-y-5">
+                          {(() => {
+                            const steps = getTimelineSteps(o);
+                            return steps.map((step: string, idx: number) => {
+                              const h = o.statusHistory?.find((x: any) => x.status === step);
+                              const isCompleted = !!h;
+                              const lastCompletedIdx = steps.reduce(
+                                (acc: number, s: string, i: number) => o.statusHistory?.some((x: any) => x.status === s) ? i : acc,
+                                0
+                              );
+                              const isActive = idx === lastCompletedIdx;
+
+                              return (
+                                <div key={idx} className="relative">
+                                  {/* Node dot indicator */}
+                                  <span className={`absolute -left-[32px] top-0.5 flex h-5 w-5 items-center justify-center rounded-full text-[9px] font-bold shadow-sm transition-all ${
+                                    isCompleted
+                                      ? isActive 
+                                        ? "bg-primary text-primary-foreground ring-4 ring-primary/10" 
+                                        : "bg-muted border border-border text-muted-foreground"
+                                      : "bg-background border border-border text-muted-foreground/30"
+                                  }`}>
+                                    {isCompleted ? "✓" : idx + 1}
+                                  </span>
+
+                                  <div className={isCompleted ? "" : "opacity-40"}>
+                                    <div className="flex items-center gap-2 flex-wrap">
+                                      <p className={`text-xs font-bold uppercase tracking-wider ${isCompleted ? "text-foreground" : "text-muted-foreground"}`}>
+                                        {step.replace(/_/g, " ")}
+                                      </p>
+                                      {isActive && (
+                                        <span className="text-[8px] font-bold uppercase tracking-widest bg-primary/10 text-primary px-1.5 py-0.5 rounded-md">
+                                          Current Status
+                                        </span>
+                                      )}
+                                    </div>
+
+                                    {isCompleted && h ? (
+                                      <div className="mt-1">
+                                        <p className="text-[10px] text-muted-foreground font-medium">
+                                          {new Date(h.timestamp).toLocaleString("en-IN", {
+                                            day: "numeric",
+                                            month: "short",
+                                            year: "numeric",
+                                            hour: "2-digit",
+                                            minute: "2-digit",
+                                            hour12: true
+                                          })}
+                                        </p>
+                                        {h.note && (
+                                          <p className="text-xs text-muted-foreground mt-1.5 bg-background border border-border/40 p-2.5 rounded-lg leading-relaxed max-w-xl">
+                                            {h.note}
+                                          </p>
+                                        )}
+                                        {step === "REFUNDED" && o.refundDetails && (
+                                          <div className="text-xs mt-2 bg-primary/5 p-2.5 rounded-lg border border-primary/10 space-y-1 max-w-xl">
+                                            <p className="font-bold text-primary flex items-center gap-1.5">
+                                              <ShieldCheck className="h-3.5 w-3.5" />
+                                              <span>Refund Disbursed</span>
+                                            </p>
+                                            <p className="text-muted-foreground">
+                                              <span className="font-medium">Refund Mode:</span> {o.refundDetails.method === "ONLINE" ? "Razorpay Gateway / Original Payment Method" : "Manual Transfer / Cash"}
+                                            </p>
+                                            {o.refundDetails.transactionId && (
+                                              <p className="text-muted-foreground">
+                                                <span className="font-medium">Txn Reference:</span> <code className="bg-muted px-1.5 py-0.5 rounded text-[11px] select-all font-mono font-semibold">{o.refundDetails.transactionId}</code>
+                                              </p>
+                                            )}
+                                          </div>
+                                        )}
+                                      </div>
+                                    ) : (
+                                      <p className="text-[10px] text-muted-foreground/60 mt-0.5 italic">Awaiting this phase...</p>
+                                    )}
+                                  </div>
+                                </div>
+                              );
+                            });
+                          })()}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </>
+      )}
 
       {/* Return Request Modal */}
       {returnModalOrder && (

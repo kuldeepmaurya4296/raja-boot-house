@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { User, Package, Heart, MapPin, Settings, LogOut } from "lucide-react";
+import { User, Package, Heart, MapPin, Settings, LogOut, ShieldCheck } from "lucide-react";
 import { useSession, signOut } from "next-auth/react";
 
 const items = [
@@ -11,7 +11,7 @@ const items = [
   { href: "/account/orders", label: "Orders", icon: Package },
   { href: "/account/wishlist", label: "Wishlist", icon: Heart },
   { href: "/account/addresses", label: "Addresses", icon: MapPin },
-  { href: "/account/profile", label: "Profile", icon: Settings },
+  { href: "/account/profile", label: "Profile Settings", icon: Settings },
 ];
 
 export default function AccountLayout({ children }: { children: React.ReactNode }) {
@@ -28,9 +28,9 @@ export default function AccountLayout({ children }: { children: React.ReactNode 
 
   if (status === "loading") {
     return (
-      <div className="container mx-auto px-4 py-20 text-center flex flex-col items-center justify-center min-h-[300px]">
-        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary"></div>
-        <p className="mt-4 text-muted-foreground text-sm font-semibold">Verifying session...</p>
+      <div className="container mx-auto px-4 py-20 text-center flex flex-col items-center justify-center min-h-[400px]">
+        <div className="animate-spin rounded-full h-9 w-9 border-t-2 border-b-2 border-primary"></div>
+        <p className="mt-4 text-muted-foreground text-sm font-semibold tracking-wide">Securing session...</p>
       </div>
     );
   }
@@ -38,47 +38,78 @@ export default function AccountLayout({ children }: { children: React.ReactNode 
   if (!session) return null;
 
   return (
-    <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12 lg:py-16">
-      <div className="flex flex-col md:flex-row md:items-center gap-5 border-b border-border pb-6 mb-8">
-        <div className="h-14 w-14 md:h-16 md:w-16 rounded-full bg-cognac text-cream flex items-center justify-center font-semibold text-xl md:text-2xl uppercase shadow-sm shrink-0 overflow-hidden">
-          {!imgError && session.user?.image ? (
-            <img
-              src={session.user.image}
-              alt=""
-              className="h-full w-full object-cover"
-              onError={() => setImgError(true)}
-            />
-          ) : (
-            <span>{session.user?.name ? session.user.name.charAt(0).toUpperCase() : "U"}</span>
-          )}
+    <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12 max-w-[1200px]">
+      
+      {/* Premium Header Card */}
+      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-charcoal to-cognac text-cream p-6 md:p-8 shadow-lg border border-brass/10 mb-8 md:mb-12 flex flex-col md:flex-row md:items-center justify-between gap-6">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_120%,rgba(181,164,144,0.15),transparent)] pointer-events-none" />
+        <div className="flex items-center gap-5 relative z-10">
+          <div className="h-16 w-16 md:h-20 md:w-20 rounded-full bg-brass/35 text-cream flex items-center justify-center font-serif font-bold text-2xl uppercase border-2 border-brass/30 shadow-md shrink-0 overflow-hidden">
+            {!imgError && session.user?.image ? (
+              <img
+                src={session.user.image}
+                alt=""
+                className="h-full w-full object-cover"
+                onError={() => setImgError(true)}
+              />
+            ) : (
+              <span>{session.user?.name ? session.user.name.charAt(0).toUpperCase() : "U"}</span>
+            )}
+          </div>
+          <div>
+            <span className="text-[10px] font-bold uppercase tracking-widest text-brass/80 block mb-1">Customer Space</span>
+            <h1 className="font-serif text-2xl md:text-3xl font-bold tracking-tight">
+              Hello, {session.user?.name || "Customer"}
+            </h1>
+            <p className="text-xs text-cream/70 mt-1 font-medium">{session.user?.email}</p>
+          </div>
         </div>
-        <div>
-          <p className="text-[10px] uppercase tracking-[0.25em] text-cognac font-bold">My Account</p>
-          <h1 className="font-serif text-2xl md:text-3xl font-bold text-charcoal mt-0.5">Hello, {session.user?.name || "Member"}</h1>
-          <p className="text-xs text-muted-foreground mt-0.5">{session.user?.email}</p>
+
+        <div className="flex items-center gap-2 bg-cream/10 backdrop-blur-md px-3.5 py-2 rounded-xl border border-cream/10 w-fit shrink-0 relative z-10 self-start md:self-auto">
+          <ShieldCheck className="h-4.5 w-4.5 text-brass" />
+          <div className="text-left">
+            <span className="text-[9px] uppercase font-bold tracking-wider text-brass block">Verified Account</span>
+            <span className="text-[10px] text-cream/80 font-semibold block">Raja Style Haven Member</span>
+          </div>
         </div>
       </div>
-      <div className="grid lg:grid-cols-[240px_1fr] gap-6 md:gap-10 ">
-        <aside>
-          <nav className="flex md:flex-col gap-1 overflow-x-auto scrollbar-hide md:overflow-visible -mx-4 px-4 md:mx-0 md:px-0">
+
+      {/* Main Grid */}
+      <div className="grid lg:grid-cols-[250px_1fr] gap-8 items-start">
+        {/* Navigation Sidebar */}
+        <aside className="sticky top-20 z-10 bg-card border border-border p-4 rounded-2xl shadow-sm">
+          <nav className="flex lg:flex-col gap-1 overflow-x-auto lg:overflow-visible scrollbar-hide py-1 lg:py-0">
             {items.map(({ href, label, icon: Icon, exact }) => {
               const active = exact ? pathname === href : pathname.startsWith(href) && href !== "/account";
               return (
-                <Link key={href} href={href} className={`flex items-center gap-2.5 px-4 py-2.5 rounded-lg text-sm font-medium whitespace-nowrap ${active ? "bg-primary text-primary-foreground" : "text-foreground hover:bg-muted"
-                  }`}>
-                  <Icon className="h-4 w-4" /> {label}
+                <Link 
+                  key={href} 
+                  href={href} 
+                  className={`flex items-center gap-3 px-4 py-3 rounded-xl text-xs sm:text-sm font-semibold tracking-wide whitespace-nowrap transition-all cursor-pointer ${
+                    active 
+                      ? "bg-primary text-primary-foreground shadow-sm font-bold" 
+                      : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                  }`}
+                >
+                  <Icon className={`h-4.5 w-4.5 transition-colors ${active ? "text-brass" : "text-muted-foreground"}`} /> 
+                  <span>{label}</span>
                 </Link>
               );
             })}
             <button
               onClick={() => signOut({ callbackUrl: '/' })}
-              className="flex items-center gap-2.5 px-4 py-2.5 rounded-lg text-sm font-medium whitespace-nowrap text-foreground hover:bg-red-50 hover:text-red-600 text-left w-full cursor-pointer transition-colors mt-2"
+              className="flex items-center gap-3 px-4 py-3 rounded-xl text-xs sm:text-sm font-semibold tracking-wide whitespace-nowrap text-red-500 hover:bg-red-500/5 cursor-pointer text-left w-full transition-colors mt-2 border-t border-border/40 pt-4"
             >
-              <LogOut className="h-4 w-4" /> Logout
+              <LogOut className="h-4.5 w-4.5" /> 
+              <span>Sign Out</span>
             </button>
           </nav>
         </aside>
-        <div className="min-w-0 pt-10">{children}</div>
+
+        {/* Dashboard Area */}
+        <div className="min-w-0 bg-card border border-border p-6 md:p-8 rounded-2xl shadow-sm min-h-[400px]">
+          {children}
+        </div>
       </div>
     </div>
   );
