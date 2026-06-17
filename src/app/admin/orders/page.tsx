@@ -67,6 +67,7 @@ export default async function AdminOrdersPage({ searchParams }: { searchParams: 
     createdAt: o.createdAt.toISOString(),
     status: o.status,
     total: o.pricing?.total || 0,
+    shipping: o.shipping || null,
   }));
 
   return (

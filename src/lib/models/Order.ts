@@ -45,20 +45,40 @@ export interface IOrder extends Document {
     method: "UPI" | "Card" | "Net Banking" | "Wallet" | "COD";
     razorpayOrderId?: string;
     razorpayPaymentId?: string;
-    status: "PENDING" | "PAID" | "FAILED" | "REFUNDED";
+    status: "PENDING" | "PAID" | "FAILED" | "REFUND_PENDING" | "REFUNDED";
   };
   status: "PLACED" | "CONFIRMED" | "PACKED" | "SHIPPED" | "OUT_FOR_DELIVERY" | "DELIVERED" | "CANCELLED" | "RETURN_REQUESTED" | "RETURNED" | "REFUNDED";
   statusHistory: IOrderHistory[];
   refundDetails?: {
-    method: "ONLINE" | "CASH";
+    preference?: "ORIGINAL" | "BANK" | "UPI";
+    upiId?: string;
+    bankDetails?: {
+      accountHolderName: string;
+      bankName: string;
+      accountNumber: string;
+      ifscCode: string;
+    };
+    method?: "ONLINE" | "CASH" | "BANK_TRANSFER" | "UPI";
     transactionId?: string;
-    refundedAt: Date;
+    refundedAt?: Date;
+    payoutBatchId?: string;
   };
   shipping?: {
+    deliveryMethod?: "SELF" | "THIRD_PARTY";
+    deliveryPersonName?: string;
+    deliveryPersonPhone?: string;
     courier?: string;
     trackingNumber?: string;
     trackingUrl?: string;
   };
+  auditLogs?: {
+    action: string;
+    performedBy: mongoose.Types.ObjectId | string;
+    timestamp: Date;
+    ipAddress?: string;
+    userAgent?: string;
+    details?: string;
+  }[];
   createdAt: Date;
   updatedAt: Date;
 }
@@ -109,7 +129,7 @@ const OrderSchema: Schema = new Schema(
       method: { type: String, enum: ["UPI", "Card", "Net Banking", "Wallet", "COD"], required: true },
       razorpayOrderId: { type: String, index: true },
       razorpayPaymentId: { type: String },
-      status: { type: String, enum: ["PENDING", "PAID", "FAILED", "REFUNDED"], default: "PENDING", index: true },
+      status: { type: String, enum: ["PENDING", "PAID", "FAILED", "REFUND_PENDING", "REFUNDED"], default: "PENDING", index: true },
     },
     status: {
       type: String,
@@ -119,15 +139,35 @@ const OrderSchema: Schema = new Schema(
     },
     statusHistory: [StatusHistorySchema],
     refundDetails: {
-      method: { type: String, enum: ["ONLINE", "CASH"] },
+      preference: { type: String, enum: ["ORIGINAL", "BANK", "UPI"], index: true },
+      upiId: { type: String },
+      bankDetails: {
+        accountHolderName: { type: String },
+        bankName: { type: String },
+        accountNumber: { type: String },
+        ifscCode: { type: String },
+      },
+      method: { type: String, enum: ["ONLINE", "CASH", "BANK_TRANSFER", "UPI"] },
       transactionId: { type: String },
       refundedAt: { type: Date },
+      payoutBatchId: { type: String, index: true },
     },
     shipping: {
+      deliveryMethod: { type: String, enum: ["SELF", "THIRD_PARTY"], index: true },
+      deliveryPersonName: { type: String },
+      deliveryPersonPhone: { type: String },
       courier: { type: String },
-      trackingNumber: { type: String },
+      trackingNumber: { type: String, index: true },
       trackingUrl: { type: String },
     },
+    auditLogs: [{
+      action: { type: String, required: true },
+      performedBy: { type: Schema.Types.ObjectId, ref: "User", required: true },
+      timestamp: { type: Date, default: Date.now },
+      ipAddress: { type: String },
+      userAgent: { type: String },
+      details: { type: String }
+    }],
   },
   { timestamps: true }
 );

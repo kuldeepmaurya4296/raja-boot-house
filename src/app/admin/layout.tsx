@@ -5,6 +5,7 @@ const items = [
   { to: "/admin", label: "Overview", icon: "LayoutDashboard", exact: true },
   { to: "/admin/analytics", label: "Analytics", icon: "BarChart3" },
   { to: "/admin/orders", label: "Orders", icon: "ShoppingCart" },
+  { to: "/admin/delivery-partners", label: "Delivery Partners", icon: "Truck" },
   {
     label: "Inventory",
     icon: "Package",

@@ -30,8 +30,12 @@ export async function GET(request: Request) {
       return NextResponse.json(results);
     }
 
+    function escapeRegExp(str: string) {
+      return str.replace(/[\\^$*+?.()|[\]{}]/g, "\\$&");
+    }
+
     // Search query matches name, brand, description, tags, category slug
-    const regex = new RegExp(query, "i");
+    const regex = new RegExp(escapeRegExp(query), "i");
 
     // Fetch categories matching the query to also search by category names/slugs
     const matchingCategories = await Category.find({

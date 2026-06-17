@@ -5,12 +5,18 @@ import Product from "@/lib/models/Product";
 import Category from "@/lib/models/Category";
 import Brand from "@/lib/models/Brand";
 import { notFound } from "next/navigation";
+import mongoose from "mongoose";
 
 export const dynamic = "force-dynamic";
 
 export default async function EditProductPage({ params }: { params: Promise<{ id: string }> }) {
-  await dbConnect();
   const { id } = await params;
+
+  if (!mongoose.isValidObjectId(id)) {
+    notFound();
+  }
+
+  await dbConnect();
   
   const [productRaw, categoriesRaw, brandsRaw] = await Promise.all([
     Product.findById(id).lean(),

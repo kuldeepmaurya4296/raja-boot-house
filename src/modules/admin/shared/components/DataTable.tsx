@@ -7,7 +7,7 @@ import { useDragScroll } from "@/lib/useDragScroll";
 
 export interface Column<T> { 
   key: string; 
-  header: string; 
+  header: ReactNode; 
   render: (row: T) => ReactNode; 
   className?: string;
   sortKey?: string; 

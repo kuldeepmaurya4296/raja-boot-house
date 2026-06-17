@@ -7,6 +7,15 @@ import Product from "@/lib/models/Product";
 import Brand from "@/lib/models/Brand";
 import Collection from "@/lib/models/Collection";
 import { z } from "zod";
+import { auth } from "@/lib/auth";
+
+async function checkAdminAuth() {
+  const session = await auth();
+  if (!session?.user?.id || (session.user.role !== "admin" && session.user.role !== "vendor")) {
+    throw new Error("Unauthorized. Administrative privileges required.");
+  }
+  return session;
+}
 
 // --- CATEGORY ACTIONS ---
 
@@ -20,6 +29,7 @@ const categorySchema = z.object({
 
 export async function createCategory(data: z.infer<typeof categorySchema>) {
   try {
+    await checkAdminAuth();
     await dbConnect();
     const parsed = categorySchema.parse(data);
     await Category.create(parsed);
@@ -34,6 +44,7 @@ export async function createCategory(data: z.infer<typeof categorySchema>) {
 
 export async function updateCategory(id: string, data: z.infer<typeof categorySchema>) {
   try {
+    await checkAdminAuth();
     await dbConnect();
     const parsed = categorySchema.parse(data);
     await Category.findByIdAndUpdate(id, parsed);
@@ -48,6 +59,7 @@ export async function updateCategory(id: string, data: z.infer<typeof categorySc
 
 export async function deleteCategory(id: string) {
   try {
+    await checkAdminAuth();
     await dbConnect();
     const productsCount = await Product.countDocuments({ category: id });
     if (productsCount > 0) {
@@ -73,6 +85,7 @@ const brandSchema = z.object({
 
 export async function createBrand(data: z.infer<typeof brandSchema>) {
   try {
+    await checkAdminAuth();
     await dbConnect();
     const parsed = brandSchema.parse(data);
     await Brand.create(parsed);
@@ -87,6 +100,7 @@ export async function createBrand(data: z.infer<typeof brandSchema>) {
 
 export async function updateBrand(id: string, data: z.infer<typeof brandSchema>) {
   try {
+    await checkAdminAuth();
     await dbConnect();
     const parsed = brandSchema.parse(data);
     await Brand.findByIdAndUpdate(id, parsed);
@@ -101,6 +115,7 @@ export async function updateBrand(id: string, data: z.infer<typeof brandSchema>)
 
 export async function deleteBrand(id: string) {
   try {
+    await checkAdminAuth();
     await dbConnect();
     const productsCount = await Product.countDocuments({ brand: id });
     if (productsCount > 0) {
@@ -129,6 +144,7 @@ const collectionSchema = z.object({
 
 export async function createCollection(data: z.infer<typeof collectionSchema>) {
   try {
+    await checkAdminAuth();
     await dbConnect();
     const parsed = collectionSchema.parse(data);
     await Collection.create(parsed);
@@ -144,6 +160,7 @@ export async function createCollection(data: z.infer<typeof collectionSchema>) {
 
 export async function updateCollection(id: string, data: z.infer<typeof collectionSchema>) {
   try {
+    await checkAdminAuth();
     await dbConnect();
     const parsed = collectionSchema.parse(data);
     await Collection.findByIdAndUpdate(id, parsed);
@@ -159,6 +176,7 @@ export async function updateCollection(id: string, data: z.infer<typeof collecti
 
 export async function deleteCollection(id: string) {
   try {
+    await checkAdminAuth();
     await dbConnect();
     const coll = await Collection.findById(id);
     await Collection.findByIdAndDelete(id);
@@ -211,6 +229,7 @@ const productSchema = z.object({
 
 export async function createProduct(data: z.infer<typeof productSchema>) {
   try {
+    await checkAdminAuth();
     await dbConnect();
     const parsed = productSchema.parse(data);
     await Product.create(parsed);
@@ -225,6 +244,7 @@ export async function createProduct(data: z.infer<typeof productSchema>) {
 
 export async function updateProduct(id: string, data: z.infer<typeof productSchema>) {
   try {
+    await checkAdminAuth();
     await dbConnect();
     const parsed = productSchema.parse(data);
     await Product.findByIdAndUpdate(id, parsed);
@@ -239,6 +259,7 @@ export async function updateProduct(id: string, data: z.infer<typeof productSche
 
 export async function deleteProduct(id: string) {
   try {
+    await checkAdminAuth();
     await dbConnect();
     await Product.findByIdAndDelete(id);
     revalidatePath("/admin/inventory/products");
