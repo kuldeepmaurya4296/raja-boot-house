@@ -43,6 +43,9 @@ export async function GET() {
         latestOrders,
         topProducts,
         lowStockAlerts,
+        placedQueue: 3,
+        readyToShipQueue: 5,
+        inTransitQueue: 4,
       });
     }
 
@@ -204,6 +207,10 @@ export async function GET() {
     });
     const productsDelta = calcDelta(thisWeekProducts, lastWeekProducts);
 
+    const placedQueue = await Order.countDocuments({ status: "PLACED" });
+    const readyToShipQueue = await Order.countDocuments({ status: { $in: ["CONFIRMED", "PACKED"] } });
+    const inTransitQueue = await Order.countDocuments({ status: { $in: ["SHIPPED", "OUT_FOR_DELIVERY"] } });
+
     return NextResponse.json({
       revenue: totalRevenue,
       ordersCount,
@@ -220,6 +227,9 @@ export async function GET() {
       latestOrders,
       topProducts,
       lowStockAlerts,
+      placedQueue,
+      readyToShipQueue,
+      inTransitQueue,
     });
   } catch (error: any) {
     console.error("Dashboard metrics aggregation failed:", error);
