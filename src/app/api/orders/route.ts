@@ -9,6 +9,7 @@ import User from "@/lib/models/User";
 import { sendOrderConfirmationEmail, sendOrderStatusEmail } from "@/lib/email";
 import Settings from "@/lib/models/Settings";
 import Coupon from "@/lib/models/Coupon";
+import { cleanupExpiredPendingOrders } from "@/lib/db-utils";
 
 export async function GET(request: Request) {
   try {
@@ -25,7 +26,15 @@ export async function GET(request: Request) {
       throw new Error("Database offline");
     }
 
-    let query: any = {};
+    // Passively cleanup any expired pending orders
+    await cleanupExpiredPendingOrders();
+
+    let query: any = {
+      $or: [
+        { "payment.method": "COD" },
+        { "payment.status": { $ne: "PENDING" } }
+      ]
+    };
     if (session.user.role !== "admin" && session.user.role !== "vendor") {
       query.userId = session.user.id;
     } else if (userId) {
@@ -283,8 +292,8 @@ export async function POST(request: Request) {
       throw orderErr;
     }
 
-    // Send order confirmation email asynchronously
-    if (session?.user?.email) {
+    // Send order confirmation email asynchronously for COD orders immediately
+    if (order.payment.method === "COD" && session?.user?.email) {
       sendOrderConfirmationEmail(session.user.email, order).catch((err) =>
         console.error("Order confirmation email error:", err)
       );
@@ -512,6 +521,11 @@ export async function PUT(request: Request) {
           if (updateResult.modifiedCount === 0) {
             throw new Error(`Failed to restore stock for product ${item.name} size ${item.size} color ${item.color}.`);
           }
+        }
+
+        // If prepaid order and payment status is PENDING, mark it as FAILED
+        if (order.payment.method !== "COD" && order.payment.status === "PENDING") {
+          order.payment.status = "FAILED";
         }
 
         // If prepaid order, process refund preference

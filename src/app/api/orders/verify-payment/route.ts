@@ -88,6 +88,20 @@ export async function POST(request: Request) {
 
     await order.save();
 
+    // Send order confirmation email asynchronously
+    try {
+      const User = (await import("@/lib/models/User")).default;
+      const customer = await User.findById(order.userId).select("email").lean();
+      if (customer?.email) {
+        const { sendOrderConfirmationEmail } = await import("@/lib/email");
+        sendOrderConfirmationEmail(customer.email, order).catch((err) =>
+          console.error("Order confirmation email error:", err)
+        );
+      }
+    } catch (emailErr) {
+      console.error("Failed to send order confirmation email:", emailErr);
+    }
+
     return NextResponse.json({
       success: true,
       message: "Payment verified successfully",

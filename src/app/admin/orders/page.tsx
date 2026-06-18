@@ -3,11 +3,16 @@ import { connectToDatabase as dbConnect } from "@/lib/db";
 import Order from "@/lib/models/Order";
 import User from "@/lib/models/User";
 import { OrdersClient } from "./OrdersClient";
+import { cleanupExpiredPendingOrders } from "@/lib/db-utils";
 
 export const dynamic = "force-dynamic";
 
 export default async function AdminOrdersPage({ searchParams }: { searchParams: Promise<{ [key: string]: string | undefined }> }) {
   await dbConnect();
+
+  // Passively cleanup any expired pending orders
+  await cleanupExpiredPendingOrders();
+
   const params = await searchParams;
   
   const q = params.q || "";
@@ -17,7 +22,12 @@ export default async function AdminOrdersPage({ searchParams }: { searchParams: 
   const sortOrder = params.order === "asc" ? 1 : -1;
   const statusFilter = params.status || "";
   
-  const query: any = {};
+  const query: any = {
+    $or: [
+      { "payment.method": "COD" },
+      { "payment.status": { $ne: "PENDING" } }
+    ]
+  };
   if (statusFilter) {
     query.status = statusFilter.toUpperCase();
   }
@@ -44,6 +54,14 @@ export default async function AdminOrdersPage({ searchParams }: { searchParams: 
       .lean(),
     Order.countDocuments(query),
     Order.aggregate([
+      {
+        $match: {
+          $or: [
+            { "payment.method": "COD" },
+            { "payment.status": { $ne: "PENDING" } }
+          ]
+        }
+      },
       { $group: { _id: "$status", count: { $sum: 1 } } }
     ])
   ]);

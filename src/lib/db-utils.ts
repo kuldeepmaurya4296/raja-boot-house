@@ -108,3 +108,54 @@ export async function updateProductRating(productId: string) {
     "rating.count": count,
   });
 }
+
+export async function cleanupExpiredPendingOrders() {
+  const Order = mongoose.models.Order || (await import("./models/Order")).default;
+  const Product = mongoose.models.Product || (await import("./models/Product")).default;
+
+  try {
+    const expiryTime = new Date(Date.now() - 30 * 60 * 1000); // 30 minutes expiry window
+
+    const expiredOrders = await Order.find({
+      status: "PLACED",
+      "payment.method": { $ne: "COD" },
+      "payment.status": "PENDING",
+      createdAt: { $lt: expiryTime }
+    });
+
+    if (expiredOrders.length === 0) return;
+
+    console.log(`[Passive Cleanup] Found ${expiredOrders.length} expired pending orders. Clean-up started...`);
+
+    for (const order of expiredOrders) {
+      console.log(`[Passive Cleanup] Auto-cancelling expired order ${order.orderId}`);
+
+      // Rollback stock atomically
+      for (const item of order.items) {
+        await Product.updateOne(
+          {
+            _id: item.productId,
+            "variants.size": item.size,
+            "variants.color": item.color
+          },
+          {
+            $inc: { "variants.$.stock": item.qty }
+          }
+        );
+      }
+
+      order.status = "CANCELLED";
+      order.payment.status = "FAILED";
+      order.statusHistory.push({
+        status: "CANCELLED",
+        timestamp: new Date(),
+        note: "Payment window expired. Order cancelled automatically."
+      });
+
+      await order.save();
+    }
+    console.log(`[Passive Cleanup] Successfully processed ${expiredOrders.length} cancellations.`);
+  } catch (err) {
+    console.error("[Passive Cleanup] Error during pending orders cleanup:", err);
+  }
+}

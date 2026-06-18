@@ -6,10 +6,14 @@ import Product from "@/lib/models/Product";
 import { orders as fallbackOrders } from "@/data/orders";
 import { customers as fallbackCustomers } from "@/data/users";
 import { products as fallbackProducts } from "@/data/products";
+import { cleanupExpiredPendingOrders } from "@/lib/db-utils";
 
 export async function GET() {
   try {
     const db = await connectToDatabase();
+    if (db) {
+      await cleanupExpiredPendingOrders();
+    }
     if (!db) {
       console.warn("Using local mock files for admin dashboard fallback (database offline).");
       
@@ -50,7 +54,12 @@ export async function GET() {
     }
 
     // Live DB aggregation
-    const ordersCount = await Order.countDocuments();
+    const ordersCount = await Order.countDocuments({
+      $or: [
+        { "payment.method": "COD" },
+        { "payment.status": { $ne: "PENDING" } }
+      ]
+    });
     const customersCount = await User.countDocuments({ role: "customer" });
     const productsCount = await Product.countDocuments();
 
@@ -107,7 +116,12 @@ export async function GET() {
     }
 
     // Fetch latest 6 orders and populate customer user info using .populate()
-    const rawLatestOrders = await Order.find()
+    const rawLatestOrders = await Order.find({
+      $or: [
+        { "payment.method": "COD" },
+        { "payment.status": { $ne: "PENDING" } }
+      ]
+    })
       .sort({ createdAt: -1 })
       .limit(6)
       .populate({ path: "userId", model: User, select: "name" });
@@ -165,10 +179,18 @@ export async function GET() {
 
     const thisWeekOrders = await Order.find({
       createdAt: { $gte: sevenDaysAgo },
+      $or: [
+        { "payment.method": "COD" },
+        { "payment.status": { $ne: "PENDING" } }
+      ]
     }).lean();
     
     const lastWeekOrders = await Order.find({
       createdAt: { $gte: fourteenDaysAgo, $lt: sevenDaysAgo },
+      $or: [
+        { "payment.method": "COD" },
+        { "payment.status": { $ne: "PENDING" } }
+      ]
     }).lean();
 
     const thisWeekRevenue = thisWeekOrders
@@ -207,7 +229,13 @@ export async function GET() {
     });
     const productsDelta = calcDelta(thisWeekProducts, lastWeekProducts);
 
-    const placedQueue = await Order.countDocuments({ status: "PLACED" });
+    const placedQueue = await Order.countDocuments({
+      status: "PLACED",
+      $or: [
+        { "payment.method": "COD" },
+        { "payment.status": { $ne: "PENDING" } }
+      ]
+    });
     const readyToShipQueue = await Order.countDocuments({ status: { $in: ["CONFIRMED", "PACKED"] } });
     const inTransitQueue = await Order.countDocuments({ status: { $in: ["SHIPPED", "OUT_FOR_DELIVERY"] } });
 

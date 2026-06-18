@@ -122,15 +122,18 @@ export default function AccountOrdersPage() {
 
   // Categorize orders
   const activeOrders = orders.filter(o => 
-    !["DELIVERED", "CANCELLED", "RETURN_REQUESTED", "RETURNED", "REFUNDED"].includes(o.status)
+    !["DELIVERED", "CANCELLED", "RETURN_REQUESTED", "RETURNED", "REFUNDED"].includes(o.status) &&
+    !(o.payment?.method !== "COD" && o.payment?.status === "PENDING")
   );
 
   const pastPurchases = orders.filter(o => 
-    ["DELIVERED", "CANCELLED"].includes(o.status)
+    ["DELIVERED", "CANCELLED"].includes(o.status) &&
+    !(o.payment?.method !== "COD" && o.payment?.status === "PENDING")
   );
 
   const returnedOrRefunded = orders.filter(o => 
-    ["RETURN_REQUESTED", "RETURNED", "REFUNDED"].includes(o.status)
+    ["RETURN_REQUESTED", "RETURNED", "REFUNDED"].includes(o.status) &&
+    !(o.payment?.method !== "COD" && o.payment?.status === "PENDING")
   );
 
   const getVisibleOrders = () => {

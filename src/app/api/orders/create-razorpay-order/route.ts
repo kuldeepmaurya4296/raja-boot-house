@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 import Razorpay from "razorpay";
+import { connectToDatabase } from "@/lib/db";
+import Order from "@/lib/models/Order";
 
 export async function POST(request: Request) {
   try {
@@ -15,8 +17,19 @@ export async function POST(request: Request) {
 
     if (!keyId || !keySecret) {
       console.warn("Razorpay environment variables are missing. Simulating Razorpay order creation.");
+      const fakeRzpOrderId = `fake_rzp_order_${Date.now()}`;
+      try {
+        await connectToDatabase();
+        const updateResult = await Order.updateOne(
+          { orderId: receipt },
+          { "payment.razorpayOrderId": fakeRzpOrderId }
+        );
+        console.log(`Associated simulated Razorpay order ID ${fakeRzpOrderId} with local order ${receipt}. Modified count: ${updateResult.modifiedCount}`);
+      } catch (dbErr) {
+        console.error("Failed to associate fake razorpayOrderId with local order:", dbErr);
+      }
       return NextResponse.json({
-        id: `fake_rzp_order_${Date.now()}`,
+        id: fakeRzpOrderId,
         amount: Math.round(amount * 100),
         currency,
         receipt: receipt || `receipt_${Date.now()}`,
@@ -39,6 +52,18 @@ export async function POST(request: Request) {
     };
 
     const order = await razorpay.orders.create(options);
+
+    // Save razorpayOrderId to MongoDB Order document
+    try {
+      await connectToDatabase();
+      const updateResult = await Order.updateOne(
+        { orderId: order.receipt },
+        { "payment.razorpayOrderId": order.id }
+      );
+      console.log(`Associated Razorpay order ID ${order.id} with local order ${order.receipt}. Modified count: ${updateResult.modifiedCount}`);
+    } catch (dbErr) {
+      console.error("Failed to associate razorpayOrderId with local order:", dbErr);
+    }
 
     return NextResponse.json({
       id: order.id,

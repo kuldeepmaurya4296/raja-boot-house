@@ -302,6 +302,25 @@ export default function CheckoutPage() {
         throw new Error(rzpOrderData.error || "Failed to create Razorpay transaction");
       }
 
+      const cancelOrder = async (reason: string) => {
+        setLoading(true);
+        try {
+          await fetch("/api/orders", {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              orderId,
+              status: "CANCELLED",
+              note: reason,
+            }),
+          });
+        } catch (err) {
+          console.error("Failed to cancel pending order:", err);
+        } finally {
+          setLoading(false);
+        }
+      };
+
       // 2B. Trigger Razorpay checkout flow
       const razorpayKey = process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || rzpOrderData.key_id || "rzp_test_dummykey";
 
@@ -343,6 +362,12 @@ export default function CheckoutPage() {
               setLoading(false);
             }
           },
+          modal: {
+            ondismiss: function () {
+              toast.error("Payment window closed. Order cancelled.");
+              cancelOrder("Payment window dismissed by customer.");
+            }
+          },
           prefill: {
             name: fullName,
             contact: phone,
@@ -354,6 +379,10 @@ export default function CheckoutPage() {
         };
 
         const rzp = new (window as any).Razorpay(options);
+        rzp.on("payment.failed", function (response: any) {
+          toast.error(response.error?.description || "Payment failed. Order cancelled.");
+          cancelOrder(`Payment failed: ${response.error?.description || "Unknown reason"}`);
+        });
         rzp.open();
       } else {
         // Razorpay SDK missing fallback (sandbox/dev simulation)

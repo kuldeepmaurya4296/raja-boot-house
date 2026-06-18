@@ -67,9 +67,60 @@ export async function POST(request: Request) {
             });
             await order.save();
             console.log(`Order ${order.orderId} updated to PAID via Webhook.`);
+
+            // Send order confirmation email asynchronously
+            try {
+              const User = (await import("@/lib/models/User")).default;
+              const customer = await User.findById(order.userId).select("email").lean();
+              if (customer?.email) {
+                const { sendOrderConfirmationEmail } = await import("@/lib/email");
+                sendOrderConfirmationEmail(customer.email, order).catch((err) =>
+                  console.error("Order confirmation email error via Webhook:", err)
+                );
+              }
+            } catch (emailErr) {
+              console.error("Failed to send order confirmation email via Webhook:", emailErr);
+            }
           }
         } else {
           console.warn(`Order not found for Razorpay Order ID: ${razorpayOrderId}`);
+        }
+      }
+    } else if (event === "payment.failed") {
+      const paymentEntity = payload.payment?.entity;
+      const razorpayOrderId = paymentEntity?.order_id;
+
+      if (razorpayOrderId) {
+        const order = await Order.findOne({ "payment.razorpayOrderId": razorpayOrderId });
+        if (order && order.payment.status === "PENDING" && order.status === "PLACED") {
+          console.log(`Webhook received: payment.failed for local order ${order.orderId}. Cancelling order and restoring stocks.`);
+          
+          const Product = mongoose.models.Product || (await import("@/lib/models/Product")).default;
+
+          // Rollback stock atomically
+          for (const item of order.items) {
+            await Product.updateOne(
+              {
+                _id: item.productId,
+                "variants.size": item.size,
+                "variants.color": item.color
+              },
+              {
+                $inc: { "variants.$.stock": item.qty }
+              }
+            );
+          }
+
+          order.status = "CANCELLED";
+          order.payment.status = "FAILED";
+          order.statusHistory.push({
+            status: "CANCELLED",
+            timestamp: new Date(),
+            note: "Webhook received: payment.failed. Payment failed on gateway, order automatically cancelled."
+          });
+
+          await order.save();
+          console.log(`Order ${order.orderId} cancelled via Webhook due to payment failure.`);
         }
       }
     }

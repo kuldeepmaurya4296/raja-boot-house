@@ -5,14 +5,23 @@ import Category from "@/lib/models/Category";
 import Product from "@/lib/models/Product";
 import Brand from "@/lib/models/Brand";
 import AnalyticsClient from "./components/AnalyticsClient";
+import { cleanupExpiredPendingOrders } from "@/lib/db-utils";
 
 export const dynamic = "force-dynamic";
 
 export default async function AdminAnalyticsPage() {
   await dbConnect();
 
-  // 1. Fetch raw data from DB
-  const rawOrders = await Order.find({}).sort({ createdAt: 1 }).lean();
+  // Passively cleanup any expired pending orders
+  await cleanupExpiredPendingOrders();
+
+  // 1. Fetch raw data from DB, excluding unpaid pending orders
+  const rawOrders = await Order.find({
+    $or: [
+      { "payment.method": "COD" },
+      { "payment.status": { $ne: "PENDING" } }
+    ]
+  }).sort({ createdAt: 1 }).lean();
   const rawUsers = await User.find({ role: "customer" }).select("name email createdAt").lean();
   const rawCategories = await Category.find({}).select("name").lean();
   const rawBrands = await Brand.find({}).select("name").lean();
