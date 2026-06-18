@@ -10,6 +10,8 @@ const defaultGeneral = {
   currency: "INR — ₹",
   currencySymbol: "₹",
   defaultReturnDays: 7,
+  razorpayEnabled: true,
+  codEnabled: true,
 };
 
 const defaultShipping = [
@@ -51,7 +53,11 @@ export async function PUT(request: Request) {
     }
 
     const body = await request.json();
-    const { storeName, supportEmail, taxRate, currency, currencySymbol, defaultReturnDays, shippingMethods } = body;
+    const { storeName, supportEmail, taxRate, currency, currencySymbol, defaultReturnDays, shippingMethods, razorpayEnabled, codEnabled } = body;
+
+    if (razorpayEnabled === false && codEnabled === false) {
+      return NextResponse.json({ error: "At least one payment method must be enabled." }, { status: 400 });
+    }
 
     const db = await connectToDatabase();
     if (!db) {
@@ -68,7 +74,9 @@ export async function PUT(request: Request) {
             taxRate: typeof taxRate === "number" ? taxRate : defaultGeneral.taxRate,
             currency: currency || defaultGeneral.currency,
             currencySymbol: currencySymbol || defaultGeneral.currencySymbol,
-            defaultReturnDays: typeof defaultReturnDays === "number" ? defaultReturnDays : defaultGeneral.defaultReturnDays
+            defaultReturnDays: typeof defaultReturnDays === "number" ? defaultReturnDays : defaultGeneral.defaultReturnDays,
+            razorpayEnabled: typeof razorpayEnabled === "boolean" ? razorpayEnabled : defaultGeneral.razorpayEnabled,
+            codEnabled: typeof codEnabled === "boolean" ? codEnabled : defaultGeneral.codEnabled,
           } 
         },
         { upsert: true, new: true }

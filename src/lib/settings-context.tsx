@@ -17,6 +17,8 @@ export interface Settings {
   taxRate: number;
   defaultReturnDays: number;
   shippingMethods: ShippingMethod[];
+  razorpayEnabled: boolean;
+  codEnabled: boolean;
 }
 
 interface SettingsContextType extends Settings {
@@ -35,7 +37,9 @@ const defaultSettings: Settings = {
     { id: "std", name: "Standard", desc: "5–7 days", price: 0 },
     { id: "exp", name: "Express", desc: "2–3 days", price: 150 },
     { id: "same", name: "Same-day (Jawa Rewa)", desc: "Today", price: 350 }
-  ]
+  ],
+  razorpayEnabled: true,
+  codEnabled: true
 };
 
 const SettingsContext = createContext<SettingsContextType>({

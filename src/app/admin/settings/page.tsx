@@ -13,6 +13,8 @@ export default function AdminSettingsPage() {
     taxRate, 
     defaultReturnDays,
     shippingMethods, 
+    razorpayEnabled,
+    codEnabled,
     loading: settingsLoading, 
     refreshSettings 
   } = useSettings();
@@ -24,6 +26,8 @@ export default function AdminSettingsPage() {
   const [localSupportEmail, setLocalSupportEmail] = useState("");
   const [localTaxRate, setLocalTaxRate] = useState(8);
   const [localDefaultReturnDays, setLocalDefaultReturnDays] = useState(7);
+  const [localRazorpayEnabled, setLocalRazorpayEnabled] = useState(true);
+  const [localCodEnabled, setLocalCodEnabled] = useState(true);
   const [localShipping, setLocalShipping] = useState<any[]>([]);
   const [saving, setSaving] = useState(false);
 
@@ -34,6 +38,8 @@ export default function AdminSettingsPage() {
       setLocalSupportEmail(supportEmail || "");
       setLocalTaxRate(taxRate ?? 8);
       setLocalDefaultReturnDays(defaultReturnDays ?? 7);
+      setLocalRazorpayEnabled(razorpayEnabled ?? true);
+      setLocalCodEnabled(codEnabled ?? true);
       setLocalShipping(
         (shippingMethods || []).map(m => ({
           ...m,
@@ -41,7 +47,7 @@ export default function AdminSettingsPage() {
         }))
       );
     }
-  }, [settingsLoading, storeName, supportEmail, taxRate, defaultReturnDays, shippingMethods]);
+  }, [settingsLoading, storeName, supportEmail, taxRate, defaultReturnDays, shippingMethods, razorpayEnabled, codEnabled]);
 
   const handleAddShippingMethod = () => {
     setLocalShipping(prev => [
@@ -76,6 +82,11 @@ export default function AdminSettingsPage() {
       if (isNaN(localTaxRate) || localTaxRate < 0) throw new Error("Tax rate must be a valid positive number");
       if (isNaN(localDefaultReturnDays) || localDefaultReturnDays < 0) throw new Error("Default return period must be a valid positive number");
 
+      // Payment gateway validations
+      if (!localRazorpayEnabled && !localCodEnabled) {
+        throw new Error("At least one payment method must be enabled");
+      }
+
       // Validate shipping methods
       for (const m of localShipping) {
         if (!m.name.trim()) throw new Error("All shipping methods must have a name");
@@ -99,6 +110,8 @@ export default function AdminSettingsPage() {
           supportEmail: localSupportEmail.trim(),
           taxRate: Number(localTaxRate),
           defaultReturnDays: Number(localDefaultReturnDays),
+          razorpayEnabled: localRazorpayEnabled,
+          codEnabled: localCodEnabled,
           shippingMethods: formattedShipping
         })
       });
@@ -217,6 +230,54 @@ export default function AdminSettingsPage() {
                 <div className="bg-muted/30 border border-border rounded-xl p-4 flex flex-col justify-center text-xs text-muted-foreground leading-relaxed md:col-span-2">
                   <p className="font-semibold text-foreground mb-1">Configuration Calculations</p>
                   Taxes are calculated based on the Est. Tax Rate (%). If a specific product does not specify its own Return Policy, the store-wide Default Return Period (Days) is applied.
+                </div>
+
+                {/* Dynamic Payment Gateways Toggles */}
+                <div className="md:col-span-2 border-t border-border pt-6 mt-4 space-y-4">
+                  <div>
+                    <h4 className="font-serif text-base font-bold text-foreground mb-1">Payment Gateways & Methods</h4>
+                    <p className="text-xs text-muted-foreground">Configure which payment methods are accepted and shown on the customer checkout page.</p>
+                  </div>
+                  
+                  <div className="grid sm:grid-cols-2 gap-4">
+                    {/* Razorpay Toggle */}
+                    <div className="flex items-center justify-between p-4 bg-muted/10 border border-border rounded-xl hover:bg-muted/20 transition-all duration-300">
+                      <div className="pr-4">
+                        <span className="block font-bold text-xs uppercase tracking-wider text-foreground mb-1">Pay Online (Razorpay)</span>
+                        <span className="block text-[11px] text-muted-foreground leading-normal">
+                          Allow customers to pay instantly using cards, net banking, UPI, and digital wallets.
+                        </span>
+                      </div>
+                      <label className="relative inline-flex items-center cursor-pointer shrink-0">
+                        <input
+                          type="checkbox"
+                          checked={localRazorpayEnabled}
+                          onChange={e => setLocalRazorpayEnabled(e.target.checked)}
+                          className="sr-only peer"
+                        />
+                        <div className="w-11 h-6 bg-muted-foreground/30 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-border after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
+                      </label>
+                    </div>
+
+                    {/* COD Toggle */}
+                    <div className="flex items-center justify-between p-4 bg-muted/10 border border-border rounded-xl hover:bg-muted/20 transition-all duration-300">
+                      <div className="pr-4">
+                        <span className="block font-bold text-xs uppercase tracking-wider text-foreground mb-1">Cash On Delivery (COD)</span>
+                        <span className="block text-[11px] text-muted-foreground leading-normal">
+                          Enable customers to complete purchase checkout and pay in cash upon receiving the order.
+                        </span>
+                      </div>
+                      <label className="relative inline-flex items-center cursor-pointer shrink-0">
+                        <input
+                          type="checkbox"
+                          checked={localCodEnabled}
+                          onChange={e => setLocalCodEnabled(e.target.checked)}
+                          className="sr-only peer"
+                        />
+                        <div className="w-11 h-6 bg-muted-foreground/30 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-border after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
+                      </label>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>

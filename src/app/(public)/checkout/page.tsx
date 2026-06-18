@@ -160,6 +160,17 @@ export default function CheckoutPage() {
   // Payment State
   const [paymentMethod, setPaymentMethod] = useState<"Online" | "COD">("Online");
 
+  // Adjust default payment option when settings load
+  useEffect(() => {
+    if (settings && settings.loading === false) {
+      if (settings.razorpayEnabled === false && settings.codEnabled !== false) {
+        setPaymentMethod("COD");
+      } else if (settings.codEnabled === false && settings.razorpayEnabled !== false) {
+        setPaymentMethod("Online");
+      }
+    }
+  }, [settings]);
+
   // Coupon States
   const [couponCode, setCouponCode] = useState("");
   const [couponApplied, setCouponApplied] = useState(false);
@@ -605,8 +616,8 @@ export default function CheckoutPage() {
                 <h2 className="font-serif text-xl font-bold text-charcoal">Payment Method</h2>
                 <div className="space-y-3 mb-5">
                   {[
-                    { key: "Online", name: "Pay Online Secured (Card, UPI, Wallet, Net Banking)" },
-                    { key: "COD", name: "Cash On Delivery (COD)" },
+                    ...(settings.razorpayEnabled !== false ? [{ key: "Online", name: "Pay Online Secured (Card, UPI, Wallet, Net Banking)" }] : []),
+                    ...(settings.codEnabled !== false ? [{ key: "COD", name: "Cash On Delivery (COD)" }] : []),
                   ].map(({ key, name }) => {
                     const isChecked = paymentMethod === key;
                     return (
@@ -628,8 +639,13 @@ export default function CheckoutPage() {
                       </label>
                     );
                   })}
+                  {settings.razorpayEnabled === false && settings.codEnabled === false && (
+                    <div className="text-sm font-semibold text-destructive bg-red-50 border border-red-200 p-4 rounded-xl">
+                      No payment methods are currently configured. Please contact support.
+                    </div>
+                  )}
                 </div>
-                {paymentMethod !== "COD" && (
+                {paymentMethod !== "COD" && settings.razorpayEnabled !== false && (
                   <div className="bg-brass/5 border border-brass/20 p-4 rounded-xl text-xs text-cognac leading-relaxed">
                     Secure digital payment checkout is powered by Razorpay. Supported features: Direct UPI, Cards, Net Banking, and Wallet apps.
                   </div>
@@ -699,7 +715,7 @@ export default function CheckoutPage() {
               </button>
 
               <button
-                disabled={loading || Object.keys(stockErrors).length > 0 || (step === 3 && !policyAccepted)}
+                disabled={loading || Object.keys(stockErrors).length > 0 || (step === 3 && (!policyAccepted || (settings.razorpayEnabled === false && settings.codEnabled === false)))}
                 onClick={() => {
                   if (Object.keys(stockErrors).length > 0) {
                     toast.error("Please remove out of stock items from your cart to proceed.");
