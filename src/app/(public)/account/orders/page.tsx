@@ -342,7 +342,8 @@ export default function AccountOrdersPage() {
                     {activeTab === "active" && (
                       <div className="px-5 pb-5 pt-2 border-t border-border/40">
                         <div className="max-w-xl mx-auto pt-2">
-                          <div className="relative flex justify-between items-center">
+                          {/* Desktop view: 4-node horizontal timeline */}
+                          <div className="hidden sm:block relative">
                             {/* Visual connector line */}
                             <div className="absolute top-4 left-4 right-4 h-1 bg-muted rounded z-0" />
                             <div 
@@ -356,52 +357,79 @@ export default function AccountOrdersPage() {
                               }}
                             />
 
-                            {/* Node 1: Placed */}
-                            <div className="relative z-10 flex flex-col items-center">
-                              <div className={`h-8 w-8 rounded-full flex items-center justify-center border-2 transition-all ${
-                                activeTimelineStep >= 1 
-                                  ? "bg-primary border-primary text-cream shadow-sm" 
-                                  : "bg-background border-muted text-muted-foreground"
-                              }`}>
-                                <Calendar className="h-3.5 w-3.5" />
+                            <div className="relative z-10 flex justify-between items-center">
+                              {/* Node 1: Placed */}
+                              <div className="relative z-10 flex flex-col items-center">
+                                <div className={`h-8 w-8 rounded-full flex items-center justify-center border-2 transition-all ${
+                                  activeTimelineStep >= 1 
+                                    ? "bg-primary border-primary text-cream shadow-sm" 
+                                    : "bg-background border-muted text-muted-foreground"
+                                }`}>
+                                  <Calendar className="h-3.5 w-3.5" />
+                                </div>
+                                <span className="text-[9px] uppercase font-bold tracking-wider text-muted-foreground mt-1">Placed</span>
                               </div>
-                              <span className="text-[9px] uppercase font-bold tracking-wider text-muted-foreground mt-1">Placed</span>
-                            </div>
 
-                            {/* Node 2: Confirmed/Packed */}
-                            <div className="relative z-10 flex flex-col items-center">
-                              <div className={`h-8 w-8 rounded-full flex items-center justify-center border-2 transition-all ${
-                                activeTimelineStep >= 2 
-                                  ? "bg-primary border-primary text-cream shadow-sm" 
-                                  : "bg-background border-muted text-muted-foreground"
-                              }`}>
-                                <Clock className="h-3.5 w-3.5" />
+                              {/* Node 2: Confirmed/Packed */}
+                              <div className="relative z-10 flex flex-col items-center">
+                                <div className={`h-8 w-8 rounded-full flex items-center justify-center border-2 transition-all ${
+                                  activeTimelineStep >= 2 
+                                    ? "bg-primary border-primary text-cream shadow-sm" 
+                                    : "bg-background border-muted text-muted-foreground"
+                                }`}>
+                                  <Clock className="h-3.5 w-3.5" />
+                                </div>
+                                <span className="text-[9px] uppercase font-bold tracking-wider text-muted-foreground mt-1">Processing</span>
                               </div>
-                              <span className="text-[9px] uppercase font-bold tracking-wider text-muted-foreground mt-1">Processing</span>
-                            </div>
 
-                            {/* Node 3: Shipped */}
-                            <div className="relative z-10 flex flex-col items-center">
-                              <div className={`h-8 w-8 rounded-full flex items-center justify-center border-2 transition-all ${
-                                activeTimelineStep >= 3 
-                                  ? "bg-primary border-primary text-cream shadow-sm" 
-                                  : "bg-background border-muted text-muted-foreground"
-                              }`}>
-                                <Truck className="h-3.5 w-3.5" />
+                              {/* Node 3: Shipped */}
+                              <div className="relative z-10 flex flex-col items-center">
+                                <div className={`h-8 w-8 rounded-full flex items-center justify-center border-2 transition-all ${
+                                  activeTimelineStep >= 3 
+                                    ? "bg-primary border-primary text-cream shadow-sm" 
+                                    : "bg-background border-muted text-muted-foreground"
+                                }`}>
+                                  <Truck className="h-3.5 w-3.5" />
+                                </div>
+                                <span className="text-[9px] uppercase font-bold tracking-wider text-muted-foreground mt-1">Shipped</span>
                               </div>
-                              <span className="text-[9px] uppercase font-bold tracking-wider text-muted-foreground mt-1">Shipped</span>
-                            </div>
 
-                            {/* Node 4: Delivered */}
-                            <div className="relative z-10 flex flex-col items-center">
-                              <div className={`h-8 w-8 rounded-full flex items-center justify-center border-2 transition-all ${
-                                activeTimelineStep >= 4 
-                                  ? "bg-primary border-primary text-cream shadow-sm" 
-                                  : "bg-background border-muted text-muted-foreground"
-                              }`}>
-                                <CheckCircle2 className="h-3.5 w-3.5" />
+                              {/* Node 4: Delivered */}
+                              <div className="relative z-10 flex flex-col items-center">
+                                <div className={`h-8 w-8 rounded-full flex items-center justify-center border-2 transition-all ${
+                                  activeTimelineStep >= 4 
+                                    ? "bg-primary border-primary text-cream shadow-sm" 
+                                    : "bg-background border-muted text-muted-foreground"
+                                }`}>
+                                  <CheckCircle2 className="h-3.5 w-3.5" />
+                                </div>
+                                <span className="text-[9px] uppercase font-bold tracking-wider text-muted-foreground mt-1">Delivered</span>
                               </div>
-                              <span className="text-[9px] uppercase font-bold tracking-wider text-muted-foreground mt-1">Delivered</span>
+                            </div>
+                          </div>
+
+                          {/* Mobile view: simple progress bar with current status label */}
+                          <div className="sm:hidden space-y-3 pt-1">
+                            <div className="flex justify-between items-center text-xs">
+                              <span className="font-semibold text-muted-foreground">Order Progress</span>
+                              <span className="font-bold text-primary uppercase tracking-wider">
+                                {activeTimelineStep === 1 && "Placed"}
+                                {activeTimelineStep === 2 && "Processing"}
+                                {activeTimelineStep === 3 && "Shipped"}
+                                {activeTimelineStep === 4 && "Delivered"}
+                              </span>
+                            </div>
+                            <div className="w-full h-2 bg-muted rounded-full overflow-hidden">
+                              <div 
+                                className="h-full bg-primary rounded-full transition-all duration-500" 
+                                style={{ 
+                                  width: `${
+                                    activeTimelineStep === 1 ? 15 : 
+                                    activeTimelineStep === 2 ? 45 : 
+                                    activeTimelineStep === 3 ? 75 : 100
+                                  }%` 
+                                }}
+                              />
                             </div>
                           </div>
                         </div>

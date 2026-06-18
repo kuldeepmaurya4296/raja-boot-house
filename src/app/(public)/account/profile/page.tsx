@@ -203,7 +203,7 @@ export default function AccountProfilePage() {
               <button
                 type="submit"
                 disabled={saving}
-                className="bg-primary hover:bg-cognac text-primary-foreground font-bold rounded-full px-6 py-2.5 text-xs shadow-md transition-all flex items-center gap-2 cursor-pointer border-0 disabled:opacity-50"
+                className="bg-primary hover:bg-cognac text-primary-foreground font-bold rounded-full px-6 py-2.5 text-xs shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer border-0 disabled:opacity-50 w-full sm:w-auto"
               >
                 {saving ? (
                   <>
@@ -221,7 +221,7 @@ export default function AccountProfilePage() {
               <button
                 type="button"
                 onClick={() => signOut({ callbackUrl: '/' })}
-                className="bg-background border border-input text-foreground hover:bg-muted font-bold rounded-full px-6 py-2.5 text-xs transition-colors flex items-center gap-2 cursor-pointer"
+                className="bg-background border border-input text-foreground hover:bg-muted font-bold rounded-full px-6 py-2.5 text-xs transition-colors flex items-center justify-center gap-2 cursor-pointer w-full sm:w-auto"
               >
                 <LogOut className="h-3.5 w-3.5 text-red-500" />
                 <span>Sign Out</span>

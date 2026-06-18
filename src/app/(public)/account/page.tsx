@@ -239,7 +239,8 @@ export default function AccountOverview() {
                   </div>
 
                   {/* Visual Timeline Bar */}
-                  <div className="relative pt-4 pb-2 px-4 max-w-2xl mx-auto">
+                  {/* Desktop view: 3-node horizontal timeline */}
+                  <div className="hidden sm:block relative pt-4 pb-2 px-4 max-w-2xl mx-auto">
                     <div className="absolute top-1/2 left-4 right-4 h-1 bg-muted -translate-y-1/2 z-0" />
                     <div 
                       className="absolute top-1/2 left-4 h-1 bg-primary -translate-y-1/2 z-0 transition-all duration-500" 
@@ -276,6 +277,29 @@ export default function AccountOverview() {
                         </div>
                         <span className="text-[10px] font-bold uppercase tracking-wider text-foreground/80">In Transit</span>
                       </div>
+                    </div>
+                  </div>
+
+                  {/* Mobile view: simple progress bar with current status label */}
+                  <div className="sm:hidden space-y-3 pt-2">
+                    <div className="flex justify-between items-center text-xs">
+                      <span className="font-semibold text-muted-foreground">Delivery Status</span>
+                      <span className="font-bold text-primary uppercase tracking-wider">
+                        {activeStep === 1 && "Placed"}
+                        {activeStep === 2 && "Processing"}
+                        {activeStep >= 3 && "In Transit"}
+                      </span>
+                    </div>
+                    <div className="w-full h-2 bg-muted rounded-full overflow-hidden">
+                      <div 
+                        className="h-full bg-primary rounded-full transition-all duration-500" 
+                        style={{ 
+                          width: `${
+                            activeStep === 1 ? 15 : 
+                            activeStep === 2 ? 50 : 100
+                          }%` 
+                        }}
+                      />
                     </div>
                   </div>
                 </div>
