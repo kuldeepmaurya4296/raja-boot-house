@@ -4,6 +4,9 @@ import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { Sparkles, ArrowRight } from "lucide-react";
+import Image from "next/image";
+
+const MotionImage = motion(Image);
 
 const BRANDS = [
   "Lakhani",
@@ -89,7 +92,14 @@ export function OccasionGrid({ occasions }: OccasionGridProps) {
             className="bg-card border border-border rounded-xl overflow-hidden shadow-sm hover:shadow-card transition flex flex-col justify-between"
           >
             <div className="relative aspect-video w-full overflow-hidden">
-              <img src={occ.image} alt={occ.name} className="h-full w-full object-cover hover:scale-105 transition duration-500" />
+              <Image
+                src={occ.image}
+                alt={occ.name}
+                width={400}
+                height={225}
+                sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
+                className="h-full w-full object-cover hover:scale-105 transition duration-500"
+              />
               <span className="absolute top-3 right-3 bg-cream/90 text-cognac border border-brass/25 px-2.5 py-0.5 rounded-full text-[9px] font-bold tracking-wider uppercase">
                 {occ.badge}
               </span>
@@ -142,11 +152,13 @@ export function EditorialBanner({ newest }: EditorialBannerProps) {
         </div>
         <div className="relative grid grid-cols-2 gap-3">
           {newest.map((p, i) => (
-            <motion.img
+            <MotionImage
               key={p.id}
               src={p.image}
               alt={p.name}
-              loading="lazy"
+              width={200}
+              height={200}
+              sizes="(max-width: 640px) 50vw, 25vw"
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}

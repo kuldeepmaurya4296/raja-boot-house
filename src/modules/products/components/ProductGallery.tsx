@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
+import Image from "next/image";
 
 interface ProductGalleryProps {
   gallery: string[];
@@ -21,7 +22,14 @@ export function ProductGallery({ gallery, name }: ProductGalleryProps) {
         animate={{ opacity: 1 }}
         className="aspect-square rounded-2xl bg-muted overflow-hidden"
       >
-        <img src={gallery[gIdx]} alt={name} className="h-full w-full object-cover" />
+        <Image
+          src={gallery[gIdx]}
+          alt={name}
+          width={600}
+          height={600}
+          priority
+          className="h-full w-full object-cover"
+        />
       </motion.div>
       <div className="grid grid-cols-4 gap-2">
         {gallery.map((g, i) => (
@@ -32,7 +40,13 @@ export function ProductGallery({ gallery, name }: ProductGalleryProps) {
               gIdx === i ? "border-primary" : "border-transparent"
             }`}
           >
-            <img src={g} alt="" className="h-full w-full object-cover" />
+            <Image
+              src={g}
+              alt=""
+              width={150}
+              height={150}
+              className="h-full w-full object-cover"
+            />
           </button>
         ))}
       </div>

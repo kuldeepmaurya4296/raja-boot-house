@@ -6,6 +6,7 @@ import Product from "@/lib/models/Product";
 import Category from "@/lib/models/Category";
 import Brand from "@/lib/models/Brand";
 import ShopClient from "@/modules/products/components/ShopClient";
+import { unstable_cache } from "next/cache";
 
 interface PageProps {
   searchParams: Promise<{
@@ -28,81 +29,89 @@ function escapeRegExp(string: string) {
   return string.replace(/[\\^$*+?.()|[\]{}]/g, "\\$&");
 }
 
-async function getFilterMetadata() {
-  const { isReady } = await ensureDbReady();
-  if (!isReady) {
-    return {
-      brands: [],
-      sizes: [],
-      occasions: [],
-      colors: [],
-      genders: [],
-      maxPrice: 5000
-    };
+const getFilterMetadata = unstable_cache(
+  async () => {
+    const { isReady } = await ensureDbReady();
+    if (!isReady) {
+      return {
+        brands: [],
+        sizes: [],
+        occasions: [],
+        colors: [],
+        genders: [],
+        maxPrice: 5000
+      };
+    }
+
+    try {
+      const brandIds = await Product.distinct("brand", { isActive: true });
+      const activeBrands = await Brand.find({ _id: { $in: brandIds.filter(Boolean) } }).select("name").lean();
+      const sortedBrands = activeBrands.map((b: any) => b.name).sort();
+
+      const sizesAgg = await Product.aggregate([
+        { $match: { isActive: true } },
+        { $unwind: "$variants" },
+        { $group: { _id: null, sizes: { $addToSet: "$variants.size" } } }
+      ]);
+      const sortedSizes = (sizesAgg[0]?.sizes ?? [])
+        .filter((s: any) => typeof s === "number")
+        .sort((a: number, b: number) => a - b);
+
+      const occasions = await Product.distinct("occasion", { isActive: true });
+      const sortedOccasions = occasions.filter(Boolean).sort();
+
+      const genders = await Product.distinct("gender", { isActive: true });
+      const sortedGenders = genders.filter(Boolean).sort();
+
+      const colorsAgg = await Product.aggregate([
+        { $match: { isActive: true } },
+        { $unwind: "$variants" },
+        { 
+          $group: { 
+            _id: { $toLower: "$variants.color" }, 
+            name: { $first: "$variants.color" },
+            hex: { $first: "$variants.colorHex" } 
+          } 
+        }
+      ]);
+      const sortedColors = colorsAgg
+        .map((c: any) => ({ name: c.name, hex: c.hex }))
+        .filter((c: any) => c.name)
+        .sort((a: any, b: any) => a.name.localeCompare(b.name));
+
+      const maxPriceProduct = await Product.findOne({ isActive: true })
+        .sort({ salePrice: -1 })
+        .select("salePrice")
+        .lean();
+      const maxPrice = maxPriceProduct?.salePrice ?? 5000;
+
+      return {
+        brands: sortedBrands,
+        sizes: sortedSizes,
+        occasions: sortedOccasions,
+        colors: sortedColors,
+        genders: sortedGenders,
+        maxPrice
+      };
+    } catch (err) {
+      console.error("Failed to generate filter metadata:", err);
+      return {
+        brands: [],
+        sizes: [],
+        occasions: [],
+        colors: [],
+        genders: [],
+        maxPrice: 5000
+      };
+    }
+  },
+  ["shop-filter-metadata"],
+  {
+    revalidate: 3600,
+    tags: ["filter-metadata"]
   }
+);
 
-  try {
-    const brandIds = await Product.distinct("brand", { isActive: true });
-    const activeBrands = await Brand.find({ _id: { $in: brandIds.filter(Boolean) } }).select("name").lean();
-    const sortedBrands = activeBrands.map((b: any) => b.name).sort();
-
-    const sizesAgg = await Product.aggregate([
-      { $match: { isActive: true } },
-      { $unwind: "$variants" },
-      { $group: { _id: null, sizes: { $addToSet: "$variants.size" } } }
-    ]);
-    const sortedSizes = (sizesAgg[0]?.sizes ?? [])
-      .filter((s: any) => typeof s === "number")
-      .sort((a: number, b: number) => a - b);
-
-    const occasions = await Product.distinct("occasion", { isActive: true });
-    const sortedOccasions = occasions.filter(Boolean).sort();
-
-    const genders = await Product.distinct("gender", { isActive: true });
-    const sortedGenders = genders.filter(Boolean).sort();
-
-    const colorsAgg = await Product.aggregate([
-      { $match: { isActive: true } },
-      { $unwind: "$variants" },
-      { 
-        $group: { 
-          _id: { $toLower: "$variants.color" }, 
-          name: { $first: "$variants.color" },
-          hex: { $first: "$variants.colorHex" } 
-        } 
-      }
-    ]);
-    const sortedColors = colorsAgg
-      .map((c: any) => ({ name: c.name, hex: c.hex }))
-      .filter((c: any) => c.name)
-      .sort((a: any, b: any) => a.name.localeCompare(b.name));
-
-    const maxPriceProduct = await Product.findOne({ isActive: true })
-      .sort({ salePrice: -1 })
-      .select("salePrice")
-      .lean();
-    const maxPrice = maxPriceProduct?.salePrice ?? 5000;
-
-    return {
-      brands: sortedBrands,
-      sizes: sortedSizes,
-      occasions: sortedOccasions,
-      colors: sortedColors,
-      genders: sortedGenders,
-      maxPrice
-    };
-  } catch (err) {
-    console.error("Failed to generate filter metadata:", err);
-    return {
-      brands: [],
-      sizes: [],
-      occasions: [],
-      colors: [],
-      genders: [],
-      maxPrice: 5000
-    };
-  }
-}
 
 async function getShopData(filters: any) {
   const { isReady } = await ensureDbReady();

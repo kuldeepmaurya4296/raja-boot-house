@@ -58,8 +58,10 @@ export async function GET(request: Request) {
         ...(brandIds.length > 0 ? [{ brand: { $in: brandIds } }] : []),
       ],
     })
+      .limit(16)
       .populate({ path: "category", model: Category })
       .populate({ path: "brand", model: Brand });
+
 
     const normalized = products.map((p: any) => normalizeProduct(p));
 

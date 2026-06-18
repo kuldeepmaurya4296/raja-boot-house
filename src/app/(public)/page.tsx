@@ -6,6 +6,7 @@ import Product from "@/lib/models/Product";
 import Category from "@/lib/models/Category";
 import Brand from "@/lib/models/Brand";
 import Settings from "@/lib/models/Settings";
+import Banner from "@/lib/models/Banner";
 import { OCCASIONS } from "@/data/occasions";
 import { Hero } from "@/components/public/Hero";
 import { CategoryGrid } from "@/modules/products/components/CategoryGrid";
@@ -39,20 +40,46 @@ export const metadata: Metadata = {
   }
 };
 
-async function getHomepageData() {
+async function getFeaturedProducts() {
   try {
     const { isReady } = await ensureDbReady();
-    if (!isReady) {
-      console.warn("Database connection is not ready. Returning empty homepage product list.");
-      return [];
-    }
-    const rawProducts = await Product.find({ isActive: true })
+    if (!isReady) return [];
+    const rawProducts = await Product.find({ isActive: true, isFeatured: true })
       .populate({ path: "category", model: Category })
       .populate({ path: "brand", model: Brand })
-      .sort({ createdAt: -1 });
+      .sort({ createdAt: -1 })
+      .limit(4);
     return rawProducts.map((p: any) => normalizeProduct(p));
   } catch (err) {
-    console.error("Failed to load homepage data:", err);
+    console.error("Failed to load featured products:", err);
+    return [];
+  }
+}
+
+async function getNewArrivalProducts() {
+  try {
+    const { isReady } = await ensureDbReady();
+    if (!isReady) return [];
+    const rawProducts = await Product.find({ isActive: true, isNewArrival: true })
+      .populate({ path: "category", model: Category })
+      .populate({ path: "brand", model: Brand })
+      .sort({ createdAt: -1 })
+      .limit(4);
+    return rawProducts.map((p: any) => normalizeProduct(p));
+  } catch (err) {
+    console.error("Failed to load new arrivals:", err);
+    return [];
+  }
+}
+
+async function getBanners() {
+  try {
+    const { isReady } = await ensureDbReady();
+    if (!isReady) return [];
+    const rawBanners = await Banner.find({ isActive: true }).sort({ order: 1 }).lean();
+    return JSON.parse(JSON.stringify(rawBanners));
+  } catch (err) {
+    console.error("Failed to load banners:", err);
     return [];
   }
 }
@@ -70,17 +97,16 @@ async function getTrustBadges() {
 }
 
 export default async function Home() {
-  const [productList, trustBadges] = await Promise.all([
-    getHomepageData(),
+  const [featured, newest, trustBadges, banners] = await Promise.all([
+    getFeaturedProducts(),
+    getNewArrivalProducts(),
     getTrustBadges(),
+    getBanners(),
   ]);
-
-  const featured = productList.filter((p) => p.badge === "bestseller" || p.badge === "new").slice(0, 4);
-  const newest = [...productList].sort((a, b) => (b.createdAt || "").localeCompare(a.createdAt || "")).slice(0, 4);
 
   return (
     <>
-      <Hero />
+      <Hero initialBanners={banners} />
 
       {/* Trust Badges section */}
       <section className="border-y border-border bg-card/60 backdrop-blur-sm">
@@ -122,13 +148,13 @@ export default async function Home() {
           </Link>
         </div>
         
-        {productList.length === 0 ? (
+        {featured.length === 0 ? (
           <div className="py-12 text-center border border-dashed border-border rounded-xl">
             <p className="text-sm text-muted-foreground">Couldn't load featured products.</p>
           </div>
         ) : (
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
-            {featured.slice(0, 4).map((p, i) => (
+            {featured.map((p, i) => (
               <ProductCard key={p.id} product={p} index={i} />
             ))}
           </div>
@@ -153,7 +179,7 @@ export default async function Home() {
           </Link>
         </div>
         
-        {productList.length === 0 ? (
+        {newest.length === 0 ? (
           <div className="py-12 text-center border border-dashed border-border rounded-xl">
             <p className="text-sm text-muted-foreground">Couldn't load new arrivals.</p>
           </div>
@@ -199,3 +225,4 @@ export default async function Home() {
     </>
   );
 }
+

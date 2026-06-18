@@ -6,6 +6,9 @@ import type { Product } from "@/data/products";
 import { formatINR } from "@/lib/format";
 import { useCart } from "@/lib/cart-store";
 import { toast } from "sonner";
+import Image from "next/image";
+
+const MotionImage = motion(Image);
 
 export function ProductCard({ product, index = 0 }: { product: Product; index?: number }) {
   const { wishlist, toggleWish, add } = useCart();
@@ -21,10 +24,12 @@ export function ProductCard({ product, index = 0 }: { product: Product; index?: 
     >
       <Link href={`/shop/${product.slug}`} className="block">
         <div className="relative aspect-square overflow-hidden rounded-xl bg-muted">
-          <motion.img
+          <MotionImage
             src={product.image}
             alt={product.name}
-            loading="lazy"
+            width={380}
+            height={380}
+            sizes="(max-width: 640px) 50vw, (max-width: 1024px) 25vw, 20vw"
             className="h-full w-full object-cover"
             whileHover={{ scale: 1.05 }}
             transition={{ duration: 0.5, ease: "easeOut" }}

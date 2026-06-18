@@ -4,26 +4,31 @@ import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { ArrowRight, ChevronLeft, ChevronRight } from "lucide-react";
 import { useState, useEffect } from "react";
+import Image from "next/image";
 
-export function Hero() {
-  const [banners, setBanners] = useState<any[]>([]);
+export function Hero({ initialBanners }: { initialBanners?: any[] }) {
+  const [banners, setBanners] = useState<any[]>(
+    initialBanners && initialBanners.length > 0 ? initialBanners : []
+  );
   const [current, setCurrent] = useState(0);
 
-  // Fetch banners
+  // Fetch banners fallback in case none were passed
   useEffect(() => {
-    fetch("/api/banners")
-      .then((res) => res.json())
-      .then((data) => {
-        if (Array.isArray(data) && data.length > 0) {
-          setBanners(data);
-        } else {
+    if (banners.length === 0) {
+      fetch("/api/banners")
+        .then((res) => res.json())
+        .then((data) => {
+          if (Array.isArray(data) && data.length > 0) {
+            setBanners(data);
+          } else {
+            setBanners(getFallbackBanners());
+          }
+        })
+        .catch(() => {
           setBanners(getFallbackBanners());
-        }
-      })
-      .catch(() => {
-        setBanners(getFallbackBanners());
-      });
-  }, []);
+        });
+    }
+  }, [banners.length]);
 
   // Autoplay timer
   useEffect(() => {
@@ -188,9 +193,12 @@ export function Hero() {
                   className="relative w-full"
                 >
                   <div className="relative aspect-[4/3] md:aspect-[4/5] rounded-2xl overflow-hidden shadow-elevated border border-border/60 bg-white">
-                    <img
+                    <Image
                       src={active.image}
                       alt="Raja Boot House"
+                      width={800}
+                      height={1000}
+                      priority={current === 0}
                       className={`h-full w-full object-cover ${active.objectPosition} transition duration-700`}
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-charcoal/30 via-transparent to-transparent pointer-events-none" />

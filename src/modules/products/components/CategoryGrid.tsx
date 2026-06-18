@@ -4,6 +4,7 @@ import Link from "next/link";
 import { motion } from "framer-motion";
 import { useState, useEffect } from "react";
 import { categories as fallbackCategories } from "@/data/categories";
+import Image from "next/image";
 
 const fallbacks: Record<string, string> = {
   men: "https://images.unsplash.com/photo-1539185441755-769473a23570?q=80&w=800&auto=format&fit=crop",
@@ -60,9 +61,12 @@ export function CategoryGrid() {
                 <div className="aspect-[4/5] md:aspect-[3/4] rounded-xl bg-gradient-to-br from-muted via-secondary to-cream relative overflow-hidden border border-border group-hover:shadow-lg transition-all duration-300">
                   {imgUrl ? (
                     <>
-                      <img
+                      <Image
                         src={imgUrl}
                         alt={c.name}
+                        width={300}
+                        height={400}
+                        sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 20vw"
                         className="absolute inset-0 w-full h-full object-cover transition-transform duration-750 ease-out group-hover:scale-110"
                       />
                       <div className="absolute inset-0 bg-gradient-to-t from-charcoal/90 via-charcoal/30 to-transparent" />

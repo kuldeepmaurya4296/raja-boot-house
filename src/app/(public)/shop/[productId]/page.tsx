@@ -13,6 +13,8 @@ interface PageProps {
   params: Promise<{ productId: string }>;
 }
 
+export const revalidate = 3600;
+
 async function getProductData(productId: string) {
   const { isReady } = await ensureDbReady();
   if (!isReady) {
@@ -174,4 +176,20 @@ export default async function ProductPage({ params }: PageProps) {
       />
     </>
   );
+}
+
+export async function generateStaticParams() {
+  try {
+    const { isReady } = await ensureDbReady();
+    if (!isReady) return [];
+    
+    // Pre-generate static paths for the top 12 active products at build time
+    const products = await Product.find({ isActive: true }).select("slug").limit(12).lean();
+    return products.map((p: any) => ({
+      productId: p.slug
+    }));
+  } catch (err) {
+    console.error("Failed to generate static params for products:", err);
+    return [];
+  }
 }
