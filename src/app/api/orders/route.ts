@@ -318,9 +318,14 @@ function isTransitionAllowed(currentStatus: string, nextStatus: string): boolean
     return nextStatus === "REFUNDED";
   }
   
-  // RETURN_REQUESTED can be approved (→ RETURNED) or rejected (→ DELIVERED)
+  // RETURN_REQUESTED can be approved (→ RETURN_APPROVED) or rejected (→ DELIVERED)
   if (currentStatus === "RETURN_REQUESTED") {
-    return nextStatus === "RETURNED" || nextStatus === "DELIVERED";
+    return nextStatus === "RETURN_APPROVED" || nextStatus === "DELIVERED";
+  }
+
+  // RETURN_APPROVED can transition to RETURNED (Product Received)
+  if (currentStatus === "RETURN_APPROVED") {
+    return nextStatus === "RETURNED";
   }
   
   if (currentStatus === "RETURNED") {
@@ -339,8 +344,8 @@ function isTransitionAllowed(currentStatus: string, nextStatus: string): boolean
     return currentStatus === "DELIVERED";
   }
   
-  // Only admin can directly mark as RETURNED (from RETURN_REQUESTED)
-  if (nextStatus === "RETURNED") {
+  // Only admin can directly mark as RETURN_APPROVED or RETURNED
+  if (nextStatus === "RETURN_APPROVED" || nextStatus === "RETURNED") {
     return false;
   }
   
@@ -502,8 +507,8 @@ export async function PUT(request: Request) {
         order.payment.status = "PAID";
       }
 
-      // 5. Process Cancellation & Refund Preference
-      if (status === "CANCELLED" && currentStatus !== "CANCELLED") {
+      // 5. Process Cancellation / Return Stock Rollback
+      if ((status === "CANCELLED" && currentStatus !== "CANCELLED") || (status === "RETURNED" && currentStatus !== "RETURNED")) {
         // Rollback stock atomically using $elemMatch and decrement update
         for (const item of order.items) {
           const updateResult = await Product.updateOne(
@@ -523,72 +528,81 @@ export async function PUT(request: Request) {
           }
         }
 
-        // If prepaid order and payment status is PENDING, mark it as FAILED
-        if (order.payment.method !== "COD" && order.payment.status === "PENDING") {
-          order.payment.status = "FAILED";
-        }
+        if (status === "CANCELLED") {
+          // If prepaid order and payment status is PENDING, mark it as FAILED
+          if (order.payment.method !== "COD" && order.payment.status === "PENDING") {
+            order.payment.status = "FAILED";
+          }
 
-        // If prepaid order, process refund preference
-        if (order.payment.method !== "COD" && refundPreference) {
-          const preference = refundPreference.method === "SAME_METHOD" ? "ORIGINAL" : refundPreference.method;
-          
-          order.refundDetails = {
-            preference,
-            upiId: refundPreference.upiId,
-            bankDetails: refundPreference.bankDetails ? {
-              accountHolderName: refundPreference.bankDetails.holderName,
-              bankName: refundPreference.bankDetails.bankName,
-              accountNumber: refundPreference.bankDetails.accountNumber,
-              ifscCode: refundPreference.bankDetails.ifsc,
-            } : undefined,
-          };
+          // If prepaid order, process refund preference
+          if (order.payment.method !== "COD" && refundPreference) {
+            const preference = refundPreference.method === "SAME_METHOD" ? "ORIGINAL" : refundPreference.method;
+            
+            order.refundDetails = {
+              preference,
+              upiId: refundPreference.upiId,
+              bankDetails: refundPreference.bankDetails ? {
+                accountHolderName: refundPreference.bankDetails.holderName,
+                bankName: refundPreference.bankDetails.bankName,
+                accountNumber: refundPreference.bankDetails.accountNumber,
+                ifscCode: refundPreference.bankDetails.ifsc,
+              } : undefined,
+            };
 
-          if (refundPreference.method === "SAME_METHOD") {
-            // Trigger Razorpay refund if possible
-            const keyId = process.env.RAZORPAY_KEY_ID;
-            const keySecret = process.env.RAZORPAY_KEY_SECRET;
-            const paymentId = order.payment.razorpayPaymentId;
+            if (refundPreference.method === "SAME_METHOD") {
+              // Trigger Razorpay refund if possible
+              const keyId = process.env.RAZORPAY_KEY_ID;
+              const keySecret = process.env.RAZORPAY_KEY_SECRET;
+              const paymentId = order.payment.razorpayPaymentId;
 
-            let refundId = "";
-            let rzpRefundSuccess = false;
+              let refundId = "";
+              let rzpRefundSuccess = false;
 
-            if (keyId && keySecret && paymentId && !paymentId.startsWith("fake_")) {
-              try {
-                const Razorpay = (await import("razorpay")).default;
-                const razorpay = new Razorpay({
-                  key_id: keyId,
-                  key_secret: keySecret,
-                });
-                const refund = await razorpay.payments.refund(paymentId, {
-                  amount: Math.round(order.pricing.total * 100),
-                  notes: {
-                    reason: "Customer cancellation",
-                    orderId: order.orderId,
-                  }
-                });
-                refundId = refund.id;
+              if (keyId && keySecret && paymentId && !paymentId.startsWith("fake_")) {
+                try {
+                  const Razorpay = (await import("razorpay")).default;
+                  const razorpay = new Razorpay({
+                    key_id: keyId,
+                    key_secret: keySecret,
+                  });
+                  const refund = await razorpay.payments.refund(paymentId, {
+                    amount: Math.round(order.pricing.total * 100),
+                    notes: {
+                      reason: "Customer cancellation",
+                      orderId: order.orderId,
+                    }
+                  });
+                  refundId = refund.id;
+                  rzpRefundSuccess = true;
+                } catch (rzpErr: any) {
+                  console.error("Razorpay Auto-Refund Failed:", rzpErr);
+                }
+              } else {
+                // Simulated refund
+                refundId = `sim_ref_${Date.now()}`;
                 rzpRefundSuccess = true;
-              } catch (rzpErr: any) {
-                console.error("Razorpay Auto-Refund Failed:", rzpErr);
+              }
+
+              if (rzpRefundSuccess) {
+                order.refundDetails.method = "ONLINE";
+                order.refundDetails.transactionId = refundId;
+                order.refundDetails.refundedAt = new Date();
+                order.payment.status = "REFUNDED";
+              } else {
+                order.payment.status = "REFUND_PENDING";
               }
             } else {
-              // Simulated refund
-              refundId = `sim_ref_${Date.now()}`;
-              rzpRefundSuccess = true;
-            }
-
-            if (rzpRefundSuccess) {
-              order.refundDetails.method = "ONLINE";
-              order.refundDetails.transactionId = refundId;
-              order.refundDetails.refundedAt = new Date();
-              order.payment.status = "REFUNDED";
-            } else {
+              // Bank transfer or UPI ID, payouts managed by admin manually
               order.payment.status = "REFUND_PENDING";
+              order.refundDetails.method = refundPreference.method === "UPI" ? "UPI" : "BANK_TRANSFER";
             }
-          } else {
-            // Bank transfer or UPI ID, payouts managed by admin manually
+          }
+        }
+
+        // Set payment status as REFUND_PENDING for returned orders to flag refund required
+        if (status === "RETURNED") {
+          if (order.payment.status !== "REFUNDED") {
             order.payment.status = "REFUND_PENDING";
-            order.refundDetails.method = refundPreference.method === "UPI" ? "UPI" : "BANK_TRANSFER";
           }
         }
       }

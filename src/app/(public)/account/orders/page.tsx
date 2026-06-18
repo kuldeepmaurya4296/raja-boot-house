@@ -122,7 +122,7 @@ export default function AccountOrdersPage() {
 
   // Categorize orders
   const activeOrders = orders.filter(o => 
-    !["DELIVERED", "CANCELLED", "RETURN_REQUESTED", "RETURNED", "REFUNDED"].includes(o.status) &&
+    !["DELIVERED", "CANCELLED", "RETURN_REQUESTED", "RETURN_APPROVED", "RETURNED", "REFUNDED"].includes(o.status) &&
     !(o.payment?.method !== "COD" && o.payment?.status === "PENDING")
   );
 
@@ -132,7 +132,7 @@ export default function AccountOrdersPage() {
   );
 
   const returnedOrRefunded = orders.filter(o => 
-    ["RETURN_REQUESTED", "RETURNED", "REFUNDED"].includes(o.status) &&
+    ["RETURN_REQUESTED", "RETURN_APPROVED", "RETURNED", "REFUNDED"].includes(o.status) &&
     !(o.payment?.method !== "COD" && o.payment?.status === "PENDING")
   );
 
@@ -438,30 +438,50 @@ export default function AccountOrdersPage() {
 
                     {/* Return eligibility banner or current requested return status */}
                     {o.status === "DELIVERED" && returnInfo.maxReturnDays > 0 && (
-                      <div className="mx-5 p-3.5 bg-muted/40 border border-border/40 rounded-xl mb-4 flex flex-wrap items-center justify-between gap-3">
-                        {returnInfo.eligible ? (
-                          <>
-                            <div className="flex items-center gap-2 text-xs text-muted-foreground font-medium">
-                              <Clock className="h-4 w-4 text-amber-500 shrink-0" />
-                              <span>
-                                Return window: <strong className="text-foreground">{returnInfo.daysRemaining} day{returnInfo.daysRemaining !== 1 ? "s" : ""} remaining</strong> (expires {formatDate(new Date(Date.now() + returnInfo.daysRemaining * 24 * 60 * 60 * 1000).toISOString())})
-                              </span>
+                      (() => {
+                        const isRejected = o.statusHistory?.some((h: any) => h.status === "RETURN_REQUESTED");
+                        if (isRejected) {
+                          return (
+                            <div className="mx-5 p-3.5 bg-red-500/10 border border-red-500/20 rounded-xl mb-4">
+                              <div className="flex items-start gap-3">
+                                <AlertTriangle className="h-4.5 w-4.5 text-red-600 mt-0.5 shrink-0" />
+                                <div>
+                                  <p className="text-xs font-bold text-red-800">Return Request Rejected</p>
+                                  <p className="text-[11px] text-red-700/90 mt-0.5 leading-relaxed font-medium">
+                                    Your return request for this order was rejected by our quality check team. If you have questions, please contact support.
+                                  </p>
+                                </div>
+                              </div>
                             </div>
-                            <button
-                              onClick={() => openReturnModal(o, returnInfo.daysRemaining)}
-                              className="text-xs font-bold flex items-center gap-1.5 px-4.5 py-2 rounded-full bg-cognac hover:bg-cognac/95 text-white transition-colors cursor-pointer shadow-sm border-0"
-                            >
-                              <RotateCcw className="h-3.5 w-3.5" />
-                              <span>Request Return</span>
-                            </button>
-                          </>
-                        ) : (
-                          <div className="flex items-center gap-2 text-xs text-muted-foreground font-medium">
-                            <AlertTriangle className="h-4 w-4 text-muted-foreground/50 shrink-0" />
-                            <span>Return policy expired ({returnInfo.maxReturnDays}-day window ended {returnInfo.daysElapsed - returnInfo.maxReturnDays} days ago)</span>
+                          );
+                        }
+                        return (
+                          <div className="mx-5 p-3.5 bg-muted/40 border border-border/40 rounded-xl mb-4 flex flex-wrap items-center justify-between gap-3">
+                            {returnInfo.eligible ? (
+                              <>
+                                <div className="flex items-center gap-2 text-xs text-muted-foreground font-medium">
+                                  <Clock className="h-4 w-4 text-amber-500 shrink-0" />
+                                  <span>
+                                    Return window: <strong className="text-foreground">{returnInfo.daysRemaining} day{returnInfo.daysRemaining !== 1 ? "s" : ""} remaining</strong> (expires {formatDate(new Date(Date.now() + returnInfo.daysRemaining * 24 * 60 * 60 * 1000).toISOString())})
+                                  </span>
+                                </div>
+                                <button
+                                  onClick={() => openReturnModal(o, returnInfo.daysRemaining)}
+                                  className="text-xs font-bold flex items-center gap-1.5 px-4.5 py-2 rounded-full bg-cognac hover:bg-cognac/95 text-white transition-colors cursor-pointer shadow-sm border-0"
+                                >
+                                  <RotateCcw className="h-3.5 w-3.5" />
+                                  <span>Request Return</span>
+                                </button>
+                              </>
+                            ) : (
+                              <div className="flex items-center gap-2 text-xs text-muted-foreground font-medium">
+                                <AlertTriangle className="h-4 w-4 text-muted-foreground/50 shrink-0" />
+                                <span>Return policy expired ({returnInfo.maxReturnDays}-day window ended {returnInfo.daysElapsed - returnInfo.maxReturnDays} days ago)</span>
+                              </div>
+                            )}
                           </div>
-                        )}
-                      </div>
+                        );
+                      })()
                     )}
 
                     {o.status === "RETURN_REQUESTED" && (
@@ -472,6 +492,48 @@ export default function AccountOrdersPage() {
                             <p className="text-xs font-bold text-amber-800">Return Request Under Review</p>
                             <p className="text-[11px] text-amber-700/90 mt-0.5 leading-relaxed font-medium">
                               We have received your return request for this order. Our fulfillment team is processing the request, and we will update you shortly via email.
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {o.status === "RETURN_APPROVED" && (
+                      <div className="mx-5 p-3.5 bg-blue-500/10 border border-blue-500/20 rounded-xl mb-4">
+                        <div className="flex items-start gap-3">
+                          <Clock className="h-4.5 w-4.5 text-blue-600 mt-0.5 shrink-0" />
+                          <div>
+                            <p className="text-xs font-bold text-blue-800">Return Request Approved (Awaiting Return)</p>
+                            <p className="text-[11px] text-blue-700/90 mt-0.5 leading-relaxed font-medium">
+                              Your return request has been approved! We are now waiting for the product to be picked up or returned to our warehouse. We will update your refund status once the product is received.
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {o.status === "RETURNED" && (
+                      <div className="mx-5 p-3.5 bg-green-500/10 border border-green-500/20 rounded-xl mb-4">
+                        <div className="flex items-start gap-3">
+                          <CheckCircle2 className="h-4.5 w-4.5 text-green-600 mt-0.5 shrink-0" />
+                          <div>
+                            <p className="text-xs font-bold text-green-800">Return Request Approved</p>
+                            <p className="text-[11px] text-green-700/90 mt-0.5 leading-relaxed font-medium">
+                              Your return request has been approved! The product has been received at our warehouse. We are initiating your refund, which will be processed shortly.
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {o.status === "REFUNDED" && (
+                      <div className="mx-5 p-3.5 bg-primary/10 border border-primary/20 rounded-xl mb-4">
+                        <div className="flex items-start gap-3">
+                          <ShieldCheck className="h-4.5 w-4.5 text-primary mt-0.5 shrink-0" />
+                          <div>
+                            <p className="text-xs font-bold text-primary">Refund Completed</p>
+                            <p className="text-[11px] text-muted-foreground mt-0.5 leading-relaxed font-medium">
+                              A refund of <strong>{formatINR(o.pricing?.total || o.total)}</strong> has been processed for this order. The amount has been credited back to your account.
                             </p>
                           </div>
                         </div>

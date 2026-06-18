@@ -9,8 +9,11 @@ const getAllowedTransitions = (currentStatus: string) => {
   if (currentStatus === "REFUNDED") return [];
   if (currentStatus === "CANCELLED") return [];
   if (currentStatus === "RETURN_REQUESTED") return [
-    { label: "Approve Return", value: "RETURNED" },
+    { label: "Approve Return (Awaiting Pickup)", value: "RETURN_APPROVED" },
     { label: "Reject Return (Back to Delivered)", value: "DELIVERED" },
+  ];
+  if (currentStatus === "RETURN_APPROVED") return [
+    { label: "Product Received (Mark Returned)", value: "RETURNED" },
   ];
   if (currentStatus === "RETURNED") return [{ label: "Refunded", value: "REFUNDED" }];
 
@@ -48,6 +51,7 @@ const ALL_STAGES = [
   { label: "Delivered", value: "DELIVERED" },
   { label: "Cancelled", value: "CANCELLED" },
   { label: "Return Requested", value: "RETURN_REQUESTED" },
+  { label: "Awaiting Product Return", value: "RETURN_APPROVED" },
   { label: "Returned", value: "RETURNED" },
   { label: "Refunded", value: "REFUNDED" },
 ];
@@ -219,10 +223,21 @@ export function UpdateStatusModal({
                 >
                   {ALL_STAGES.map(opt => {
                     const isCurrent = opt.value === selectedOrder.status;
-                    const isAllowed = isCurrent || allowedNext.some((x: any) => x.value === opt.value);
+                    const match = allowedNext.find((x: any) => x.value === opt.value);
+                    const isAllowed = isCurrent || !!match;
+                    
+                    let displayLabel = opt.label;
+                    if (isCurrent) {
+                      displayLabel = `${opt.label} (Current Status)`;
+                    } else if (match) {
+                      displayLabel = match.label;
+                    } else {
+                      displayLabel = `${opt.label} (Locked)`;
+                    }
+
                     return (
                       <option key={opt.value} value={opt.value} disabled={!isAllowed}>
-                        {opt.label} {!isAllowed ? "(Locked)" : ""}
+                        {displayLabel}
                       </option>
                     );
                   })}

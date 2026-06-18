@@ -36,15 +36,15 @@ export async function GET(request: Request) {
 
     for (const order of orders) {
       const details = order.refundDetails || {};
-      const bank = details.bankDetails || {};
+      const bank = (details.bankDetails || {}) as any;
       const upiId = details.upiId || "";
       const preference = details.preference || "N/A";
       const totalAmount = order.pricing?.total || 0;
       
       const row = [
         order.orderId,
-        order.userId?.name || "Guest",
-        order.userId?.email || "",
+        (order.userId as any)?.name || "Guest",
+        (order.userId as any)?.email || "",
         totalAmount.toString(),
         order.payment?.method || "",
         preference,

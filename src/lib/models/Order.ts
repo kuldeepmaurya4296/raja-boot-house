@@ -47,7 +47,7 @@ export interface IOrder extends Document {
     razorpayPaymentId?: string;
     status: "PENDING" | "PAID" | "FAILED" | "REFUND_PENDING" | "REFUNDED";
   };
-  status: "PLACED" | "CONFIRMED" | "PACKED" | "SHIPPED" | "OUT_FOR_DELIVERY" | "DELIVERED" | "CANCELLED" | "RETURN_REQUESTED" | "RETURNED" | "REFUNDED";
+  status: "PLACED" | "CONFIRMED" | "PACKED" | "SHIPPED" | "OUT_FOR_DELIVERY" | "DELIVERED" | "CANCELLED" | "RETURN_REQUESTED" | "RETURN_APPROVED" | "RETURNED" | "REFUNDED";
   statusHistory: IOrderHistory[];
   refundDetails?: {
     preference?: "ORIGINAL" | "BANK" | "UPI";
@@ -133,7 +133,7 @@ const OrderSchema: Schema = new Schema(
     },
     status: {
       type: String,
-      enum: ["PLACED", "CONFIRMED", "PACKED", "SHIPPED", "OUT_FOR_DELIVERY", "DELIVERED", "CANCELLED", "RETURN_REQUESTED", "RETURNED", "REFUNDED"],
+      enum: ["PLACED", "CONFIRMED", "PACKED", "SHIPPED", "OUT_FOR_DELIVERY", "DELIVERED", "CANCELLED", "RETURN_REQUESTED", "RETURN_APPROVED", "RETURNED", "REFUNDED"],
       default: "PLACED",
       index: true,
     },
@@ -172,4 +172,7 @@ const OrderSchema: Schema = new Schema(
   { timestamps: true }
 );
 
-export default mongoose.models.Order || mongoose.model<IOrder>("Order", OrderSchema);
+if (mongoose.models.Order) {
+  delete mongoose.models.Order;
+}
+export default mongoose.model<IOrder>("Order", OrderSchema);

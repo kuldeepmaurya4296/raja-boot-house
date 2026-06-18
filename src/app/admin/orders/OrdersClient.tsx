@@ -38,6 +38,7 @@ export function OrdersClient({ orders, totalItems, statusCounts = {} }: { orders
     { label: "Delivered", value: "DELIVERED" },
     { label: "Cancelled", value: "CANCELLED" },
     { label: "Return Requested", value: "RETURN_REQUESTED" },
+    { label: "Awaiting Return", value: "RETURN_APPROVED" },
     { label: "Returned", value: "RETURNED" },
     { label: "Refunded", value: "REFUNDED" },
   ];
