@@ -20,6 +20,7 @@ const customerLinks = [
   { label: "Your Wishlist", href: "/account/wishlist" },
   { label: "Shopping Bag", href: "/cart" },
   { label: "Register / Login", href: "/login" },
+  { label: "System Documentation", href: "/docs" },
 ];
 
 const legalLinks = [
