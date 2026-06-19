@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import Link from "next/link";
@@ -13,15 +14,11 @@ import Image from "next/image";
 import dynamic from "next/dynamic";
 import { AnimatePresence } from "framer-motion";
 
-const SearchModal = dynamic(
-  () => import("./SearchModal").then((mod) => mod.SearchModal),
-  { ssr: false }
-);
+const SearchModal = dynamic(() => import("./SearchModal").then((mod) => mod.SearchModal), {
+  ssr: false,
+});
 
-const NavDrawer = dynamic(
-  () => import("./NavDrawer").then((mod) => mod.NavDrawer),
-  { ssr: false }
-);
+const NavDrawer = dynamic(() => import("./NavDrawer").then((mod) => mod.NavDrawer), { ssr: false });
 
 export function Navbar() {
   const { count } = useCart();
@@ -35,6 +32,12 @@ export function Navbar() {
   const [avatarError, setAvatarError] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [announcements, setAnnouncements] = useState<string[]>([
+    "Hand-stitched footwear",
+    "Free shipping over ₹2000",
+    "Official Lakhani · Paragon · Touch retailer",
+  ]);
+  const [announcementsActive, setAnnouncementsActive] = useState(true);
 
   // Detect scroll for enhanced header styling
   useEffect(() => {
@@ -66,8 +69,73 @@ export function Navbar() {
         setCategoriesList(fallbackCategories);
       });
 
+    fetch("/api/announcements")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data && Array.isArray(data.list)) {
+          setAnnouncements(data.list);
+          setAnnouncementsActive(data.isActive);
+        }
+      })
+      .catch((err) => console.error("Failed to load announcements", err));
+
     setMounted(true);
   }, []);
+
+  const renderMarqueeItems = () => {
+    return (
+      <>
+        {announcements.map((item, idx) => (
+          <span key={`ann-${idx}`} className="flex items-center gap-2">
+            <span className="opacity-75">✦</span> {item}
+          </span>
+        ))}
+        {/* Developer Credit Watermark */}
+        <span className="flex items-center gap-1.5 normal-case tracking-normal">
+          <span className="opacity-75">✦</span> Designed &amp; Developed by{" "}
+          <a
+            href="https://kuldeep.maurya-tech.com/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-cognac hover:underline font-bold transition-all"
+            onClick={(e) => e.stopPropagation()}
+          >
+            Kuldeep Maurya
+          </a>{" "}
+          from{" "}
+          <a
+            href="https://maurya-tech.com/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-cognac hover:underline font-bold transition-all"
+            onClick={(e) => e.stopPropagation()}
+          >
+            Maurya Technologies
+          </a>
+        </span>
+        {/* WhatsApp Click-to-Chat with prefilled message */}
+        <span className="flex items-center gap-1.5 normal-case tracking-normal">
+          <span className="opacity-75">✦</span>
+          <a
+            href="https://wa.me/916263638053?text=I%20got%20contact%20from%20rajaboothouse"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1.5 font-bold text-emerald-600 dark:text-emerald-500 hover:underline"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <svg
+              className="h-3.5 w-3.5 fill-current shrink-0"
+              viewBox="0 0 24 24"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946C.06 5.348 5.397.01 12.008.01c3.202.001 6.212 1.246 8.477 3.514 2.266 2.268 3.507 5.28 3.505 8.484-.004 6.657-5.34 11.997-11.953 11.997-2.005-.001-3.973-.502-5.724-1.457L0 24zm6.59-4.846c1.6.95 3.188 1.449 4.825 1.451 5.436 0 9.86-4.37 9.864-9.799.002-2.63-1.023-5.101-2.885-6.965C16.632 2.016 14.11 1.01 11.999 1.01c-5.432 0-9.855 4.37-9.86 9.8.001 1.77.475 3.5 1.374 5.02L2.501 21.5l5.9-1.516c-1.45-1.15-1.754-1.28-1.754-1.28zm10.748-6.195c-.29-.145-1.714-.847-1.98-.942-.265-.096-.458-.145-.65.145-.192.29-.747.942-.916 1.133-.169.19-.338.216-.628.072-.29-.145-1.226-.452-2.336-1.442-.864-.77-1.448-1.72-1.618-2.01-.168-.29-.018-.448.127-.592.13-.13.29-.338.434-.507.145-.17.193-.29.29-.483.096-.193.048-.361-.024-.506-.072-.145-.65-1.566-.89-2.146-.236-.566-.475-.49-.65-.498-.17-.008-.362-.01-.555-.01-.193 0-.506.072-.77.362-.266.29-1.013.99-1.013 2.416 0 1.42 1.037 2.793 1.18 2.987.145.193 2.04 3.114 4.94 4.368.69.298 1.23.476 1.65.61.693.22 1.325.19 1.822.115.556-.084 1.714-.7 1.956-1.374.24-.676.24-1.256.169-1.374-.07-.118-.264-.19-.554-.336z" />
+            </svg>
+            Contact WhatsApp
+          </a>
+        </span>
+      </>
+    );
+  };
 
   const links = categoriesList.map((c) => ({
     href: `/shop?category=${c.slug}`,
@@ -76,19 +144,27 @@ export function Navbar() {
 
   return (
     <>
-      <header className={`sticky top-0 z-40 transition-all duration-300 ${
-        scrolled
-          ? "bg-cream/92 backdrop-blur-lg shadow-sm border-b border-border/60"
-          : "bg-cream/85 backdrop-blur-md border-b border-border"
-      }`}>
+      <header
+        className={`sticky top-0 z-40 transition-all duration-300 ${
+          scrolled
+            ? "bg-cream/92 backdrop-blur-lg shadow-sm border-b border-border/60"
+            : "bg-cream/85 backdrop-blur-md border-b border-border"
+        }`}
+      >
         {/* Announcement strip */}
-        <div className="hidden md:block bg-charcoal text-cream text-[10px] tracking-[0.2em] uppercase">
-          <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-2 text-center">
-            <span className="opacity-75">✦</span>
-            {" "}Hand-stitched footwear · Free shipping over ₹2000 · Official Lakhani · Paragon · Touch retailer{" "}
-            <span className="opacity-75">✦</span>
+        {announcementsActive && announcements.length > 0 && (
+          <div className="relative overflow-hidden bg-charcoal text-cream text-[10px] tracking-[0.2em] uppercase py-2.5 flex w-full select-none border-b border-border/10">
+            <div className="flex animate-marquee gap-16 whitespace-nowrap pr-16 hover:[animation-play-state:paused] cursor-pointer">
+              {renderMarqueeItems()}
+            </div>
+            <div
+              className="flex animate-marquee gap-16 whitespace-nowrap pr-16 hover:[animation-play-state:paused] cursor-pointer"
+              aria-hidden="true"
+            >
+              {renderMarqueeItems()}
+            </div>
           </div>
-        </div>
+        )}
 
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 h-16 md:h-20 flex items-center justify-between gap-4">
           {/* Mobile menu toggle */}
@@ -116,7 +192,9 @@ export function Navbar() {
             </Link>
             {links.map((l) => {
               const active = l.href.includes("?")
-                ? path === l.href.split("?")[0] && searchParams.get("category") === new URLSearchParams(l.href.split("?")[1]).get("category")
+                ? path === l.href.split("?")[0] &&
+                  searchParams.get("category") ===
+                    new URLSearchParams(l.href.split("?")[1]).get("category")
                 : path === l.href;
               return (
                 <Link
@@ -185,7 +263,15 @@ export function Navbar() {
                     onError={() => setAvatarError(true)}
                   />
                 ) : (
-                  <span>{session.user?.name ? session.user.name.split(" ").map((n: any) => n[0]).join("").slice(0, 2) : "U"}</span>
+                  <span>
+                    {session.user?.name
+                      ? session.user.name
+                          .split(" ")
+                          .map((n: any) => n[0])
+                          .join("")
+                          .slice(0, 2)
+                      : "U"}
+                  </span>
                 )}
               </Link>
             ) : (
@@ -216,13 +302,9 @@ export function Navbar() {
       {/* Global Search Modal */}
       <AnimatePresence>
         {searchOpen && (
-          <SearchModal
-            onClose={() => setSearchOpen(false)}
-            categoriesList={categoriesList}
-          />
+          <SearchModal onClose={() => setSearchOpen(false)} categoriesList={categoriesList} />
         )}
       </AnimatePresence>
     </>
   );
 }
-
