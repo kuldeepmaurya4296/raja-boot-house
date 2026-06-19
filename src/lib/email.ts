@@ -39,7 +39,7 @@ export async function sendWelcomeEmail(toEmail: string, name: string) {
       <div style="font-family: 'Georgia', 'Times New Roman', serif; max-width: 600px; margin: 0 auto; padding: 30px; border: 1px solid #E4E4E7; background-color: #FAF9F6; color: #1C1917;">
         <div style="text-align: center; margin-bottom: 30px;">
           <h2 style="font-size: 28px; margin: 0; color: #1C1917; letter-spacing: 0.05em; text-transform: uppercase;">Raja Boot House</h2>
-          <p style="font-size: 10px; text-transform: uppercase; tracking-spacing: 0.2em; color: #8C6D58; margin-top: 5px; font-weight: bold;">Handcrafted Footwear & Premium Brands</p>
+          <p style="font-size: 10px; text-transform: uppercase; tracking-spacing: 0.2em; color: #8C6D58; margin-top: 5px; font-weight: bold;">Footwear & Premium Brands</p>
         </div>
         <hr style="border: 0; border-top: 1px solid #E4E4E7; margin-bottom: 35px;" />
         
@@ -144,7 +144,7 @@ export async function sendOrderConfirmationEmail(toEmail: string, order: any) {
       <div style="font-family: 'Georgia', 'Times New Roman', serif; max-width: 600px; margin: 0 auto; padding: 30px; border: 1px solid #E4E4E7; background-color: #FAF9F6; color: #1C1917;">
         <div style="text-align: center; margin-bottom: 30px;">
           <h2 style="font-size: 28px; margin: 0; color: #1C1917; letter-spacing: 0.05em; text-transform: uppercase;">Raja Boot House</h2>
-          <p style="font-size: 10px; text-transform: uppercase; tracking-spacing: 0.2em; color: #8C6D58; margin-top: 5px; font-weight: bold;">Handcrafted Quality & Timeless Footwear</p>
+          <p style="font-size: 10px; text-transform: uppercase; tracking-spacing: 0.2em; color: #8C6D58; margin-top: 5px; font-weight: bold;">Quality & Timeless Footwear</p>
         </div>
         <hr style="border: 0; border-top: 1px solid #E4E4E7; margin-bottom: 25px;" />
         
@@ -230,7 +230,7 @@ export async function sendOrderStatusEmail(toEmail: string, order: any, newStatu
   if (!transporter) return false;
 
   const { orderId, shippingAddress } = order;
-  
+
   const statusLabels: Record<string, string> = {
     CONFIRMED: "Confirmed & In Production",
     PACKED: "Packed & Ready to Dispatch",

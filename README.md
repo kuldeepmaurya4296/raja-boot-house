@@ -1,4 +1,4 @@
-# Raja Boot House — Handcrafted Leather Boots Since 2025
+# Raja Boot House —  Leather Boots Since 2025
 
 A modern, high-performance, full-stack boutique e-commerce application for **Raja Boot House**, migrated to **Next.js App Router** with a modular components architecture. 
 

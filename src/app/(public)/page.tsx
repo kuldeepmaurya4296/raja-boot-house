@@ -31,11 +31,11 @@ const DEFAULT_TRUST_BADGES = [
 ];
 
 export const metadata: Metadata = {
-  title: "Raja Boot House — Handcrafted Leather Boots & Premium Footwear",
-  description: "Handcrafted luxury footwear and premium Indian leather craftsmanship. Explore men's, women's, sports, and bridal collections.",
+  title: "Raja Boot House — Leather Boots & Premium Footwear",
+  description: "Luxury footwear and premium Indian leather craftsmanship. Explore men's, women's, sports, and bridal collections.",
   openGraph: {
-    title: "Raja Boot House — Handcrafted Premium Footwear",
-    description: "Explore handcrafted luxury footwear and leather designs.",
+    title: "Raja Boot House — Premium Footwear",
+    description: "Explore Luxury footwear and leather designs.",
     images: [{ url: "/assets/hero-boots.jpg" }]
   }
 };
@@ -147,7 +147,7 @@ export default async function Home() {
             Shop all
           </Link>
         </div>
-        
+
         {featured.length === 0 ? (
           <div className="py-12 text-center border border-dashed border-border rounded-xl">
             <p className="text-sm text-muted-foreground">Couldn't load featured products.</p>
@@ -178,7 +178,7 @@ export default async function Home() {
             Shop all
           </Link>
         </div>
-        
+
         {newest.length === 0 ? (
           <div className="py-12 text-center border border-dashed border-border rounded-xl">
             <p className="text-sm text-muted-foreground">Couldn't load new arrivals.</p>

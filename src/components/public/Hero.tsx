@@ -79,7 +79,7 @@ export function Hero({ initialBanners }: { initialBanners?: any[] }) {
     {
       id: "b4",
       title: "The Statement Heels Collection",
-      subtitle: "Elevate your look with handcrafted block heels, festive ethnic flats, and daily sandals built with ergonomic arch support.",
+      subtitle: "Elevate your look with  block heels, festive ethnic flats, and daily sandals built with ergonomic arch support.",
       cta: "Shop Women Collection",
       href: "/shop?category=women",
       tagline: "Atelier Women's Collection",
@@ -145,7 +145,7 @@ export function Hero({ initialBanners }: { initialBanners?: any[] }) {
       >
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-10 md:gap-16 items-center">
-            
+
             {/* Slide Content Column (Top on mobile, left on desktop) */}
             <div className="relative flex flex-col justify-center text-center md:text-left items-center md:items-start">
               <AnimatePresence mode="wait">
@@ -160,15 +160,15 @@ export function Hero({ initialBanners }: { initialBanners?: any[] }) {
                   <span className="inline-block text-[9px] md:text-[10px] tracking-[0.3em] uppercase text-cognac font-extrabold border border-brass/35 rounded-full px-3 py-1 bg-cream/80 backdrop-blur-xs shadow-2xs">
                     {active.tagline}
                   </span>
-                  
+
                   <h1 className="font-serif text-[32px] leading-[1.1] md:text-6xl md:leading-[0.98] font-bold text-charcoal text-balance">
                     {active.title}
                   </h1>
-                  
+
                   <p className="text-xs md:text-base text-muted-foreground max-w-md">
                     {active.subtitle}
                   </p>
-                  
+
                   <div className="flex items-center gap-3 pt-2">
                     <Link
                       href={active.href}
@@ -249,9 +249,8 @@ export function Hero({ initialBanners }: { initialBanners?: any[] }) {
             <button
               key={i}
               onClick={() => setCurrent(i)}
-              className={`h-1.5 rounded-full transition-all duration-300 ${
-                current === i ? "w-6 bg-cognac" : "w-1.5 bg-muted-foreground/30 hover:bg-muted-foreground/60"
-              }`}
+              className={`h-1.5 rounded-full transition-all duration-300 ${current === i ? "w-6 bg-cognac" : "w-1.5 bg-muted-foreground/30 hover:bg-muted-foreground/60"
+                }`}
               aria-label={`Go to slide ${i + 1}`}
             />
           ))}

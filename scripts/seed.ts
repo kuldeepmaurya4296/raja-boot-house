@@ -194,7 +194,7 @@ async function runSeed() {
     ];
 
     const seededProducts = [];
-    
+
     for (const cat of categoryData) {
       for (let i = 1; i <= 5; i++) {
         const brandName = brandsList[(i - 1) % brandsList.length];
@@ -202,12 +202,12 @@ async function runSeed() {
         const img = images[i - 1];
         const price = 500 + (i * 200) + (Math.floor(Math.random() * 5) * 100);
         const salePrice = Math.round(price * 0.8); // 20% discount
-        
+
         let gender = "Unisex";
         if (cat.name === "Men") gender = "Men";
         else if (cat.name === "Women") gender = "Women";
         else if (cat.name === "Kids") gender = "Children";
-        
+
         let occasion = ["Daily"];
         if (cat.name === "Bridal") occasion = ["Wedding", "Party"];
         else if (cat.name === "Sports") occasion = ["Sports"];
@@ -239,7 +239,7 @@ async function runSeed() {
           metaTitle: `${brandName} ${cat.name} Style ${i} - Raja Boot House`,
           metaDescription: `Buy ${brandName} ${cat.name} Style ${i} at the best price.`
         });
-        
+
         seededProducts.push(created);
       }
     }
@@ -312,7 +312,7 @@ async function runSeed() {
       },
       {
         title: "The Statement Heels Collection",
-        subtitle: "Elevate your look with handcrafted block heels, festive ethnic flats, and daily sandals built with ergonomic arch support.",
+        subtitle: "Elevate your look with block heels, festive ethnic flats, and daily sandals built with ergonomic arch support.",
         imageUrl: "https://images.unsplash.com/photo-1595950653106-6c9ebd614d3a?q=80&w=800&auto=format&fit=crop",
         linkUrl: "/shop?category=women",
         order: 4,
@@ -398,7 +398,7 @@ async function runSeed() {
 <p>To place checkouts or save addresses, you must create a profile. You are responsible for keeping your login credentials secure. You must provide current, accurate details. If we suspect fraudulent activity or unauthorized logins, we reserve the right to suspend accounts immediately.</p>
 
 <h3>2. Sizing, Pricing & Product Details</h3>
-<p>We display high-resolution images of handcrafted leather shoes, bridal juttis, and athletic footwear. Sizing grids (UK/India standards) are provided as guides; handmade styles may have minor artisan variances. All prices are listed in Indian Rupees (INR) and are inclusive of GST. In the rare case of pricing typographical errors, we reserve the right to cancel orders and process full refunds.</p>
+<p>We display high-resolution images of leather shoes, bridal juttis, and athletic footwear. Sizing grids (UK/India standards) are provided as guides; handmade styles may have minor artisan variances. All prices are listed in Indian Rupees (INR) and are inclusive of GST. In the rare case of pricing typographical errors, we reserve the right to cancel orders and process full refunds.</p>
 
 <h3>3. Payments & Gateway Transactions</h3>
 <p>We accept secure online transactions via Credit/Debit Cards, UPI, Net Banking (powered by Razorpay), and Cash on Delivery (COD). In case of payment failures where money was deducted, the gateway processes refunds automatically within 3–5 bank working days. For COD orders, we require SMS/phone verification before dispatching packages.</p>

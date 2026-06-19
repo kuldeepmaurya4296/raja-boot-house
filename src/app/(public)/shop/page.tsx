@@ -66,12 +66,12 @@ const getFilterMetadata = unstable_cache(
       const colorsAgg = await Product.aggregate([
         { $match: { isActive: true } },
         { $unwind: "$variants" },
-        { 
-          $group: { 
-            _id: { $toLower: "$variants.color" }, 
+        {
+          $group: {
+            _id: { $toLower: "$variants.color" },
             name: { $first: "$variants.color" },
-            hex: { $first: "$variants.colorHex" } 
-          } 
+            hex: { $first: "$variants.colorHex" }
+          }
         }
       ]);
       const sortedColors = colorsAgg
@@ -246,7 +246,7 @@ async function getShopData(filters: any) {
 export async function generateMetadata({ searchParams }: PageProps): Promise<Metadata> {
   const { category, search } = await searchParams;
   let title = "Footwear Catalog — Raja Boot House";
-  let description = "Browse our exclusive handcrafted leather collection.";
+  let description = "Browse our exclusive  leather collection.";
 
   if (category && category !== "all") {
     title = `${category.charAt(0).toUpperCase() + category.slice(1)} Footwear — Raja Boot House`;
