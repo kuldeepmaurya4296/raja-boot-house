@@ -33,6 +33,9 @@ const DEFAULT_TRUST_BADGES = [
 export const metadata: Metadata = {
   title: "Raja Boot House — Leather Boots & Premium Footwear",
   description: "Luxury footwear and premium Indian leather craftsmanship. Explore men's, women's, sports, and bridal collections.",
+  alternates: {
+    canonical: "/",
+  },
   openGraph: {
     title: "Raja Boot House — Premium Footwear",
     description: "Explore Luxury footwear and leather designs.",
@@ -104,8 +107,53 @@ export default async function Home() {
     getBanners(),
   ]);
 
+  const storeJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "ShoeStore",
+    "name": "Raja Boot House",
+    "image": "https://rbh.maurya-tech.com/rbh-logo.png",
+    "description": "Footwear retail brand. Offers a wide range of premium footwear for men, women, and children from Lakhani, Touch, Paragon, Goldstar, and more.",
+    "url": "https://rbh.maurya-tech.com",
+    "telephone": "+916263638053",
+    "priceRange": "₹₹",
+    "address": {
+      "@type": "PostalAddress",
+      "streetAddress": "Main Footwear Market",
+      "addressLocality": "Gorakhpur",
+      "addressRegion": "Uttar Pradesh",
+      "postalCode": "273001",
+      "addressCountry": "IN"
+    },
+    "geo": {
+      "@type": "GeoCoordinates",
+      "latitude": 26.7606,
+      "longitude": 83.3731
+    },
+    "openingHoursSpecification": {
+      "@type": "OpeningHoursSpecification",
+      "dayOfWeek": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "opens": "09:00",
+      "closes": "21:00"
+    },
+    "sameAs": [
+      "https://wa.me/916263638053"
+    ]
+  };
+
   return (
     <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(storeJsonLd) }}
+      />
       <Hero initialBanners={banners} />
 
       {/* Trust Badges section */}

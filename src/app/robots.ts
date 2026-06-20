@@ -5,8 +5,19 @@ export default function robots(): MetadataRoute.Robots {
     rules: {
       userAgent: "*",
       allow: "/",
-      disallow: ["/admin/", "/account/", "/api/"],
+      disallow: [
+        "/admin/",
+        "/account/",
+        "/api/",
+        "/cart",
+        "/checkout",
+        "/login",
+        "/signup",
+        "/forgot-password",
+        "/reset-password",
+      ],
     },
-    sitemap: "https://rajaboothouse.com/sitemap.xml",
+    sitemap: "https://rbh.maurya-tech.com/sitemap.xml",
   };
 }
+

@@ -9,6 +9,14 @@ export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
   title: "Return & Refund Policy — Raja Boot House",
   description: "Read about our 30-day return policy, conditions for refunds, size exchanges, and banking credits.",
+  alternates: {
+    canonical: "/refund-policy",
+  },
+  openGraph: {
+    title: "Return & Refund Policy — Raja Boot House",
+    description: "Read about our 30-day return policy, conditions for refunds, size exchanges, and banking credits.",
+    type: "website",
+  }
 };
 
 async function getPolicyContent() {

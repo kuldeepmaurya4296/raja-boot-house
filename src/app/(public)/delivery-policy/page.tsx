@@ -9,6 +9,14 @@ export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
   title: "Shipping & Delivery Policy — Raja Boot House",
   description: "Learn about our shipping coverage, fees, delivery timelines, and logistics partners at Raja Boot House.",
+  alternates: {
+    canonical: "/delivery-policy",
+  },
+  openGraph: {
+    title: "Shipping & Delivery Policy — Raja Boot House",
+    description: "Learn about our shipping coverage, fees, delivery timelines, and logistics partners at Raja Boot House.",
+    type: "website",
+  }
 };
 
 async function getPolicyContent() {

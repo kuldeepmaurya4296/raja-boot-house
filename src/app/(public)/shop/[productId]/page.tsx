@@ -112,6 +112,9 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   return {
     title: `${product.name} — Raja Boot House`,
     description: product.description?.slice(0, 160) || `Buy ${product.name} at Raja Boot House.`,
+    alternates: {
+      canonical: `/shop/${product.slug}`,
+    },
     openGraph: {
       title: `${product.name} — Raja Boot House`,
       description: product.description?.slice(0, 160),
@@ -150,7 +153,7 @@ export default async function ProductPage({ params }: PageProps) {
     },
     "offers": {
       "@type": "Offer",
-      "url": `https://rajaboothouse.com/shop/${data.product.slug}`,
+      "url": `https://rbh.maurya-tech.com/shop/${data.product.slug}`,
       "priceCurrency": "INR",
       "price": data.product.price,
       "itemCondition": "https://schema.org/NewCondition",
@@ -163,11 +166,46 @@ export default async function ProductPage({ params }: PageProps) {
     } : undefined
   };
 
+  const breadcrumbsJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      {
+        "@type": "ListItem",
+        "position": 1,
+        "name": "Home",
+        "item": "https://rbh.maurya-tech.com"
+      },
+      {
+        "@type": "ListItem",
+        "position": 2,
+        "name": "Shop",
+        "item": "https://rbh.maurya-tech.com/shop"
+      },
+      {
+        "@type": "ListItem",
+        "position": 3,
+        "name": data.product.category ? (data.product.category.charAt(0).toUpperCase() + data.product.category.slice(1)) : "Footwear",
+        "item": `https://rbh.maurya-tech.com/shop?category=${data.product.category || "all"}`
+      },
+      {
+        "@type": "ListItem",
+        "position": 4,
+        "name": data.product.name,
+        "item": `https://rbh.maurya-tech.com/shop/${data.product.slug}`
+      }
+    ]
+  };
+
   return (
     <>
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbsJsonLd) }}
       />
       <ProductClient
         product={data.product}

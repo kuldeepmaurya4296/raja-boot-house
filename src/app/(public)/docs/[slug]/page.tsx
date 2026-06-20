@@ -20,6 +20,14 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   return {
     title: `${section.title} — Raja Boot House Docs`,
     description: section.description,
+    alternates: {
+      canonical: `/docs/${slug}`,
+    },
+    openGraph: {
+      title: `${section.title} — Raja Boot House Docs`,
+      description: section.description,
+      type: "article",
+    }
   };
 }
 

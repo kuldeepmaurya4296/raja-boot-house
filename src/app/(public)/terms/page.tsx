@@ -9,6 +9,14 @@ export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
   title: "Terms & Conditions — Raja Boot House",
   description: "Read the Terms of Service and agreements for using the Raja Boot House portal.",
+  alternates: {
+    canonical: "/terms",
+  },
+  openGraph: {
+    title: "Terms & Conditions — Raja Boot House",
+    description: "Read the Terms of Service and agreements for using the Raja Boot House portal.",
+    type: "website",
+  }
 };
 
 async function getPolicyContent() {

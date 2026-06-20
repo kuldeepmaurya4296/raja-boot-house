@@ -60,6 +60,9 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   return {
     title: `${collection.name} — Raja Boot House`,
     description: collection.description || `Browse the exclusive ${collection.name} collection at Raja Boot House.`,
+    alternates: {
+      canonical: `/collections/${slug}`,
+    },
     openGraph: {
       title: `${collection.name} — Raja Boot House`,
       description: collection.description || `Browse the exclusive ${collection.name} collection at Raja Boot House.`,
@@ -86,8 +89,59 @@ export default async function CollectionPage({ params }: PageProps) {
 
   const { collection, products } = data;
 
+  const collectionJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "CollectionPage",
+    "name": collection.name,
+    "description": collection.description || `Browse the exclusive ${collection.name} collection at Raja Boot House.`,
+    "url": `https://rbh.maurya-tech.com/collections/${collection.slug}`,
+    "image": collection.imageUrl || "/assets/hero-boots.jpg",
+    "mainEntity": {
+      "@type": "ItemList",
+      "numberOfItems": products.length,
+      "itemListElement": products.slice(0, 12).map((product: any, idx: number) => ({
+        "@type": "ListItem",
+        "position": idx + 1,
+        "url": `https://rbh.maurya-tech.com/shop/${product.slug}`
+      }))
+    }
+  };
+
+  const breadcrumbsJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      {
+        "@type": "ListItem",
+        "position": 1,
+        "name": "Home",
+        "item": "https://rbh.maurya-tech.com"
+      },
+      {
+        "@type": "ListItem",
+        "position": 2,
+        "name": "Shop",
+        "item": "https://rbh.maurya-tech.com/shop"
+      },
+      {
+        "@type": "ListItem",
+        "position": 3,
+        "name": collection.name,
+        "item": `https://rbh.maurya-tech.com/collections/${collection.slug}`
+      }
+    ]
+  };
+
   return (
     <div className="min-h-screen bg-cream/20">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(collectionJsonLd) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbsJsonLd) }}
+      />
       {/* Editorial Header Banner */}
       <div className="relative h-[250px] md:h-[350px] w-full overflow-hidden flex items-center justify-center">
         <div className="absolute inset-0 bg-charcoal/40 z-10" />

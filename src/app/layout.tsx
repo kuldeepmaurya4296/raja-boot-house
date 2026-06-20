@@ -18,7 +18,7 @@ const fraunces = Fraunces({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://rajaboothouse.com"),
+  metadataBase: new URL("https://rbh.maurya-tech.com"),
   title: {
     default: "Raja Boot House — Leather Boots & Premium Footwear",
     template: "%s | Raja Boot House",
@@ -39,7 +39,7 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     locale: "en_IN",
-    url: "https://rajaboothouse.com",
+    url: "https://rbh.maurya-tech.com",
     siteName: "Raja Boot House",
     images: [
       {

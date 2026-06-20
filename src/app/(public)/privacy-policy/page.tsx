@@ -9,6 +9,14 @@ export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
   title: "Privacy Policy — Raja Boot House",
   description: "Learn about how we collect, secure, and manage your personal information at Raja Boot House.",
+  alternates: {
+    canonical: "/privacy-policy",
+  },
+  openGraph: {
+    title: "Privacy Policy — Raja Boot House",
+    description: "Learn about how we collect, secure, and manage your personal information at Raja Boot House.",
+    type: "website",
+  }
 };
 
 async function getPolicyContent() {

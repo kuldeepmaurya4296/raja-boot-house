@@ -246,7 +246,7 @@ async function getShopData(filters: any) {
 export async function generateMetadata({ searchParams }: PageProps): Promise<Metadata> {
   const { category, search } = await searchParams;
   let title = "Footwear Catalog — Raja Boot House";
-  let description = "Browse our exclusive  leather collection.";
+  let description = "Browse our exclusive leather collection.";
 
   if (category && category !== "all") {
     title = `${category.charAt(0).toUpperCase() + category.slice(1)} Footwear — Raja Boot House`;
@@ -255,9 +255,17 @@ export async function generateMetadata({ searchParams }: PageProps): Promise<Met
     title = `Search results for "${search}" — Raja Boot House`;
   }
 
+  let canonicalPath = "/shop";
+  if (category && category !== "all") {
+    canonicalPath = `/shop?category=${category}`;
+  }
+
   return {
     title,
-    description
+    description,
+    alternates: {
+      canonical: canonicalPath,
+    }
   };
 }
 
@@ -268,21 +276,81 @@ export default async function ShopPage({ searchParams }: PageProps) {
     getFilterMetadata()
   ]);
 
+  const { category } = filters;
+  let canonicalPath = "/shop";
+  if (category && category !== "all") {
+    canonicalPath = `/shop?category=${category}`;
+  }
+
+  const collectionJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "CollectionPage",
+    "name": category && category !== "all" 
+      ? `${category.charAt(0).toUpperCase() + category.slice(1)} Footwear`
+      : "Footwear Catalog",
+    "description": "Browse our premium footwear collection at Raja Boot House.",
+    "url": `https://rbh.maurya-tech.com${canonicalPath}`,
+    "mainEntity": {
+      "@type": "ItemList",
+      "numberOfItems": data.total,
+      "itemListElement": data.products.slice(0, 12).map((product: any, idx: number) => ({
+        "@type": "ListItem",
+        "position": idx + 1,
+        "url": `https://rbh.maurya-tech.com/shop/${product.slug}`
+      }))
+    }
+  };
+
+  const breadcrumbsJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      {
+        "@type": "ListItem",
+        "position": 1,
+        "name": "Home",
+        "item": "https://rbh.maurya-tech.com"
+      },
+      {
+        "@type": "ListItem",
+        "position": 2,
+        "name": "Shop",
+        "item": "https://rbh.maurya-tech.com/shop"
+      },
+      ...(category && category !== "all" ? [{
+        "@type": "ListItem",
+        "position": 3,
+        "name": category.charAt(0).toUpperCase() + category.slice(1),
+        "item": `https://rbh.maurya-tech.com/shop?category=${category}`
+      }] : [])
+    ]
+  };
+
   return (
-    <Suspense
-      fallback={
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-20 text-center flex flex-col items-center justify-center min-h-[400px]">
-          <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary mx-auto"></div>
-          <p className="mt-4 text-muted-foreground text-sm font-semibold">Loading catalog styles...</p>
-        </div>
-      }
-    >
-      <ShopClient
-        categories={data.categories}
-        initialProducts={data.products}
-        totalProducts={data.total}
-        filterMetadata={filterMetadata}
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(collectionJsonLd) }}
       />
-    </Suspense>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbsJsonLd) }}
+      />
+      <Suspense
+        fallback={
+          <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-20 text-center flex flex-col items-center justify-center min-h-[400px]">
+            <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary mx-auto"></div>
+            <p className="mt-4 text-muted-foreground text-sm font-semibold">Loading catalog styles...</p>
+          </div>
+        }
+      >
+        <ShopClient
+          categories={data.categories}
+          initialProducts={data.products}
+          totalProducts={data.total}
+          filterMetadata={filterMetadata}
+        />
+      </Suspense>
+    </>
   );
 }
