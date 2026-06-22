@@ -168,10 +168,26 @@ async function runSeed() {
     // 4. Seed Categories
     console.log("Seeding Categories...");
     const categoryData = [
-      { name: "Men", slug: "men", description: "Men's footwear collection including formal, casual, and daily wear." },
-      { name: "Women", slug: "women", description: "Women's footwear collection including heels, flats, and sandals." },
-      { name: "Kids", slug: "kids", description: "Children's shoes, sandals, and school footwear." },
-      { name: "Bridal", slug: "bridal", description: "Exclusive wedding collection for brides and grooms." },
+      {
+        name: "Men",
+        slug: "men",
+        description: "Men's footwear collection including formal, casual, and daily wear.",
+      },
+      {
+        name: "Women",
+        slug: "women",
+        description: "Women's footwear collection including heels, flats, and sandals.",
+      },
+      {
+        name: "Kids",
+        slug: "kids",
+        description: "Children's shoes, sandals, and school footwear.",
+      },
+      {
+        name: "Bridal",
+        slug: "bridal",
+        description: "Exclusive wedding collection for brides and grooms.",
+      },
       { name: "Sports", slug: "sports", description: "Athletic and running shoes for all." },
     ];
 
@@ -190,7 +206,7 @@ async function runSeed() {
       "https://images.unsplash.com/photo-1549298916-b41d501d3772?q=80&w=800&auto=format&fit=crop",
       "https://images.unsplash.com/photo-1560769629-975ec94e6a86?q=80&w=800&auto=format&fit=crop",
       "https://images.unsplash.com/photo-1595950653106-6c9ebd614d3a?q=80&w=800&auto=format&fit=crop",
-      "https://images.unsplash.com/photo-1608231387042-66d1773070a5?q=80&w=800&auto=format&fit=crop"
+      "https://images.unsplash.com/photo-1608231387042-66d1773070a5?q=80&w=800&auto=format&fit=crop",
     ];
 
     const seededProducts = [];
@@ -200,7 +216,7 @@ async function runSeed() {
         const brandName = brandsList[(i - 1) % brandsList.length];
         const brandObj = brandMap[brandName] || brandMap["Raja Exclusive"];
         const img = images[i - 1];
-        const price = 500 + (i * 200) + (Math.floor(Math.random() * 5) * 100);
+        const price = 500 + i * 200 + Math.floor(Math.random() * 5) * 100;
         const salePrice = Math.round(price * 0.8); // 20% discount
 
         let gender = "Unisex";
@@ -226,9 +242,30 @@ async function runSeed() {
           occasion: occasion,
           images: productImages,
           variants: [
-            { size: 7, color: "Black", colorHex: "#000000", stock: 15, sku: `SKU-${cat.slug}-${i}-7-BK`, images: productImages },
-            { size: 8, color: "Brown", colorHex: "#5C4033", stock: 20, sku: `SKU-${cat.slug}-${i}-8-BR`, images: productImages },
-            { size: 9, color: "White", colorHex: "#FFFFFF", stock: 10, sku: `SKU-${cat.slug}-${i}-9-WH`, images: productImages },
+            {
+              size: 7,
+              color: "Black",
+              colorHex: "#000000",
+              stock: 15,
+              sku: `SKU-${cat.slug}-${i}-7-BK`,
+              images: productImages,
+            },
+            {
+              size: 8,
+              color: "Brown",
+              colorHex: "#5C4033",
+              stock: 20,
+              sku: `SKU-${cat.slug}-${i}-8-BR`,
+              images: productImages,
+            },
+            {
+              size: 9,
+              color: "White",
+              colorHex: "#FFFFFF",
+              stock: 10,
+              sku: `SKU-${cat.slug}-${i}-9-WH`,
+              images: productImages,
+            },
           ],
           price: price,
           salePrice: salePrice,
@@ -237,7 +274,7 @@ async function runSeed() {
           isActive: true,
           tags: [cat.slug, brandName.toLowerCase(), "footwear"],
           metaTitle: `${brandName} ${cat.name} Style ${i} - Raja Boot House`,
-          metaDescription: `Buy ${brandName} ${cat.name} Style ${i} at the best price.`
+          metaDescription: `Buy ${brandName} ${cat.name} Style ${i} at the best price.`,
         });
 
         seededProducts.push(created);
@@ -255,7 +292,8 @@ async function runSeed() {
         name: "Trending Styles",
         slug: "trending-styles",
         description: "Explore the most popular designs and customer favorites this season.",
-        imageUrl: "https://images.unsplash.com/photo-1549298916-b41d501d3772?q=80&w=800&auto=format&fit=crop",
+        imageUrl:
+          "https://images.unsplash.com/photo-1549298916-b41d501d3772?q=80&w=800&auto=format&fit=crop",
         isFeatured: true,
         isActive: true,
         products: featuredProducts,
@@ -264,11 +302,12 @@ async function runSeed() {
         name: "Fresh Drops",
         slug: "fresh-drops",
         description: "Check out the latest hand-finished footwear, fresh from our design bench.",
-        imageUrl: "https://images.unsplash.com/photo-1560769629-975ec94e6a86?q=80&w=800&auto=format&fit=crop",
+        imageUrl:
+          "https://images.unsplash.com/photo-1560769629-975ec94e6a86?q=80&w=800&auto=format&fit=crop",
         isFeatured: false,
         isActive: true,
         products: newArrivalProducts,
-      }
+      },
     ];
 
     await Collection.create(sampleCollections);
@@ -279,8 +318,10 @@ async function runSeed() {
     await Banner.create([
       {
         title: "Crafted for Character",
-        subtitle: "Hand-finished leather boots stitched using 50 years of family bootmaking tradition. Structured to age beautifully with you.",
-        imageUrl: "https://images.unsplash.com/photo-1520639888713-7851133b1ed0?q=80&w=800&auto=format&fit=crop",
+        subtitle:
+          "Hand-finished leather boots stitched using 50 years of family bootmaking tradition. Structured to age beautifully with you.",
+        imageUrl:
+          "https://images.unsplash.com/photo-1520639888713-7851133b1ed0?q=80&w=800&auto=format&fit=crop",
         linkUrl: "/shop",
         order: 1,
         isActive: true,
@@ -290,8 +331,10 @@ async function runSeed() {
       },
       {
         title: "Royal Wedding Heritage",
-        subtitle: "Hand-embroidered groom sherwani mojaris and custom bridal footwear tailored for ultimate comfort on your special night.",
-        imageUrl: "https://images.unsplash.com/photo-1607522370275-f14206abe5d3?q=80&w=800&auto=format&fit=crop",
+        subtitle:
+          "Hand-embroidered groom sherwani mojaris and custom bridal footwear tailored for ultimate comfort on your special night.",
+        imageUrl:
+          "https://images.unsplash.com/photo-1607522370275-f14206abe5d3?q=80&w=800&auto=format&fit=crop",
         linkUrl: "/shop?category=bridal",
         order: 2,
         isActive: true,
@@ -301,8 +344,10 @@ async function runSeed() {
       },
       {
         title: "Modern Comfort in Motion",
-        subtitle: "Lightweight, shock-absorbing athletic running shoes and everyday casual wear guaranteed by India's top national brands.",
-        imageUrl: "https://images.unsplash.com/photo-1542291026-7eec264c27ff?q=80&w=800&auto=format&fit=crop",
+        subtitle:
+          "Lightweight, shock-absorbing athletic running shoes and everyday casual wear guaranteed by India's top national brands.",
+        imageUrl:
+          "https://images.unsplash.com/photo-1542291026-7eec264c27ff?q=80&w=800&auto=format&fit=crop",
         linkUrl: "/shop?category=sports",
         order: 3,
         isActive: true,
@@ -312,8 +357,10 @@ async function runSeed() {
       },
       {
         title: "The Statement Heels Collection",
-        subtitle: "Elevate your look with block heels, festive ethnic flats, and daily sandals built with ergonomic arch support.",
-        imageUrl: "https://images.unsplash.com/photo-1595950653106-6c9ebd614d3a?q=80&w=800&auto=format&fit=crop",
+        subtitle:
+          "Elevate your look with block heels, festive ethnic flats, and daily sandals built with ergonomic arch support.",
+        imageUrl:
+          "https://images.unsplash.com/photo-1595950653106-6c9ebd614d3a?q=80&w=800&auto=format&fit=crop",
         linkUrl: "/shop?category=women",
         order: 4,
         isActive: true,
@@ -327,8 +374,18 @@ async function runSeed() {
     // 8. Seed Newsletter Subscribers
     console.log("Seeding Subscribers...");
     await NewsletterSubscriber.create([
-      { name: "Rahul Maurya", email: "rahul.maurya@example.com", phone: "9876543210", message: "Looking for premium shoes." },
-      { name: "Siddharth Singh", email: "siddharth@example.com", phone: "9123456789", message: "Interested in regional wedding footwear." }
+      {
+        name: "Rahul Maurya",
+        email: "rahul.maurya@example.com",
+        phone: "9876543210",
+        message: "Looking for premium shoes.",
+      },
+      {
+        name: "Siddharth Singh",
+        email: "siddharth@example.com",
+        phone: "9123456789",
+        message: "Interested in regional wedding footwear.",
+      },
     ]);
     console.log("Seeded sample newsletter subscribers.");
 
@@ -337,11 +394,19 @@ async function runSeed() {
     await Settings.create({
       key: "trust_badges",
       value: [
-        { icon: "Award", title: "Official Retailer", subtitle: "Lakhani, Touch, Paragon, Goldstar" },
-        { icon: "ShieldCheck", title: "Gupta Brothers Craft", subtitle: "Premium quality assurance" },
+        {
+          icon: "Award",
+          title: "Official Retailer",
+          subtitle: "Lakhani, Touch, Paragon, Goldstar",
+        },
+        {
+          icon: "ShieldCheck",
+          title: "Gupta Brothers Craft",
+          subtitle: "Premium quality assurance",
+        },
         { icon: "Truck", title: "Free Shipping", subtitle: "Orders above ₹2000" },
         { icon: "RotateCcw", title: "Simple Exchanges", subtitle: "Within 30 days hassle-free" },
-      ]
+      ],
     });
     console.log("Seeded default trust badges settings.");
 
@@ -386,7 +451,7 @@ async function runSeed() {
 <p>We use essential cookies to recognize you on return visits, preserve items inside your shopping bag, and optimize dashboard logins. You can choose to disable cookies through your browser settings, though doing so might affect cart functionality.</p>
 
 <h3>6. Your Rights & Contacts</h3>
-<p>You have the right to request access, correction, or deletion of your profile data. If you have questions regarding this policy or wish to opt-out of notifications, contact us at <strong>care@rajaboothouse.com</strong>.</p>`
+<p>You have the right to request access, correction, or deletion of your profile data. If you have questions regarding this policy or wish to opt-out of notifications, contact us at <strong>care@rajaboothouse.com</strong>.</p>`,
       },
       {
         key: "termsCondition",
@@ -410,7 +475,7 @@ async function runSeed() {
 <p>Raja Boot House and its founders shall not be liable for any direct, indirect, or incidental damages arising out of your purchase or usage of footwear. Sizing comfort and material wear are subject to standard usage; handmade leather items require proper moisture care.</p>
 
 <h3>6. Jurisdiction & Disputes</h3>
-<p>These terms are governed by the laws of India. Any legal actions, claims, or disputes arising out of website usage or purchases shall be subject to the exclusive jurisdiction of the competent courts in Rewa, Madhya Pradesh.</p>`
+<p>These terms are governed by the laws of India. Any legal actions, claims, or disputes arising out of website usage or purchases shall be subject to the exclusive jurisdiction of the competent courts in Rewa, Madhya Pradesh.</p>`,
       },
       {
         key: "deliveryPolicy",
@@ -439,7 +504,7 @@ async function runSeed() {
 <p>As soon as your shipment is picked up by our courier partners (Delhivery, Blue Dart, or Speed Post), we will send you an email and SMS containing your tracking number and live tracking link. You can also view shipment stages from your Account Dashboard.</p>
 
 <h3>5. Damage & Refused Deliveries</h3>
-<p>Please do not accept any box that is open, heavily crushed, or tampered with. Take a photograph of the package and immediately contact care@rajaboothouse.com so we can file a courier claim and ship a replacement style to you.</p>`
+<p>Please do not accept any box that is open, heavily crushed, or tampered with. Take a photograph of the package and immediately contact care@rajaboothouse.com so we can file a courier claim and ship a replacement style to you.</p>`,
       },
       {
         key: "refundPolicy",
@@ -472,8 +537,8 @@ async function runSeed() {
 </ul>
 
 <h3>5. Exceptions & Non-Returnable Items</h3>
-<p>Customized bridal juttis made to custom measurements and items purchased from clearance sections labeled "Final Sale" cannot be returned or exchanged unless they arrive with physical manufacturing defects.</p>`
-      }
+<p>Customized bridal juttis made to custom measurements and items purchased from clearance sections labeled "Final Sale" cannot be returned or exchanged unless they arrive with physical manufacturing defects.</p>`,
+      },
     ]);
     console.log("Seeded default legal policies settings.");
 

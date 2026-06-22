@@ -8,7 +8,10 @@ export async function POST(request: Request) {
     const { code, cartValue } = await request.json();
 
     if (!code) {
-      return NextResponse.json({ valid: false, message: "Coupon code is required" }, { status: 400 });
+      return NextResponse.json(
+        { valid: false, message: "Coupon code is required" },
+        { status: 400 },
+      );
     }
 
     const db = await connectToDatabase();
@@ -18,7 +21,7 @@ export async function POST(request: Request) {
       if (!matched) {
         return NextResponse.json({ valid: false, message: "Invalid coupon code" });
       }
-      
+
       const expiry = new Date(matched.expiresAt);
       if (expiry < new Date()) {
         return NextResponse.json({ valid: false, message: "Coupon has expired" });
@@ -27,7 +30,10 @@ export async function POST(request: Request) {
       // Default welcome and freeship threshold check
       const minVal = code.toUpperCase() === "FREESHIP" ? 2000 : 500;
       if (cartValue < minVal) {
-        return NextResponse.json({ valid: false, message: `Minimum purchase of ₹${minVal} required` });
+        return NextResponse.json({
+          valid: false,
+          message: `Minimum purchase of ₹${minVal} required`,
+        });
       }
 
       return NextResponse.json({

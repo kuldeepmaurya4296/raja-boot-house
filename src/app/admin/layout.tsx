@@ -17,6 +17,7 @@ const items = [
     ],
   },
   { to: "/admin/coupons", label: "Coupons", icon: "Ticket" },
+  { to: "/admin/flash-sales", label: "Flash Sales", icon: "Zap" },
   { to: "/admin/customers", label: "Customers", icon: "Users" },
   { to: "/admin/reviews", label: "Reviews", icon: "MessageSquare" },
   { to: "/admin/vendors", label: "Vendors", icon: "Store" },

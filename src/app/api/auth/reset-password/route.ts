@@ -13,7 +13,10 @@ export async function POST(request: Request) {
     }
 
     if (password.length < 6) {
-      return NextResponse.json({ error: "Password must be at least 6 characters long" }, { status: 400 });
+      return NextResponse.json(
+        { error: "Password must be at least 6 characters long" },
+        { status: 400 },
+      );
     }
 
     // Find user by valid unexpired token
@@ -23,13 +26,16 @@ export async function POST(request: Request) {
     });
 
     if (!user) {
-      return NextResponse.json({ error: "Password reset link is invalid or has expired." }, { status: 400 });
+      return NextResponse.json(
+        { error: "Password reset link is invalid or has expired." },
+        { status: 400 },
+      );
     }
 
     // Hash the new password and update user record
     const hashedPassword = await bcrypt.hash(password, 10);
     user.password = hashedPassword;
-    
+
     // Clear reset token fields
     user.resetPasswordToken = undefined;
     user.resetPasswordExpire = undefined;
@@ -41,7 +47,10 @@ export async function POST(request: Request) {
     });
   } catch (error: any) {
     console.error("Reset password API error:", error);
-    return NextResponse.json({ error: error.message || "Failed to reset password" }, { status: 500 });
+    return NextResponse.json(
+      { error: error.message || "Failed to reset password" },
+      { status: 500 },
+    );
   }
 }
 

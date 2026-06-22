@@ -6,22 +6,23 @@ import { ProductsClient } from "./ProductsClient";
 
 export const dynamic = "force-dynamic";
 
-export default async function AdminProductsPage({ searchParams }: { searchParams: Promise<{ [key: string]: string | undefined }> }) {
+export default async function AdminProductsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ [key: string]: string | undefined }>;
+}) {
   await dbConnect();
   const params = await searchParams;
-  
+
   const q = params.q || "";
   const page = parseInt(params.page || "1", 10);
   const limit = 10;
   const sortKey = params.sort || "createdAt";
   const sortOrder = params.order === "asc" ? 1 : -1;
-  
+
   const query: any = {};
   if (q) {
-    query.$or = [
-      { name: { $regex: q, $options: "i" } },
-      { slug: { $regex: q, $options: "i" } }
-    ];
+    query.$or = [{ name: { $regex: q, $options: "i" } }, { slug: { $regex: q, $options: "i" } }];
   }
 
   const sortObj: any = {};
@@ -34,13 +35,13 @@ export default async function AdminProductsPage({ searchParams }: { searchParams
       .skip((page - 1) * limit)
       .limit(limit)
       .lean(),
-    Product.countDocuments(query)
+    Product.countDocuments(query),
   ]);
-    
+
   const products = productsRaw.map((p: any) => {
     // Total stock is sum of all variant stocks
     const totalStock = p.variants?.reduce((sum: number, v: any) => sum + (v.stock || 0), 0) || 0;
-    
+
     return {
       id: p._id.toString(),
       name: p.name,

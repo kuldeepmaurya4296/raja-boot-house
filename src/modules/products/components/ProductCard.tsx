@@ -34,18 +34,24 @@ export function ProductCard({ product, index = 0 }: { product: Product; index?: 
             whileHover={{ scale: 1.05 }}
             transition={{ duration: 0.5, ease: "easeOut" }}
           />
-          {product.badge && (
-            <span
-              className={`absolute top-3 left-3 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider rounded-full ${
-                product.badge === "sale"
-                  ? "bg-destructive text-destructive-foreground"
-                  : product.badge === "new"
-                    ? "bg-accent text-accent-foreground"
-                    : "bg-charcoal text-cream"
-              }`}
-            >
-              {product.badge}
+          {(product as any).flashSale ? (
+            <span className="absolute top-3 left-3 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider rounded-full bg-red-600 text-white animate-pulse shadow-sm z-10">
+              ⚡ Flash Sale
             </span>
+          ) : (
+            product.badge && (
+              <span
+                className={`absolute top-3 left-3 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider rounded-full ${
+                  product.badge === "sale"
+                    ? "bg-destructive text-destructive-foreground"
+                    : product.badge === "new"
+                      ? "bg-accent text-accent-foreground"
+                      : "bg-charcoal text-cream"
+                }`}
+              >
+                {product.badge}
+              </span>
+            )
           )}
           <button
             onClick={(e) => {
@@ -60,7 +66,7 @@ export function ProductCard({ product, index = 0 }: { product: Product; index?: 
               className={`h-4 w-4 transition ${wished ? "fill-primary text-primary" : "text-charcoal"}`}
             />
           </button>
-          
+
           {/* Add to Cart button overlay */}
           <div className="absolute inset-x-3 bottom-3 md:translate-y-12 md:opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-300 z-10">
             <button
@@ -89,7 +95,11 @@ export function ProductCard({ product, index = 0 }: { product: Product; index?: 
             {product.name}
           </h3>
           <div className="flex items-baseline gap-2">
-            <span className="text-sm font-semibold text-foreground">{formatINR(product.price)}</span>
+            <span
+              className={`text-sm font-bold ${(product as any).flashSale ? "text-red-600" : "text-foreground"}`}
+            >
+              {formatINR(product.price)}
+            </span>
             {product.compareAt && (
               <span className="text-xs text-muted-foreground line-through">
                 {formatINR(product.compareAt)}

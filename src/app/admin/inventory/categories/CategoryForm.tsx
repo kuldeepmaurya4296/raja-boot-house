@@ -21,11 +21,24 @@ const schema = z.object({
 
 type FormData = z.infer<typeof schema>;
 
-export function CategoryForm({ initialData, id }: { initialData?: Partial<FormData>, id?: string }) {
+export function CategoryForm({
+  initialData,
+  id,
+}: {
+  initialData?: Partial<FormData>;
+  id?: string;
+}) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
 
-  const { register, control, handleSubmit, formState: { errors }, watch, setValue } = useForm<FormData>({
+  const {
+    register,
+    control,
+    handleSubmit,
+    formState: { errors },
+    watch,
+    setValue,
+  } = useForm<FormData>({
     resolver: zodResolver(schema),
     defaultValues: {
       name: initialData?.name || "",
@@ -33,7 +46,7 @@ export function CategoryForm({ initialData, id }: { initialData?: Partial<FormDa
       description: initialData?.description || "",
       isActive: initialData?.isActive ?? true,
       imageUrl: initialData?.imageUrl || "",
-    }
+    },
   });
 
   const imageUrlValue = watch("imageUrl");
@@ -43,7 +56,13 @@ export function CategoryForm({ initialData, id }: { initialData?: Partial<FormDa
     const val = e.target.value;
     setValue("name", val);
     if (!initialData?.slug && !watch("slug")) {
-      setValue("slug", val.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)+/g, ""));
+      setValue(
+        "slug",
+        val
+          .toLowerCase()
+          .replace(/[^a-z0-9]+/g, "-")
+          .replace(/(^-|-$)+/g, ""),
+      );
     }
   };
 
@@ -55,9 +74,9 @@ export function CategoryForm({ initialData, id }: { initialData?: Partial<FormDa
     } else {
       res = await createCategory(data);
     }
-    
+
     if (res.success) {
-      toast.success(`Category ${id ? 'updated' : 'created'} successfully!`);
+      toast.success(`Category ${id ? "updated" : "created"} successfully!`);
       router.push("/admin/inventory/categories");
     } else {
       toast.error(res.error || "Something went wrong.");
@@ -67,17 +86,22 @@ export function CategoryForm({ initialData, id }: { initialData?: Partial<FormDa
 
   return (
     <div className="max-w-2xl mx-auto">
-      <Link href="/admin/inventory/categories" className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground mb-6">
+      <Link
+        href="/admin/inventory/categories"
+        className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground mb-6"
+      >
         <ChevronLeft className="h-4 w-4 mr-1" /> Back to Categories
       </Link>
-      
+
       <div className="bg-card border border-border rounded-xl p-6 shadow-card">
-        <h2 className="font-serif font-bold text-xl mb-6">{id ? 'Edit Category' : 'Create Category'}</h2>
-        
+        <h2 className="font-serif font-bold text-xl mb-6">
+          {id ? "Edit Category" : "Create Category"}
+        </h2>
+
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <div>
             <label className="block text-sm font-medium mb-1">Name</label>
-            <input 
+            <input
               {...register("name")}
               onChange={handleNameChange}
               className="w-full px-3 py-2 border border-border rounded-md bg-background focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
@@ -88,7 +112,7 @@ export function CategoryForm({ initialData, id }: { initialData?: Partial<FormDa
 
           <div>
             <label className="block text-sm font-medium mb-1">Slug</label>
-            <input 
+            <input
               {...register("slug")}
               className="w-full px-3 py-2 border border-border rounded-md bg-background focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
               placeholder="e.g. running-shoes"
@@ -98,7 +122,7 @@ export function CategoryForm({ initialData, id }: { initialData?: Partial<FormDa
 
           <div>
             <label className="block text-sm font-medium mb-1">Description</label>
-            <textarea 
+            <textarea
               {...register("description")}
               className="w-full px-3 py-2 border border-border rounded-md bg-background focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
               rows={4}
@@ -119,22 +143,26 @@ export function CategoryForm({ initialData, id }: { initialData?: Partial<FormDa
                 />
               )}
             />
-            {errors.imageUrl && <p className="text-red-500 text-xs mt-1">{errors.imageUrl.message}</p>}
+            {errors.imageUrl && (
+              <p className="text-red-500 text-xs mt-1">{errors.imageUrl.message}</p>
+            )}
           </div>
 
           <div className="flex items-center gap-2 mt-2">
-            <input 
-              type="checkbox" 
-              id="isActive" 
+            <input
+              type="checkbox"
+              id="isActive"
               {...register("isActive")}
               className="h-4 w-4 rounded border-border text-primary focus:ring-primary"
             />
-            <label htmlFor="isActive" className="text-sm font-medium">Active (Visible on store)</label>
+            <label htmlFor="isActive" className="text-sm font-medium">
+              Active (Visible on store)
+            </label>
           </div>
 
           <div className="pt-4 flex justify-end">
-            <button 
-              type="submit" 
+            <button
+              type="submit"
               disabled={loading}
               className="bg-primary text-primary-foreground px-6 py-2 rounded-md font-medium hover:bg-primary/90 transition-colors disabled:opacity-50"
             >

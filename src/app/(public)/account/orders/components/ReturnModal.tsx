@@ -18,12 +18,7 @@ interface ReturnModalProps {
   onSuccess: () => void;
 }
 
-export function ReturnModal({
-  order,
-  daysRemaining,
-  onClose,
-  onSuccess,
-}: ReturnModalProps) {
+export function ReturnModal({ order, daysRemaining, onClose, onSuccess }: ReturnModalProps) {
   const [reason, setReason] = useState("");
   const [details, setDetails] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -72,7 +67,10 @@ export function ReturnModal({
               <p className="text-xs text-muted-foreground mt-0.5">Order {order.orderId}</p>
             </div>
           </div>
-          <button onClick={onClose} className="h-8 w-8 rounded-full hover:bg-muted flex items-center justify-center transition cursor-pointer">
+          <button
+            onClick={onClose}
+            className="h-8 w-8 rounded-full hover:bg-muted flex items-center justify-center transition cursor-pointer"
+          >
             <X className="h-4 w-4" />
           </button>
         </div>
@@ -83,20 +81,29 @@ export function ReturnModal({
           <div className="flex items-start gap-2.5 bg-amber-500/10 border border-amber-500/20 rounded-lg p-3">
             <Clock className="h-4 w-4 text-amber-600 mt-0.5 shrink-0" />
             <p className="text-xs text-amber-700 dark:text-amber-400 leading-relaxed">
-              You have <strong>{daysRemaining} day{daysRemaining !== 1 ? "s" : ""}</strong> remaining to request a return. Your request will be reviewed by our team before approval.
+              You have{" "}
+              <strong>
+                {daysRemaining} day{daysRemaining !== 1 ? "s" : ""}
+              </strong>{" "}
+              remaining to request a return. Your request will be reviewed by our team before
+              approval.
             </p>
           </div>
 
           {/* Items preview */}
           <div className="space-y-2">
-            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Items in this order</p>
+            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+              Items in this order
+            </p>
             <div className="space-y-2 max-h-32 overflow-y-auto">
               {order.items.map((it: any, i: number) => (
                 <div key={i} className="flex items-center gap-2.5">
                   <img src={it.image} alt="" className="h-10 w-10 rounded-md object-cover" />
                   <div className="flex-1 min-w-0">
                     <p className="text-xs font-medium truncate">{it.name}</p>
-                    <p className="text-[10px] text-muted-foreground">Size {it.size} · {it.color}</p>
+                    <p className="text-[10px] text-muted-foreground">
+                      Size {it.size} · {it.color}
+                    </p>
                   </div>
                 </div>
               ))}
@@ -115,7 +122,9 @@ export function ReturnModal({
             >
               <option value="">Select a reason…</option>
               {RETURN_REASONS.map((r) => (
-                <option key={r} value={r}>{r}</option>
+                <option key={r} value={r}>
+                  {r}
+                </option>
               ))}
             </select>
           </div>

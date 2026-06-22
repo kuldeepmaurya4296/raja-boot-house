@@ -7,7 +7,7 @@ import { formatINR } from "@/lib/format";
 import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import { toast } from "sonner";
-import { Plus, ArrowRight, ShieldCheck } from "lucide-react";
+import { Plus, ArrowRight, ShieldCheck, Sparkles } from "lucide-react";
 import { useSettings } from "@/lib/settings-context";
 
 // Shared and sub-components
@@ -56,7 +56,9 @@ export default function CheckoutPage() {
           const res = await fetch(`/api/products/${line.productId}`);
           if (res.ok) {
             const product = await res.json();
-            const variant = product.variants?.find((v: any) => v.size === line.size && v.color === line.color);
+            const variant = product.variants?.find(
+              (v: any) => v.size === line.size && v.color === line.color,
+            );
             const key = `${line.productId}-${line.size}-${line.color}`;
             if (!variant) {
               errors[key] = "Variant unavailable";
@@ -91,11 +93,11 @@ export default function CheckoutPage() {
     }
 
     fetch("/api/user/addresses")
-      .then(res => res.json())
-      .then(data => {
+      .then((res) => res.json())
+      .then((data) => {
         if (Array.isArray(data)) {
           setSavedAddresses(data);
-          const def = data.find(a => a.isDefault);
+          const def = data.find((a) => a.isDefault);
           if (def) {
             setSelectedAddressId(def._id);
             setFullName(def.fullName || "");
@@ -177,6 +179,22 @@ export default function CheckoutPage() {
   const [couponDiscount, setCouponDiscount] = useState(0);
   const [couponMessage, setCouponMessage] = useState("");
 
+  // Loyalty Points States
+  const [loyaltyPoints, setLoyaltyPoints] = useState(0);
+  const [redeemPoints, setRedeemPoints] = useState(false);
+
+  useEffect(() => {
+    if (!session?.user?.id) return;
+    fetch("/api/user/loyalty")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data && typeof data.balance === "number") {
+          setLoyaltyPoints(data.balance);
+        }
+      })
+      .catch(console.error);
+  }, [session?.user?.id]);
+
   const handleApplyCoupon = async () => {
     if (!couponCode.trim()) {
       setCouponMessage("Please enter a coupon code");
@@ -186,7 +204,7 @@ export default function CheckoutPage() {
       const res = await fetch("/api/coupons/validate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ code: couponCode, cartValue: subtotal })
+        body: JSON.stringify({ code: couponCode, cartValue: subtotal }),
       });
       const data = await res.json();
       if (data.valid) {
@@ -221,7 +239,9 @@ export default function CheckoutPage() {
 
   const taxableAmount = Math.max(0, subtotal - couponDiscount);
   const tax = Math.round(taxableAmount * (settings.taxRate / 100));
-  const total = Math.max(0, taxableAmount + shippingCost + tax);
+  const totalBeforePoints = Math.max(0, taxableAmount + shippingCost + tax);
+  const pointsDiscount = redeemPoints ? Math.min(loyaltyPoints, totalBeforePoints) : 0;
+  const total = Math.max(0, totalBeforePoints - pointsDiscount);
 
   const handleShippingChange = (name: string, price: number) => {
     setShippingMethod(name);
@@ -244,7 +264,7 @@ export default function CheckoutPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           userId: session?.user?.id || null,
-          items: lines.map(l => ({
+          items: lines.map((l) => ({
             productId: l.productId,
             name: l.name,
             image: l.image,
@@ -267,12 +287,15 @@ export default function CheckoutPage() {
             subtotal,
             shipping: shippingCost,
             couponDiscount,
+            pointsDiscount,
             total,
           },
-          coupon: couponApplied ? {
-            code: couponCode,
-            discountAmount: couponDiscount,
-          } : undefined,
+          coupon: couponApplied
+            ? {
+                code: couponCode,
+                discountAmount: couponDiscount,
+              }
+            : undefined,
           payment: {
             method: paymentMethod === "COD" ? "COD" : "UPI",
             status: "PENDING",
@@ -333,7 +356,8 @@ export default function CheckoutPage() {
       };
 
       // 2B. Trigger Razorpay checkout flow
-      const razorpayKey = process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || rzpOrderData.key_id || "rzp_test_dummykey";
+      const razorpayKey =
+        process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || rzpOrderData.key_id || "rzp_test_dummykey";
 
       if (typeof window !== "undefined" && (window as any).Razorpay) {
         const options = {
@@ -377,7 +401,7 @@ export default function CheckoutPage() {
             ondismiss: function () {
               toast.error("Payment window closed. Order cancelled.");
               cancelOrder("Payment window dismissed by customer.");
-            }
+            },
           },
           prefill: {
             name: fullName,
@@ -438,15 +462,20 @@ export default function CheckoutPage() {
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-24 text-center max-w-md">
         <div className="h-16 w-16 bg-brass/10 rounded-full flex items-center justify-center mx-auto mb-6 text-cognac">
           <svg className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={1.5}
+              d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"
+            />
           </svg>
         </div>
         <h2 className="font-serif text-2xl font-bold text-charcoal mb-2">Your Bag is Empty</h2>
         <p className="text-muted-foreground text-sm mb-6">
           Before you proceed to checkout, you must add some beautiful styles to your shopping bag.
         </p>
-        <Link 
-          href="/shop" 
+        <Link
+          href="/shop"
           className="inline-flex items-center gap-2 bg-charcoal text-cream hover:bg-cognac px-6 py-3 rounded-full text-xs font-bold uppercase tracking-wider transition-all duration-300 shadow-md hover:shadow-lg cursor-pointer"
         >
           Explore the Collection
@@ -466,8 +495,12 @@ export default function CheckoutPage() {
 
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-16 lg:py-20">
         <div className="mb-6">
-          <p className="text-[11px] uppercase tracking-[0.35em] text-cognac font-extrabold mb-1.5">Secure Transaction</p>
-          <h1 className="font-serif text-4xl md:text-5xl font-bold text-charcoal tracking-tight">Checkout</h1>
+          <p className="text-[11px] uppercase tracking-[0.35em] text-cognac font-extrabold mb-1.5">
+            Secure Transaction
+          </p>
+          <h1 className="font-serif text-4xl md:text-5xl font-bold text-charcoal tracking-tight">
+            Checkout
+          </h1>
         </div>
 
         {/* Wizard Steps Header */}
@@ -491,13 +524,16 @@ export default function CheckoutPage() {
                           <div
                             key={a._id}
                             onClick={() => handleSelectAddress(a)}
-                            className={`border rounded-2xl p-4.5 cursor-pointer hover:bg-cream/40 transition-all duration-300 ${isSelected
+                            className={`border rounded-2xl p-4.5 cursor-pointer hover:bg-cream/40 transition-all duration-300 ${
+                              isSelected
                                 ? "border-cognac bg-cognac/5 shadow-xs"
                                 : "border-border bg-card"
-                              }`}
+                            }`}
                           >
                             <div className="flex items-center justify-between mb-2">
-                              <span className={`font-bold text-[10px] uppercase tracking-widest ${isSelected ? "text-cognac" : "text-muted-foreground"}`}>
+                              <span
+                                className={`font-bold text-[10px] uppercase tracking-widest ${isSelected ? "text-cognac" : "text-muted-foreground"}`}
+                              >
                                 {a.label}
                               </span>
                               {a.isDefault && (
@@ -508,7 +544,8 @@ export default function CheckoutPage() {
                             </div>
                             <p className="font-bold text-xs mb-1 text-charcoal">{a.fullName}</p>
                             <p className="text-xs text-muted-foreground leading-relaxed">
-                              {a.line1}{a.line2 ? `, ${a.line2}` : ""}, {a.city}, {a.state} - {a.pin}
+                              {a.line1}
+                              {a.line2 ? `, ${a.line2}` : ""}, {a.city}, {a.state} - {a.pin}
                             </p>
                           </div>
                         );
@@ -516,13 +553,16 @@ export default function CheckoutPage() {
 
                       <div
                         onClick={() => handleSelectAddress("new")}
-                        className={`border border-dashed rounded-2xl p-4.5 cursor-pointer hover:border-cognac hover:bg-cream/30 flex flex-col justify-center items-center text-center transition min-h-[105px] ${selectedAddressId === "new"
+                        className={`border border-dashed rounded-2xl p-4.5 cursor-pointer hover:border-cognac hover:bg-cream/30 flex flex-col justify-center items-center text-center transition min-h-[105px] ${
+                          selectedAddressId === "new"
                             ? "border-cognac bg-cognac/5"
                             : "border-border/80 bg-card"
-                          }`}
+                        }`}
                       >
                         <Plus className="h-4.5 w-4.5 text-cognac mb-1.5" />
-                        <span className="font-bold text-xs text-muted-foreground">Deliver to a new address</span>
+                        <span className="font-bold text-xs text-muted-foreground">
+                          Deliver to a new address
+                        </span>
                       </div>
                     </div>
                   </div>
@@ -530,18 +570,42 @@ export default function CheckoutPage() {
 
                 {savedAddresses.length > 0 && (
                   <p className="text-[10px] font-extrabold text-muted-foreground uppercase tracking-widest mt-6 mb-3">
-                    {selectedAddressId === "new" ? "Enter Address Details" : "Confirm or Edit Address Details"}
+                    {selectedAddressId === "new"
+                      ? "Enter Address Details"
+                      : "Confirm or Edit Address Details"}
                   </p>
                 )}
 
                 <div className="grid md:grid-cols-2 gap-4.5">
-                  <Input label="Full Name" value={fullName} onChange={(e) => setFullName(e.target.value)} />
-                  <Input label="Phone Number" value={phone} onChange={(e) => setPhone(e.target.value)} />
-                  <Input label="Address Line 1" value={line1} onChange={(e) => setLine1(e.target.value)} wide />
-                  <Input label="Address Line 2" value={line2} onChange={(e) => setLine2(e.target.value)} wide />
+                  <Input
+                    label="Full Name"
+                    value={fullName}
+                    onChange={(e) => setFullName(e.target.value)}
+                  />
+                  <Input
+                    label="Phone Number"
+                    value={phone}
+                    onChange={(e) => setPhone(e.target.value)}
+                  />
+                  <Input
+                    label="Address Line 1"
+                    value={line1}
+                    onChange={(e) => setLine1(e.target.value)}
+                    wide
+                  />
+                  <Input
+                    label="Address Line 2"
+                    value={line2}
+                    onChange={(e) => setLine2(e.target.value)}
+                    wide
+                  />
                   <Input label="City" value={city} onChange={(e) => setCity(e.target.value)} />
                   <Input label="State" value={state} onChange={(e) => setState(e.target.value)} />
-                  <Input label="ZIP / PIN Code" value={zip} onChange={(e) => setZip(e.target.value)} />
+                  <Input
+                    label="ZIP / PIN Code"
+                    value={zip}
+                    onChange={(e) => setZip(e.target.value)}
+                  />
                 </div>
               </>
             )}
@@ -555,10 +619,9 @@ export default function CheckoutPage() {
                     return (
                       <label
                         key={name}
-                        className={`flex items-center justify-between border rounded-2xl p-4.5 cursor-pointer hover:bg-cream/40 transition-all duration-300 ${isChecked
-                            ? "border-cognac bg-cognac/5"
-                            : "border-border/80 bg-card"
-                          }`}
+                        className={`flex items-center justify-between border rounded-2xl p-4.5 cursor-pointer hover:bg-cream/40 transition-all duration-300 ${
+                          isChecked ? "border-cognac bg-cognac/5" : "border-border/80 bg-card"
+                        }`}
                       >
                         <div className="flex items-center gap-3.5">
                           <input
@@ -573,7 +636,9 @@ export default function CheckoutPage() {
                             <div className="text-xs text-muted-foreground mt-0.5">{desc}</div>
                           </div>
                         </div>
-                        <span className="font-bold text-sm text-charcoal">{price === 0 ? "Free" : formatINR(price)}</span>
+                        <span className="font-bold text-sm text-charcoal">
+                          {price === 0 ? "Free" : formatINR(price)}
+                        </span>
                       </label>
                     );
                   })}
@@ -603,11 +668,45 @@ export default function CheckoutPage() {
                     </button>
                   </div>
                   {couponMessage && (
-                    <p className={`text-xs mt-2 font-bold ${couponApplied ? "text-green-600 animate-in fade-in" : "text-destructive animate-in fade-in"}`}>
+                    <p
+                      className={`text-xs mt-2 font-bold ${couponApplied ? "text-green-600 animate-in fade-in" : "text-destructive animate-in fade-in"}`}
+                    >
                       {couponMessage}
                     </p>
                   )}
                 </div>
+
+                {/* Loyalty Points Section */}
+                {session && loyaltyPoints > 0 && (
+                  <div className="border-t border-border/40 pt-6 mt-6">
+                    <h3 className="font-serif text-lg font-bold text-charcoal mb-2 flex items-center gap-2">
+                      <Sparkles className="h-4.5 w-4.5 text-cognac" />
+                      Redeem Loyalty Points
+                    </h3>
+                    <p className="text-xs text-muted-foreground mb-4">
+                      You have{" "}
+                      <span className="font-bold text-charcoal">{loyaltyPoints} points</span>{" "}
+                      available (worth {formatINR(loyaltyPoints)}).
+                    </p>
+                    <label className="flex items-center gap-3 border border-dashed rounded-2xl p-4.5 cursor-pointer bg-amber-50/15 border-amber-300/40 hover:bg-amber-50/20 transition-all duration-300">
+                      <input
+                        type="checkbox"
+                        checked={redeemPoints}
+                        onChange={(e) => setRedeemPoints(e.target.checked)}
+                        className="h-4 w-4 text-amber-600 focus:ring-amber-500 border-border cursor-pointer accent-amber-600"
+                      />
+                      <div>
+                        <span className="font-serif font-bold text-sm text-charcoal">
+                          Redeem points for this order
+                        </span>
+                        <span className="text-xs text-muted-foreground block mt-0.5">
+                          Applies a discount of{" "}
+                          {formatINR(Math.min(loyaltyPoints, totalBeforePoints))}
+                        </span>
+                      </div>
+                    </label>
+                  </div>
+                )}
               </>
             )}
 
@@ -616,17 +715,25 @@ export default function CheckoutPage() {
                 <h2 className="font-serif text-xl font-bold text-charcoal">Payment Method</h2>
                 <div className="space-y-3 mb-5">
                   {[
-                    ...(settings.razorpayEnabled !== false ? [{ key: "Online", name: "Pay Online Secured (Card, UPI, Wallet, Net Banking)" }] : []),
-                    ...(settings.codEnabled !== false ? [{ key: "COD", name: "Cash On Delivery (COD)" }] : []),
+                    ...(settings.razorpayEnabled !== false
+                      ? [
+                          {
+                            key: "Online",
+                            name: "Pay Online Secured (Card, UPI, Wallet, Net Banking)",
+                          },
+                        ]
+                      : []),
+                    ...(settings.codEnabled !== false
+                      ? [{ key: "COD", name: "Cash On Delivery (COD)" }]
+                      : []),
                   ].map(({ key, name }) => {
                     const isChecked = paymentMethod === key;
                     return (
                       <label
                         key={key}
-                        className={`flex items-center gap-3.5 border rounded-2xl p-4.5 cursor-pointer hover:bg-cream/40 transition-all duration-300 ${isChecked
-                            ? "border-cognac bg-cognac/5"
-                            : "border-border/80 bg-card"
-                          }`}
+                        className={`flex items-center gap-3.5 border rounded-2xl p-4.5 cursor-pointer hover:bg-cream/40 transition-all duration-300 ${
+                          isChecked ? "border-cognac bg-cognac/5" : "border-border/80 bg-card"
+                        }`}
                       >
                         <input
                           type="radio"
@@ -647,7 +754,8 @@ export default function CheckoutPage() {
                 </div>
                 {paymentMethod !== "COD" && settings.razorpayEnabled !== false && (
                   <div className="bg-brass/5 border border-brass/20 p-4 rounded-xl text-xs text-cognac leading-relaxed">
-                    Secure digital payment checkout is powered by Razorpay. Supported features: Direct UPI, Cards, Net Banking, and Wallet apps.
+                    Secure digital payment checkout is powered by Razorpay. Supported features:
+                    Direct UPI, Cards, Net Banking, and Wallet apps.
                   </div>
                 )}
 
@@ -671,26 +779,55 @@ export default function CheckoutPage() {
                         }`}
                       >
                         {policyAccepted && (
-                          <svg className="h-3 w-3 text-cream" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                          <svg
+                            className="h-3 w-3 text-cream"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                            strokeWidth={3}
+                          >
                             <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                           </svg>
                         )}
                       </label>
                     </div>
-                    <label htmlFor="policy-accept" className="text-xs leading-relaxed text-muted-foreground cursor-pointer select-none">
+                    <label
+                      htmlFor="policy-accept"
+                      className="text-xs leading-relaxed text-muted-foreground cursor-pointer select-none"
+                    >
                       I have read and agree to the store&apos;s{" "}
-                      <Link href="/privacy-policy" target="_blank" className="text-cognac font-bold underline underline-offset-2 hover:text-charcoal transition-colors">
+                      <Link
+                        href="/privacy-policy"
+                        target="_blank"
+                        className="text-cognac font-bold underline underline-offset-2 hover:text-charcoal transition-colors"
+                      >
                         Privacy Policy
-                      </Link>,{" "}
-                      <Link href="/terms" target="_blank" className="text-cognac font-bold underline underline-offset-2 hover:text-charcoal transition-colors">
+                      </Link>
+                      ,{" "}
+                      <Link
+                        href="/terms"
+                        target="_blank"
+                        className="text-cognac font-bold underline underline-offset-2 hover:text-charcoal transition-colors"
+                      >
                         Terms &amp; Conditions
-                      </Link>,{" "}
-                      <Link href="/delivery-policy" target="_blank" className="text-cognac font-bold underline underline-offset-2 hover:text-charcoal transition-colors">
+                      </Link>
+                      ,{" "}
+                      <Link
+                        href="/delivery-policy"
+                        target="_blank"
+                        className="text-cognac font-bold underline underline-offset-2 hover:text-charcoal transition-colors"
+                      >
                         Delivery Policy
-                      </Link>, and{" "}
-                      <Link href="/refund-policy" target="_blank" className="text-cognac font-bold underline underline-offset-2 hover:text-charcoal transition-colors">
+                      </Link>
+                      , and{" "}
+                      <Link
+                        href="/refund-policy"
+                        target="_blank"
+                        className="text-cognac font-bold underline underline-offset-2 hover:text-charcoal transition-colors"
+                      >
                         Refund &amp; Returns Policy
-                      </Link>.
+                      </Link>
+                      .
                     </label>
                   </div>
                   {!policyAccepted && (
@@ -708,28 +845,58 @@ export default function CheckoutPage() {
             <div className="flex justify-between pt-6 border-t border-border/40 mt-8">
               <button
                 disabled={step === 1 || loading}
-                onClick={() => setStep(((step - 1) || 1) as 1 | 2 | 3)}
+                onClick={() => setStep((step - 1 || 1) as 1 | 2 | 3)}
                 className="text-xs uppercase tracking-wider font-extrabold disabled:opacity-30 px-5 py-3 hover:bg-muted/60 rounded-full transition-all duration-300 cursor-pointer text-muted-foreground hover:text-charcoal"
               >
                 ← Back
               </button>
 
               <button
-                disabled={loading || Object.keys(stockErrors).length > 0 || (step === 3 && (!policyAccepted || (settings.razorpayEnabled === false && settings.codEnabled === false)))}
+                disabled={
+                  loading ||
+                  Object.keys(stockErrors).length > 0 ||
+                  (step === 3 &&
+                    (!policyAccepted ||
+                      (settings.razorpayEnabled === false && settings.codEnabled === false)))
+                }
                 onClick={() => {
                   if (Object.keys(stockErrors).length > 0) {
                     toast.error("Please remove out of stock items from your cart to proceed.");
                     return;
                   }
                   if (step === 1) {
-                    if (!fullName.trim()) { toast.error("Full name is required"); return; }
-                    if (!phone.trim()) { toast.error("Phone number is required"); return; }
-                    if (!/^[6-9]\d{9}$/.test(phone.replace(/\s+/g, ""))) { toast.error("Enter a valid 10-digit Indian mobile number"); return; }
-                    if (!line1.trim()) { toast.error("Address line 1 is required"); return; }
-                    if (!city.trim()) { toast.error("City is required"); return; }
-                    if (!state.trim()) { toast.error("State is required"); return; }
-                    if (!zip.trim()) { toast.error("ZIP/PIN code is required"); return; }
-                    if (!/^\d{6}$/.test(zip.trim())) { toast.error("Enter a valid 6-digit Indian PIN code"); return; }
+                    if (!fullName.trim()) {
+                      toast.error("Full name is required");
+                      return;
+                    }
+                    if (!phone.trim()) {
+                      toast.error("Phone number is required");
+                      return;
+                    }
+                    if (!/^[6-9]\d{9}$/.test(phone.replace(/\s+/g, ""))) {
+                      toast.error("Enter a valid 10-digit Indian mobile number");
+                      return;
+                    }
+                    if (!line1.trim()) {
+                      toast.error("Address line 1 is required");
+                      return;
+                    }
+                    if (!city.trim()) {
+                      toast.error("City is required");
+                      return;
+                    }
+                    if (!state.trim()) {
+                      toast.error("State is required");
+                      return;
+                    }
+                    if (!zip.trim()) {
+                      toast.error("ZIP/PIN code is required");
+                      return;
+                    }
+                    if (!/^\d{6}$/.test(zip.trim())) {
+                      toast.error("Enter a valid 6-digit Indian PIN code");
+                      return;
+                    }
                     setStep(2);
                   } else if (step === 2) {
                     setStep(3);
@@ -754,20 +921,30 @@ export default function CheckoutPage() {
               tax={tax}
               couponDiscount={couponDiscount}
               couponCode={couponCode}
+              pointsDiscount={pointsDiscount}
               actionButton={
                 <div className="border-t border-border/40 pt-5 mt-3">
                   <p className="text-[10px] font-extrabold text-muted-foreground uppercase tracking-widest mb-3">
                     Items in your bag ({lines.length})
                   </p>
                   <div className="space-y-3.5 max-h-64 overflow-y-auto pr-1 scrollbar-thin">
-                    {lines.map(l => {
+                    {lines.map((l) => {
                       const key = `${l.productId}-${l.size}-${l.color}`;
                       const errorMsg = stockErrors[key];
                       return (
-                        <div key={l.productId + l.size + l.color} className="flex gap-3 text-xs md:text-sm">
-                          <img src={l.image} alt="" className="h-12 w-12 rounded-lg object-cover border border-border/40 shadow-2xs" />
+                        <div
+                          key={l.productId + l.size + l.color}
+                          className="flex gap-3 text-xs md:text-sm"
+                        >
+                          <img
+                            src={l.image}
+                            alt=""
+                            className="h-12 w-12 rounded-lg object-cover border border-border/40 shadow-2xs"
+                          />
                           <div className="flex-1 min-w-0">
-                            <div className="font-medium text-charcoal leading-tight truncate">{l.name}</div>
+                            <div className="font-medium text-charcoal leading-tight truncate">
+                              {l.name}
+                            </div>
                             <div className="text-xs text-muted-foreground mt-0.5 flex gap-2 items-center">
                               <span>Qty: {l.quantity}</span>
                               <span className="text-border">|</span>
@@ -781,7 +958,9 @@ export default function CheckoutPage() {
                               </div>
                             )}
                           </div>
-                          <div className="font-bold text-charcoal text-xs">{formatINR(l.price * l.quantity)}</div>
+                          <div className="font-bold text-charcoal text-xs">
+                            {formatINR(l.price * l.quantity)}
+                          </div>
                         </div>
                       );
                     })}

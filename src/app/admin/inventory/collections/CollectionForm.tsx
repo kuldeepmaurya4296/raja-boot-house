@@ -44,7 +44,14 @@ export function CollectionForm({
   const [selectedProducts, setSelectedProducts] = useState<string[]>(initialData?.products || []);
   const [searchQuery, setSearchQuery] = useState("");
 
-  const { register, control, handleSubmit, formState: { errors }, watch, setValue } = useForm<FormData>({
+  const {
+    register,
+    control,
+    handleSubmit,
+    formState: { errors },
+    watch,
+    setValue,
+  } = useForm<FormData>({
     resolver: zodResolver(schema),
     defaultValues: {
       name: initialData?.name || "",
@@ -53,29 +60,33 @@ export function CollectionForm({
       imageUrl: initialData?.imageUrl || "",
       isActive: initialData?.isActive ?? true,
       isFeatured: initialData?.isFeatured ?? false,
-    }
+    },
   });
 
   const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const val = e.target.value;
     setValue("name", val);
     if (!initialData?.slug && !watch("slug")) {
-      setValue("slug", val.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)+/g, ""));
+      setValue(
+        "slug",
+        val
+          .toLowerCase()
+          .replace(/[^a-z0-9]+/g, "-")
+          .replace(/(^-|-$)+/g, ""),
+      );
     }
   };
 
   const toggleProduct = (productId: string) => {
     setSelectedProducts((prev) =>
-      prev.includes(productId)
-        ? prev.filter((p) => p !== productId)
-        : [...prev, productId]
+      prev.includes(productId) ? prev.filter((p) => p !== productId) : [...prev, productId],
     );
   };
 
   const filteredProducts = productsList.filter(
     (p) =>
       p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      p.brand.toLowerCase().includes(searchQuery.toLowerCase())
+      p.brand.toLowerCase().includes(searchQuery.toLowerCase()),
   );
 
   const onSubmit = async (data: FormData) => {
@@ -93,7 +104,7 @@ export function CollectionForm({
     }
 
     if (res.success) {
-      toast.success(`Collection ${id ? 'updated' : 'created'} successfully!`);
+      toast.success(`Collection ${id ? "updated" : "created"} successfully!`);
       router.push("/admin/inventory/collections");
     } else {
       toast.error(res.error || "Something went wrong.");
@@ -103,13 +114,18 @@ export function CollectionForm({
 
   return (
     <div className="max-w-3xl mx-auto">
-      <Link href="/admin/inventory/collections" className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground mb-6">
+      <Link
+        href="/admin/inventory/collections"
+        className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground mb-6"
+      >
         <ChevronLeft className="h-4 w-4 mr-1" /> Back to Collections
       </Link>
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
         <div className="bg-card border border-border rounded-xl p-6 shadow-card">
-          <h2 className="font-serif font-bold text-xl mb-6">{id ? 'Edit Collection' : 'Create Collection'}</h2>
+          <h2 className="font-serif font-bold text-xl mb-6">
+            {id ? "Edit Collection" : "Create Collection"}
+          </h2>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
@@ -166,7 +182,9 @@ export function CollectionForm({
                   {...register("isActive")}
                   className="h-4 w-4 rounded border-border text-primary focus:ring-primary"
                 />
-                <label htmlFor="isActive" className="text-sm font-medium">Active (Visible)</label>
+                <label htmlFor="isActive" className="text-sm font-medium">
+                  Active (Visible)
+                </label>
               </div>
               <div className="flex items-center gap-2">
                 <input
@@ -175,7 +193,9 @@ export function CollectionForm({
                   {...register("isFeatured")}
                   className="h-4 w-4 rounded border-border text-primary focus:ring-primary"
                 />
-                <label htmlFor="isFeatured" className="text-sm font-medium">Featured Collection</label>
+                <label htmlFor="isFeatured" className="text-sm font-medium">
+                  Featured Collection
+                </label>
               </div>
             </div>
           </div>
@@ -186,10 +206,14 @@ export function CollectionForm({
           <div className="flex justify-between items-center mb-4 flex-wrap gap-2">
             <div>
               <h3 className="font-serif font-bold text-lg">Select Products</h3>
-              <p className="text-xs text-muted-foreground">{selectedProducts.length} products selected in this collection</p>
+              <p className="text-xs text-muted-foreground">
+                {selectedProducts.length} products selected in this collection
+              </p>
             </div>
             <div className="relative w-64">
-              <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground"><Search className="h-4 w-4" /></span>
+              <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground">
+                <Search className="h-4 w-4" />
+              </span>
               <input
                 type="text"
                 value={searchQuery}
@@ -202,7 +226,9 @@ export function CollectionForm({
 
           <div className="border border-border rounded-lg max-h-[320px] overflow-y-auto divide-y divide-border bg-background">
             {filteredProducts.length === 0 ? (
-              <div className="p-8 text-center text-xs text-muted-foreground">No active products found matching search.</div>
+              <div className="p-8 text-center text-xs text-muted-foreground">
+                No active products found matching search.
+              </div>
             ) : (
               filteredProducts.map((prod) => {
                 const isChecked = selectedProducts.includes(prod.id);
@@ -218,10 +244,14 @@ export function CollectionForm({
                       </div>
                       <div className="min-w-0">
                         <p className="text-sm font-medium truncate">{prod.name}</p>
-                        <p className="text-xs text-muted-foreground font-semibold uppercase">{prod.brand}</p>
+                        <p className="text-xs text-muted-foreground font-semibold uppercase">
+                          {prod.brand}
+                        </p>
                       </div>
                     </div>
-                    <div className={`h-5 w-5 border rounded flex items-center justify-center transition-colors ${isChecked ? 'bg-primary border-primary text-primary-foreground' : 'border-border bg-background'}`}>
+                    <div
+                      className={`h-5 w-5 border rounded flex items-center justify-center transition-colors ${isChecked ? "bg-primary border-primary text-primary-foreground" : "border-border bg-background"}`}
+                    >
                       {isChecked && <Check className="h-3 w-3" />}
                     </div>
                   </div>

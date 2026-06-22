@@ -39,19 +39,21 @@ const getFilterMetadata = unstable_cache(
         occasions: [],
         colors: [],
         genders: [],
-        maxPrice: 5000
+        maxPrice: 5000,
       };
     }
 
     try {
       const brandIds = await Product.distinct("brand", { isActive: true });
-      const activeBrands = await Brand.find({ _id: { $in: brandIds.filter(Boolean) } }).select("name").lean();
+      const activeBrands = await Brand.find({ _id: { $in: brandIds.filter(Boolean) } })
+        .select("name")
+        .lean();
       const sortedBrands = activeBrands.map((b: any) => b.name).sort();
 
       const sizesAgg = await Product.aggregate([
         { $match: { isActive: true } },
         { $unwind: "$variants" },
-        { $group: { _id: null, sizes: { $addToSet: "$variants.size" } } }
+        { $group: { _id: null, sizes: { $addToSet: "$variants.size" } } },
       ]);
       const sortedSizes = (sizesAgg[0]?.sizes ?? [])
         .filter((s: any) => typeof s === "number")
@@ -70,9 +72,9 @@ const getFilterMetadata = unstable_cache(
           $group: {
             _id: { $toLower: "$variants.color" },
             name: { $first: "$variants.color" },
-            hex: { $first: "$variants.colorHex" }
-          }
-        }
+            hex: { $first: "$variants.colorHex" },
+          },
+        },
       ]);
       const sortedColors = colorsAgg
         .map((c: any) => ({ name: c.name, hex: c.hex }))
@@ -91,7 +93,7 @@ const getFilterMetadata = unstable_cache(
         occasions: sortedOccasions,
         colors: sortedColors,
         genders: sortedGenders,
-        maxPrice
+        maxPrice,
       };
     } catch (err) {
       console.error("Failed to generate filter metadata:", err);
@@ -101,17 +103,16 @@ const getFilterMetadata = unstable_cache(
         occasions: [],
         colors: [],
         genders: [],
-        maxPrice: 5000
+        maxPrice: 5000,
       };
     }
   },
   ["shop-filter-metadata"],
   {
     revalidate: 3600,
-    tags: ["filter-metadata"]
-  }
+    tags: ["filter-metadata"],
+  },
 );
-
 
 async function getShopData(filters: any) {
   const { isReady } = await ensureDbReady();
@@ -120,11 +121,24 @@ async function getShopData(filters: any) {
     return {
       categories: [],
       products: [],
-      total: 0
+      total: 0,
     };
   }
 
-  const { category, brand, occasion, search, sort, minPrice, maxPrice, size, limit, gender, color, collection } = filters;
+  const {
+    category,
+    brand,
+    occasion,
+    search,
+    sort,
+    minPrice,
+    maxPrice,
+    size,
+    limit,
+    gender,
+    color,
+    collection,
+  } = filters;
   const currentLimit = parseInt(limit || "8", 10);
 
   // 1. Fetch categories with active items
@@ -136,7 +150,8 @@ async function getShopData(filters: any) {
 
   // Collection filter
   if (collection) {
-    const Collection = mongoose.models.Collection || (await import("@/lib/models/Collection")).default;
+    const Collection =
+      mongoose.models.Collection || (await import("@/lib/models/Collection")).default;
     const collectionDoc = await Collection.findOne({ slug: collection, isActive: true });
     if (collectionDoc) {
       query._id = { $in: collectionDoc.products };
@@ -157,8 +172,10 @@ async function getShopData(filters: any) {
   if (brand) {
     const brandNames = brand.split(",").map((b: string) => b.trim());
     const matchedBrands = await Brand.find({
-      name: { $in: brandNames.map((b: string) => new RegExp(`^${escapeRegExp(b)}$`, "i")) }
-    }).select("_id").lean();
+      name: { $in: brandNames.map((b: string) => new RegExp(`^${escapeRegExp(b)}$`, "i")) },
+    })
+      .select("_id")
+      .lean();
     const brandIds = matchedBrands.map((b: any) => b._id);
     query.brand = { $in: brandIds };
   }
@@ -172,11 +189,7 @@ async function getShopData(filters: any) {
     const matchedBrands = await Brand.find({ name: regex }).select("_id").lean();
     const brandIds = matchedBrands.map((b: any) => b._id);
 
-    query.$or = [
-      { name: regex },
-      { description: regex },
-      { tags: regex }
-    ];
+    query.$or = [{ name: regex }, { description: regex }, { tags: regex }];
     if (brandIds.length > 0) {
       query.$or.push({ brand: { $in: brandIds } });
     }
@@ -193,7 +206,9 @@ async function getShopData(filters: any) {
   }
 
   if (gender) {
-    const genderArray = gender.split(",").map((g: string) => new RegExp(`^${escapeRegExp(g.trim())}$`, "i"));
+    const genderArray = gender
+      .split(",")
+      .map((g: string) => new RegExp(`^${escapeRegExp(g.trim())}$`, "i"));
     query.gender = { $in: genderArray };
   }
 
@@ -207,14 +222,16 @@ async function getShopData(filters: any) {
   }
 
   if (color) {
-    const colorArray = color.split(",").map((c: string) => new RegExp(`^${escapeRegExp(c.trim())}$`, "i"));
+    const colorArray = color
+      .split(",")
+      .map((c: string) => new RegExp(`^${escapeRegExp(c.trim())}$`, "i"));
     variantConditions.color = { $in: colorArray };
     hasVariantQuery = true;
   }
 
   if (hasVariantQuery) {
     query.variants = {
-      $elemMatch: variantConditions
+      $elemMatch: variantConditions,
     };
   }
 
@@ -239,7 +256,7 @@ async function getShopData(filters: any) {
   return {
     categories: JSON.parse(JSON.stringify(categoriesList)),
     products,
-    total
+    total,
   };
 }
 
@@ -265,16 +282,13 @@ export async function generateMetadata({ searchParams }: PageProps): Promise<Met
     description,
     alternates: {
       canonical: canonicalPath,
-    }
+    },
   };
 }
 
 export default async function ShopPage({ searchParams }: PageProps) {
   const filters = await searchParams;
-  const [data, filterMetadata] = await Promise.all([
-    getShopData(filters),
-    getFilterMetadata()
-  ]);
+  const [data, filterMetadata] = await Promise.all([getShopData(filters), getFilterMetadata()]);
 
   const { category } = filters;
   let canonicalPath = "/shop";
@@ -285,45 +299,50 @@ export default async function ShopPage({ searchParams }: PageProps) {
   const collectionJsonLd = {
     "@context": "https://schema.org",
     "@type": "CollectionPage",
-    "name": category && category !== "all" 
-      ? `${category.charAt(0).toUpperCase() + category.slice(1)} Footwear`
-      : "Footwear Catalog",
-    "description": "Browse our premium footwear collection at Raja Boot House.",
-    "url": `https://rbh.maurya-tech.com${canonicalPath}`,
-    "mainEntity": {
+    name:
+      category && category !== "all"
+        ? `${category.charAt(0).toUpperCase() + category.slice(1)} Footwear`
+        : "Footwear Catalog",
+    description: "Browse our premium footwear collection at Raja Boot House.",
+    url: `https://rbh.maurya-tech.com${canonicalPath}`,
+    mainEntity: {
       "@type": "ItemList",
-      "numberOfItems": data.total,
-      "itemListElement": data.products.slice(0, 12).map((product: any, idx: number) => ({
+      numberOfItems: data.total,
+      itemListElement: data.products.slice(0, 12).map((product: any, idx: number) => ({
         "@type": "ListItem",
-        "position": idx + 1,
-        "url": `https://rbh.maurya-tech.com/shop/${product.slug}`
-      }))
-    }
+        position: idx + 1,
+        url: `https://rbh.maurya-tech.com/shop/${product.slug}`,
+      })),
+    },
   };
 
   const breadcrumbsJsonLd = {
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",
-    "itemListElement": [
+    itemListElement: [
       {
         "@type": "ListItem",
-        "position": 1,
-        "name": "Home",
-        "item": "https://rbh.maurya-tech.com"
+        position: 1,
+        name: "Home",
+        item: "https://rbh.maurya-tech.com",
       },
       {
         "@type": "ListItem",
-        "position": 2,
-        "name": "Shop",
-        "item": "https://rbh.maurya-tech.com/shop"
+        position: 2,
+        name: "Shop",
+        item: "https://rbh.maurya-tech.com/shop",
       },
-      ...(category && category !== "all" ? [{
-        "@type": "ListItem",
-        "position": 3,
-        "name": category.charAt(0).toUpperCase() + category.slice(1),
-        "item": `https://rbh.maurya-tech.com/shop?category=${category}`
-      }] : [])
-    ]
+      ...(category && category !== "all"
+        ? [
+            {
+              "@type": "ListItem",
+              position: 3,
+              name: category.charAt(0).toUpperCase() + category.slice(1),
+              item: `https://rbh.maurya-tech.com/shop?category=${category}`,
+            },
+          ]
+        : []),
+    ],
   };
 
   return (
@@ -340,7 +359,9 @@ export default async function ShopPage({ searchParams }: PageProps) {
         fallback={
           <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-20 text-center flex flex-col items-center justify-center min-h-[400px]">
             <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary mx-auto"></div>
-            <p className="mt-4 text-muted-foreground text-sm font-semibold">Loading catalog styles...</p>
+            <p className="mt-4 text-muted-foreground text-sm font-semibold">
+              Loading catalog styles...
+            </p>
           </div>
         }
       >

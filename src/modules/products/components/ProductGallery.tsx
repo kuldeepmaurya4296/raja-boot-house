@@ -40,13 +40,7 @@ export function ProductGallery({ gallery, name }: ProductGalleryProps) {
               gIdx === i ? "border-primary" : "border-transparent"
             }`}
           >
-            <Image
-              src={g}
-              alt=""
-              width={150}
-              height={150}
-              className="h-full w-full object-cover"
-            />
+            <Image src={g} alt="" width={150} height={150} className="h-full w-full object-cover" />
           </button>
         ))}
       </div>

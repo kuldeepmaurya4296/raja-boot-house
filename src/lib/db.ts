@@ -24,9 +24,11 @@ if (dns) {
   }
 }
 
-const resolveSrv = dns ? promisify(dns.resolveSrv) : async () => {
-  throw new Error("DNS resolution not available in this runtime");
-};
+const resolveSrv = dns
+  ? promisify(dns.resolveSrv)
+  : async () => {
+      throw new Error("DNS resolution not available in this runtime");
+    };
 
 async function resolveMongoSrv(srvUri: string): Promise<string> {
   if (!srvUri.startsWith("mongodb+srv://")) {
@@ -37,7 +39,7 @@ async function resolveMongoSrv(srvUri: string): Promise<string> {
     const parsedUrl = new URL(srvUri.replace("mongodb+srv://", "http://"));
     const host = parsedUrl.host;
     const srvDomain = `_mongodb._tcp.${host}`;
-    
+
     let shardList = "";
     try {
       if (!dns) throw new Error("DNS not available");
@@ -49,7 +51,9 @@ async function resolveMongoSrv(srvUri: string): Promise<string> {
       console.warn("MongoDB SRV lookup failed, falling back to static shard list resolution.", err);
       shardList = process.env.MONGODB_SHARD_LIST || "";
       if (!shardList) {
-        console.error("MONGODB_SHARD_LIST environment variable is not defined. Connection might fail.");
+        console.error(
+          "MONGODB_SHARD_LIST environment variable is not defined. Connection might fail.",
+        );
       }
     }
 
@@ -78,7 +82,9 @@ async function resolveMongoSrv(srvUri: string): Promise<string> {
 const MONGODB_URI = process.env.MONGODB_URI;
 
 if (!MONGODB_URI) {
-  console.warn("MONGODB_URI is not defined in the environment variables. Using simulated database.");
+  console.warn(
+    "MONGODB_URI is not defined in the environment variables. Using simulated database.",
+  );
 }
 
 /**
@@ -92,7 +98,9 @@ if (!cached) {
 
 export async function connectToDatabase() {
   if (!MONGODB_URI || MONGODB_URI.includes("dummy") || MONGODB_URI === "") {
-    console.warn("MongoDB URI is missing or using a dummy value. Database operations are simulated.");
+    console.warn(
+      "MongoDB URI is missing or using a dummy value. Database operations are simulated.",
+    );
     return null;
   }
 

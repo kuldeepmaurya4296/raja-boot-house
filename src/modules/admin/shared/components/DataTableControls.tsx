@@ -42,17 +42,25 @@ function TableSearchInner({ placeholder = "Search..." }: { placeholder?: string 
 import { Suspense } from "react";
 export function TableSearch(props: { placeholder?: string }) {
   return (
-    <Suspense fallback={<div className="w-full max-w-sm h-9 bg-muted animate-pulse rounded-lg"></div>}>
+    <Suspense
+      fallback={<div className="w-full max-w-sm h-9 bg-muted animate-pulse rounded-lg"></div>}
+    >
       <TableSearchInner {...props} />
     </Suspense>
   );
 }
 
-function TablePaginationInner({ totalItems, itemsPerPage = 10 }: { totalItems: number, itemsPerPage?: number }) {
+function TablePaginationInner({
+  totalItems,
+  itemsPerPage = 10,
+}: {
+  totalItems: number;
+  itemsPerPage?: number;
+}) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  
+
   const currentPage = Number(searchParams.get("page")) || 1;
   const totalPages = Math.ceil(totalItems / itemsPerPage) || 1;
 
@@ -68,9 +76,15 @@ function TablePaginationInner({ totalItems, itemsPerPage = 10 }: { totalItems: n
   return (
     <div className="flex items-center justify-between px-4 py-3 border-t border-border bg-card rounded-b-xl">
       <p className="text-sm text-muted-foreground">
-        Showing <span className="font-medium text-foreground">{Math.min((currentPage - 1) * itemsPerPage + 1, totalItems)}</span> to{" "}
-        <span className="font-medium text-foreground">{Math.min(currentPage * itemsPerPage, totalItems)}</span> of{" "}
-        <span className="font-medium text-foreground">{totalItems}</span> results
+        Showing{" "}
+        <span className="font-medium text-foreground">
+          {Math.min((currentPage - 1) * itemsPerPage + 1, totalItems)}
+        </span>{" "}
+        to{" "}
+        <span className="font-medium text-foreground">
+          {Math.min(currentPage * itemsPerPage, totalItems)}
+        </span>{" "}
+        of <span className="font-medium text-foreground">{totalItems}</span> results
       </p>
       <div className="flex items-center gap-1">
         <button
@@ -95,7 +109,7 @@ function TablePaginationInner({ totalItems, itemsPerPage = 10 }: { totalItems: n
   );
 }
 
-export function TablePagination(props: { totalItems: number, itemsPerPage?: number }) {
+export function TablePagination(props: { totalItems: number; itemsPerPage?: number }) {
   return (
     <Suspense fallback={<div className="h-12 border-t border-border bg-card rounded-b-xl"></div>}>
       <TablePaginationInner {...props} />
@@ -103,19 +117,19 @@ export function TablePagination(props: { totalItems: number, itemsPerPage?: numb
   );
 }
 
-function TableFilterInner({ 
-  filterKey, 
-  options, 
-  defaultLabel = "All" 
-}: { 
-  filterKey: string, 
-  options: { label: string, value: string }[],
-  defaultLabel?: string 
+function TableFilterInner({
+  filterKey,
+  options,
+  defaultLabel = "All",
+}: {
+  filterKey: string;
+  options: { label: string; value: string }[];
+  defaultLabel?: string;
 }) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  
+
   const currentValue = searchParams.get(filterKey) || "";
 
   const handleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
@@ -139,21 +153,30 @@ function TableFilterInner({
         className="appearance-none pl-8 pr-8 py-2 border border-border rounded-lg bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all font-medium cursor-pointer"
       >
         <option value="">{defaultLabel}</option>
-        {options.map(opt => (
-          <option key={opt.value} value={opt.value}>{opt.label}</option>
+        {options.map((opt) => (
+          <option key={opt.value} value={opt.value}>
+            {opt.label}
+          </option>
         ))}
       </select>
       <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
-        <svg className="h-4 w-4 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" /></svg>
+        <svg
+          className="h-4 w-4 text-muted-foreground"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+        </svg>
       </div>
     </div>
   );
 }
 
-export function TableFilter(props: { 
-  filterKey: string, 
-  options: { label: string, value: string }[],
-  defaultLabel?: string 
+export function TableFilter(props: {
+  filterKey: string;
+  options: { label: string; value: string }[];
+  defaultLabel?: string;
 }) {
   return (
     <Suspense fallback={<div className="h-9 w-32 bg-muted animate-pulse rounded-lg"></div>}>

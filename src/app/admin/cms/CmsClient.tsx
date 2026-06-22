@@ -1,7 +1,6 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import {
   Plus,
   Trash2,
@@ -1060,7 +1059,10 @@ function SettingsTab({ settings }: { settings: any[] }) {
 
 // Legal Policies Management Tab Component
 function LegalTab({ settings }: { settings: any[] }) {
-  const getVal = (key: string) => settings.find((s) => s.key === key)?.value || "";
+  const getVal = useCallback(
+    (key: string) => settings.find((s) => s.key === key)?.value || "",
+    [settings],
+  );
 
   const [activeKey, setActiveKey] = useState<
     "privacyPolicy" | "termsCondition" | "deliveryPolicy" | "refundPolicy"
@@ -1070,7 +1072,7 @@ function LegalTab({ settings }: { settings: any[] }) {
 
   useEffect(() => {
     setEditorVal(getVal(activeKey));
-  }, [activeKey]);
+  }, [activeKey, getVal]);
 
   const handleSave = async () => {
     setIsSubmitting(true);

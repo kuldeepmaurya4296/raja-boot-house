@@ -27,7 +27,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       title: `${section.title} — Raja Boot House Docs`,
       description: section.description,
       type: "article",
-    }
+    },
   };
 }
 

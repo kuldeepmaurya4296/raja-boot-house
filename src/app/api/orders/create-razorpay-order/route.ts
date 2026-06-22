@@ -16,15 +16,19 @@ export async function POST(request: Request) {
     const keySecret = process.env.RAZORPAY_KEY_SECRET;
 
     if (!keyId || !keySecret) {
-      console.warn("Razorpay environment variables are missing. Simulating Razorpay order creation.");
+      console.warn(
+        "Razorpay environment variables are missing. Simulating Razorpay order creation.",
+      );
       const fakeRzpOrderId = `fake_rzp_order_${Date.now()}`;
       try {
         await connectToDatabase();
         const updateResult = await Order.updateOne(
           { orderId: receipt },
-          { "payment.razorpayOrderId": fakeRzpOrderId }
+          { "payment.razorpayOrderId": fakeRzpOrderId },
         );
-        console.log(`Associated simulated Razorpay order ID ${fakeRzpOrderId} with local order ${receipt}. Modified count: ${updateResult.modifiedCount}`);
+        console.log(
+          `Associated simulated Razorpay order ID ${fakeRzpOrderId} with local order ${receipt}. Modified count: ${updateResult.modifiedCount}`,
+        );
       } catch (dbErr) {
         console.error("Failed to associate fake razorpayOrderId with local order:", dbErr);
       }
@@ -58,9 +62,11 @@ export async function POST(request: Request) {
       await connectToDatabase();
       const updateResult = await Order.updateOne(
         { orderId: order.receipt },
-        { "payment.razorpayOrderId": order.id }
+        { "payment.razorpayOrderId": order.id },
       );
-      console.log(`Associated Razorpay order ID ${order.id} with local order ${order.receipt}. Modified count: ${updateResult.modifiedCount}`);
+      console.log(
+        `Associated Razorpay order ID ${order.id} with local order ${order.receipt}. Modified count: ${updateResult.modifiedCount}`,
+      );
     } catch (dbErr) {
       console.error("Failed to associate razorpayOrderId with local order:", dbErr);
     }
@@ -75,7 +81,7 @@ export async function POST(request: Request) {
     console.error("Razorpay order creation failed:", error);
     return NextResponse.json(
       { error: error.message || "Failed to create payment order" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

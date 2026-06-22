@@ -17,15 +17,16 @@ export default async function AdminAnalyticsPage() {
 
   // 1. Fetch raw data from DB, excluding unpaid pending orders
   const rawOrders = await Order.find({
-    $or: [
-      { "payment.method": "COD" },
-      { "payment.status": { $ne: "PENDING" } }
-    ]
-  }).sort({ createdAt: 1 }).lean();
+    $or: [{ "payment.method": "COD" }, { "payment.status": { $ne: "PENDING" } }],
+  })
+    .sort({ createdAt: 1 })
+    .lean();
   const rawUsers = await User.find({ role: "customer" }).select("name email createdAt").lean();
   const rawCategories = await Category.find({}).select("name").lean();
   const rawBrands = await Brand.find({}).select("name").lean();
-  const rawProducts = await Product.find({}).select("name brand category gender salePrice price variants images").lean();
+  const rawProducts = await Product.find({})
+    .select("name brand category gender salePrice price variants images")
+    .lean();
 
   // 2. Safe serialization to prevent Next.js RSC-to-Client component warnings
   const orders = rawOrders.map((o: any) => ({
@@ -33,8 +34,10 @@ export default async function AdminAnalyticsPage() {
     orderId: o.orderId,
     userId: o.userId?.toString() || "",
     status: o.status,
-    createdAt: o.createdAt instanceof Date ? o.createdAt.toISOString() : new Date(o.createdAt).toISOString(),
-    updatedAt: o.updatedAt instanceof Date ? o.updatedAt.toISOString() : new Date(o.updatedAt).toISOString(),
+    createdAt:
+      o.createdAt instanceof Date ? o.createdAt.toISOString() : new Date(o.createdAt).toISOString(),
+    updatedAt:
+      o.updatedAt instanceof Date ? o.updatedAt.toISOString() : new Date(o.updatedAt).toISOString(),
     pricing: {
       subtotal: o.pricing?.subtotal || 0,
       shipping: o.pricing?.shipping || 0,
@@ -63,27 +66,40 @@ export default async function AdminAnalyticsPage() {
       state: o.shippingAddress?.state || "",
       pin: o.shippingAddress?.pin || "",
     },
-    coupon: o.coupon ? {
-      code: o.coupon.code || "",
-      discountAmount: o.coupon.discountAmount || 0,
-    } : undefined,
-    shipping: o.shipping ? {
-      courier: o.shipping.courier || "",
-      trackingNumber: o.shipping.trackingNumber || "",
-    } : undefined,
-    refundDetails: o.refundDetails ? {
-      preference: o.refundDetails.preference || "",
-      upiId: o.refundDetails.upiId || "",
-      bankDetails: o.refundDetails.bankDetails ? {
-        accountHolderName: o.refundDetails.bankDetails.accountHolderName || "",
-        bankName: o.refundDetails.bankDetails.bankName || "",
-        accountNumber: o.refundDetails.bankDetails.accountNumber || "",
-        ifscCode: o.refundDetails.bankDetails.ifscCode || "",
-      } : undefined,
-      method: o.refundDetails.method || "",
-      transactionId: o.refundDetails.transactionId || "",
-      refundedAt: o.refundDetails.refundedAt instanceof Date ? o.refundDetails.refundedAt.toISOString() : o.refundDetails.refundedAt ? new Date(o.refundDetails.refundedAt).toISOString() : undefined
-    } : undefined
+    coupon: o.coupon
+      ? {
+          code: o.coupon.code || "",
+          discountAmount: o.coupon.discountAmount || 0,
+        }
+      : undefined,
+    shipping: o.shipping
+      ? {
+          courier: o.shipping.courier || "",
+          trackingNumber: o.shipping.trackingNumber || "",
+        }
+      : undefined,
+    refundDetails: o.refundDetails
+      ? {
+          preference: o.refundDetails.preference || "",
+          upiId: o.refundDetails.upiId || "",
+          bankDetails: o.refundDetails.bankDetails
+            ? {
+                accountHolderName: o.refundDetails.bankDetails.accountHolderName || "",
+                bankName: o.refundDetails.bankDetails.bankName || "",
+                accountNumber: o.refundDetails.bankDetails.accountNumber || "",
+                ifscCode: o.refundDetails.bankDetails.ifscCode || "",
+              }
+            : undefined,
+          method: o.refundDetails.method || "",
+          transactionId: o.refundDetails.transactionId || "",
+          refundedAt:
+            o.refundDetails.refundedAt instanceof Date
+              ? o.refundDetails.refundedAt.toISOString()
+              : o.refundDetails.refundedAt
+                ? new Date(o.refundDetails.refundedAt).toISOString()
+                : undefined,
+        }
+      : undefined,
   }));
 
   const products = rawProducts.map((p: any) => ({
@@ -95,24 +111,25 @@ export default async function AdminAnalyticsPage() {
     price: p.price,
     salePrice: p.salePrice,
     stock: p.variants?.reduce((sum: number, v: any) => sum + (v.stock || 0), 0) || 0,
-    image: p.images?.[0]?.url || "/assets/product-placeholder.jpg"
+    image: p.images?.[0]?.url || "/assets/product-placeholder.jpg",
   }));
 
   const brands = rawBrands.map((b: any) => ({
     _id: b._id.toString(),
-    name: b.name
+    name: b.name,
   }));
 
   const categories = rawCategories.map((c: any) => ({
     _id: c._id.toString(),
-    name: c.name
+    name: c.name,
   }));
 
   const customers = rawUsers.map((u: any) => ({
     _id: u._id.toString(),
     name: u.name,
     email: u.email,
-    createdAt: u.createdAt instanceof Date ? u.createdAt.toISOString() : new Date(u.createdAt).toISOString()
+    createdAt:
+      u.createdAt instanceof Date ? u.createdAt.toISOString() : new Date(u.createdAt).toISOString(),
   }));
 
   return (

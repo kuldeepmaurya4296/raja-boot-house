@@ -8,7 +8,7 @@ import Image from "next/image";
 
 export function Hero({ initialBanners }: { initialBanners?: any[] }) {
   const [banners, setBanners] = useState<any[]>(
-    initialBanners && initialBanners.length > 0 ? initialBanners : []
+    initialBanners && initialBanners.length > 0 ? initialBanners : [],
   );
   const [current, setCurrent] = useState(0);
 
@@ -43,51 +43,59 @@ export function Hero({ initialBanners }: { initialBanners?: any[] }) {
     {
       id: "b1",
       title: "Crafted for Character",
-      subtitle: "Hand-finished leather boots stitched using family bootmaking tradition. Structured to age beautifully with you.",
+      subtitle:
+        "Hand-finished leather boots stitched using family bootmaking tradition. Structured to age beautifully with you.",
       cta: "Shop the collection",
       href: "/shop",
       tagline: "Artisan Leather",
       badgeTitle: "Oxford Welted Boot",
       badgePrice: "From ₹2,499",
-      image: "https://images.unsplash.com/photo-1520639888713-7851133b1ed0?q=80&w=800&auto=format&fit=crop",
+      image:
+        "https://images.unsplash.com/photo-1520639888713-7851133b1ed0?q=80&w=800&auto=format&fit=crop",
       objectPosition: "object-[20%_center]",
     },
     {
       id: "b2",
       title: "Royal Wedding Heritage",
-      subtitle: "Hand-embroidered groom sherwani mojaris and custom bridal footwear tailored for ultimate comfort on your special night.",
+      subtitle:
+        "Hand-embroidered groom sherwani mojaris and custom bridal footwear tailored for ultimate comfort on your special night.",
       cta: "Explore Wedding collection",
       href: "/shop?category=bridal",
       tagline: "Traditional Sherwani Jootis",
       badgeTitle: "Golden Zardozi Mojari",
       badgePrice: "From ₹1,899",
-      image: "https://images.unsplash.com/photo-1607522370275-f14206abe5d3?q=80&w=800&auto=format&fit=crop",
+      image:
+        "https://images.unsplash.com/photo-1607522370275-f14206abe5d3?q=80&w=800&auto=format&fit=crop",
       objectPosition: "object-center",
     },
     {
       id: "b3",
       title: "Modern Comfort in Motion",
-      subtitle: "Lightweight, shock-absorbing athletic running shoes and everyday casual wear guaranteed by India's top national brands.",
+      subtitle:
+        "Lightweight, shock-absorbing athletic running shoes and everyday casual wear guaranteed by India's top national brands.",
       cta: "Shop Top Brands",
       href: "/shop?category=sports",
       tagline: "Official Retail Partner",
       badgeTitle: "Lakhani Classic Runner",
       badgePrice: "From ₹899",
-      image: "https://images.unsplash.com/photo-1542291026-7eec264c27ff?q=80&w=800&auto=format&fit=crop",
+      image:
+        "https://images.unsplash.com/photo-1542291026-7eec264c27ff?q=80&w=800&auto=format&fit=crop",
       objectPosition: "object-center",
     },
     {
       id: "b4",
       title: "The Statement Heels Collection",
-      subtitle: "Elevate your look with  block heels, festive ethnic flats, and daily sandals built with ergonomic arch support.",
+      subtitle:
+        "Elevate your look with  block heels, festive ethnic flats, and daily sandals built with ergonomic arch support.",
       cta: "Shop Women Collection",
       href: "/shop?category=women",
       tagline: "Atelier Women's Collection",
       badgeTitle: "Cognac Block Strap Heel",
       badgePrice: "From ₹1,499",
-      image: "https://images.unsplash.com/photo-1595950653106-6c9ebd614d3a?q=80&w=800&auto=format&fit=crop",
+      image:
+        "https://images.unsplash.com/photo-1595950653106-6c9ebd614d3a?q=80&w=800&auto=format&fit=crop",
       objectPosition: "object-center",
-    }
+    },
   ];
 
   if (banners.length === 0) {
@@ -109,7 +117,15 @@ export function Hero({ initialBanners }: { initialBanners?: any[] }) {
       ...b,
       image: img,
       href: b.linkUrl || b.href || "/shop",
-      cta: b.cta || (idx === 1 ? "Explore Wedding collection" : idx === 2 ? "Shop Top Brands" : idx === 3 ? "Shop Women Collection" : "Shop the collection"),
+      cta:
+        b.cta ||
+        (idx === 1
+          ? "Explore Wedding collection"
+          : idx === 2
+            ? "Shop Top Brands"
+            : idx === 3
+              ? "Shop Women Collection"
+              : "Shop the collection"),
       tagline: b.tagline || fallbacks[idx % fallbacks.length].tagline,
       badgeTitle: b.badgeTitle || fallbacks[idx % fallbacks.length].badgeTitle,
       badgePrice: b.badgePrice || fallbacks[idx % fallbacks.length].badgePrice,
@@ -145,7 +161,6 @@ export function Hero({ initialBanners }: { initialBanners?: any[] }) {
       >
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-10 md:gap-16 items-center">
-
             {/* Slide Content Column (Top on mobile, left on desktop) */}
             <div className="relative flex flex-col justify-center text-center md:text-left items-center md:items-start">
               <AnimatePresence mode="wait">
@@ -174,7 +189,8 @@ export function Hero({ initialBanners }: { initialBanners?: any[] }) {
                       href={active.href}
                       className="inline-flex items-center gap-2 bg-charcoal text-cream hover:bg-cognac px-6 py-3.5 rounded-full text-xs md:text-sm font-bold uppercase tracking-wider transition-all duration-300 group cursor-pointer shadow-md hover:shadow-lg hover:scale-102"
                     >
-                      {active.cta} <ArrowRight className="h-4 w-4 transition group-hover:translate-x-1" />
+                      {active.cta}{" "}
+                      <ArrowRight className="h-4 w-4 transition group-hover:translate-x-1" />
                     </Link>
                   </div>
                 </motion.div>
@@ -206,7 +222,9 @@ export function Hero({ initialBanners }: { initialBanners?: any[] }) {
 
                   {/* Floating Spec Badge */}
                   <div className="absolute -bottom-4 left-6 md:-left-4 md:bottom-6 bg-cream/95 backdrop-blur-sm border border-brass/25 rounded-2xl shadow-card px-4 py-3 max-w-[220px]">
-                    <div className="text-[9px] uppercase tracking-widest text-muted-foreground font-semibold">Featured Style</div>
+                    <div className="text-[9px] uppercase tracking-widest text-muted-foreground font-semibold">
+                      Featured Style
+                    </div>
                     <div className="font-serif font-bold text-xs md:text-sm mt-1 text-charcoal truncate">
                       {active.badgeTitle}
                     </div>
@@ -217,7 +235,6 @@ export function Hero({ initialBanners }: { initialBanners?: any[] }) {
                 </motion.div>
               </AnimatePresence>
             </div>
-
           </div>
         </div>
       </motion.div>
@@ -249,8 +266,11 @@ export function Hero({ initialBanners }: { initialBanners?: any[] }) {
             <button
               key={i}
               onClick={() => setCurrent(i)}
-              className={`h-1.5 rounded-full transition-all duration-300 ${current === i ? "w-6 bg-cognac" : "w-1.5 bg-muted-foreground/30 hover:bg-muted-foreground/60"
-                }`}
+              className={`h-1.5 rounded-full transition-all duration-300 ${
+                current === i
+                  ? "w-6 bg-cognac"
+                  : "w-1.5 bg-muted-foreground/30 hover:bg-muted-foreground/60"
+              }`}
               aria-label={`Go to slide ${i + 1}`}
             />
           ))}

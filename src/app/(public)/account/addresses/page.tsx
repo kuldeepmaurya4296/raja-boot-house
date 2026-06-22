@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useSession } from "next-auth/react";
 import { MapPin, Plus, Trash2, Edit2, X } from "lucide-react";
 import { toast } from "sonner";
@@ -39,29 +39,29 @@ export default function AccountAddressesPage() {
   const [isDefault, setIsDefault] = useState(false);
   const [saving, setSaving] = useState(false);
 
-  const fetchAddresses = () => {
+  const fetchAddresses = useCallback(() => {
     if (!session?.user?.id) return;
     setLoading(true);
     fetch("/api/user/addresses")
-      .then(res => {
+      .then((res) => {
         if (!res.ok) throw new Error("Failed to fetch addresses");
         return res.json();
       })
-      .then(data => {
+      .then((data) => {
         if (Array.isArray(data)) {
           setAddresses(data);
         }
       })
-      .catch(err => {
+      .catch((err) => {
         console.error(err);
         toast.error("Failed to load addresses.");
       })
       .finally(() => setLoading(false));
-  };
+  }, [session?.user?.id]);
 
   useEffect(() => {
     fetchAddresses();
-  }, [session?.user?.id]);
+  }, [fetchAddresses]);
 
   const handleOpenAdd = () => {
     setEditingId(null);
@@ -171,7 +171,7 @@ export default function AccountAddressesPage() {
           <div className="h-9 w-24 bg-muted rounded-full"></div>
         </div>
         <div className="grid md:grid-cols-2 gap-4">
-          {[1, 2].map(i => (
+          {[1, 2].map((i) => (
             <div key={i} className="bg-card border border-border rounded-xl p-5 h-[160px]"></div>
           ))}
         </div>
@@ -207,8 +207,11 @@ export default function AccountAddressesPage() {
         </div>
       ) : (
         <div className="grid md:grid-cols-2 gap-4">
-          {addresses.map(a => (
-            <div key={a._id} className="bg-card border border-border rounded-xl p-5 shadow-sm flex flex-col justify-between hover:border-primary/50 transition">
+          {addresses.map((a) => (
+            <div
+              key={a._id}
+              className="bg-card border border-border rounded-xl p-5 shadow-sm flex flex-col justify-between hover:border-primary/50 transition"
+            >
               <div>
                 <div className="flex items-start justify-between">
                   <div className="flex items-center gap-2">
@@ -221,12 +224,17 @@ export default function AccountAddressesPage() {
                     </span>
                   )}
                 </div>
-                
+
                 <p className="mt-3 font-semibold text-sm text-foreground">{a.fullName}</p>
-                
+
                 <p className="mt-1.5 text-sm text-muted-foreground leading-relaxed">
                   {a.line1}
-                  {a.line2 && <><br />{a.line2}</>}
+                  {a.line2 && (
+                    <>
+                      <br />
+                      {a.line2}
+                    </>
+                  )}
                   <br />
                   {a.city}, {a.state} - {a.pin}
                 </p>
@@ -282,7 +290,9 @@ export default function AccountAddressesPage() {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
           <div className="bg-card border border-border w-full max-w-lg rounded-2xl shadow-xl overflow-hidden flex flex-col max-h-[90vh]">
             <div className="flex justify-between items-center px-6 py-4 border-b border-border bg-muted/20">
-              <h3 className="font-serif text-lg font-bold">{editingId ? "Edit Address" : "Add New Address"}</h3>
+              <h3 className="font-serif text-lg font-bold">
+                {editingId ? "Edit Address" : "Add New Address"}
+              </h3>
               <button
                 onClick={() => setIsFormOpen(false)}
                 className="text-muted-foreground hover:text-foreground p-1 rounded-full hover:bg-muted transition cursor-pointer"
@@ -290,14 +300,16 @@ export default function AccountAddressesPage() {
                 <X className="h-5 w-5" />
               </button>
             </div>
-            
+
             <form onSubmit={handleSave} className="flex-1 overflow-y-auto p-6 space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <label className="block col-span-2 sm:col-span-1">
-                  <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Address Label *</span>
+                  <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                    Address Label *
+                  </span>
                   <select
                     value={label}
-                    onChange={e => setLabel(e.target.value)}
+                    onChange={(e) => setLabel(e.target.value)}
                     className="mt-1.5 w-full bg-background border border-input rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary transition"
                   >
                     <option value="Home">Home</option>
@@ -309,12 +321,14 @@ export default function AccountAddressesPage() {
 
                 {label === "Other" && (
                   <label className="block col-span-2 sm:col-span-1">
-                    <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Custom Label *</span>
+                    <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                      Custom Label *
+                    </span>
                     <input
                       type="text"
                       placeholder="e.g. Parents' house"
                       value={customLabel}
-                      onChange={e => setCustomLabel(e.target.value)}
+                      onChange={(e) => setCustomLabel(e.target.value)}
                       className="mt-1.5 w-full bg-background border border-input rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary transition"
                       required
                     />
@@ -324,11 +338,13 @@ export default function AccountAddressesPage() {
 
               <div className="grid sm:grid-cols-2 gap-4">
                 <label className="block">
-                  <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Full Name *</span>
+                  <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                    Full Name *
+                  </span>
                   <input
                     type="text"
                     value={fullName}
-                    onChange={e => setFullName(e.target.value)}
+                    onChange={(e) => setFullName(e.target.value)}
                     placeholder="Recipient's name"
                     className="mt-1.5 w-full bg-background border border-input rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary transition"
                     required
@@ -336,11 +352,13 @@ export default function AccountAddressesPage() {
                 </label>
 
                 <label className="block">
-                  <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Phone Number *</span>
+                  <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                    Phone Number *
+                  </span>
                   <input
                     type="tel"
                     value={phone}
-                    onChange={e => setPhone(e.target.value)}
+                    onChange={(e) => setPhone(e.target.value)}
                     placeholder="10-digit mobile number"
                     className="mt-1.5 w-full bg-background border border-input rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary transition"
                     required
@@ -349,11 +367,13 @@ export default function AccountAddressesPage() {
               </div>
 
               <label className="block">
-                <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Address Line 1 *</span>
+                <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                  Address Line 1 *
+                </span>
                 <input
                   type="text"
                   value={line1}
-                  onChange={e => setLine1(e.target.value)}
+                  onChange={(e) => setLine1(e.target.value)}
                   placeholder="Flat, House no., Building, Apartment"
                   className="mt-1.5 w-full bg-background border border-input rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary transition"
                   required
@@ -361,11 +381,13 @@ export default function AccountAddressesPage() {
               </label>
 
               <label className="block">
-                <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Address Line 2 (Optional)</span>
+                <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                  Address Line 2 (Optional)
+                </span>
                 <input
                   type="text"
                   value={line2}
-                  onChange={e => setLine2(e.target.value)}
+                  onChange={(e) => setLine2(e.target.value)}
                   placeholder="Area, Street, Sector, Village"
                   className="mt-1.5 w-full bg-background border border-input rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary transition"
                 />
@@ -373,11 +395,13 @@ export default function AccountAddressesPage() {
 
               <div className="grid grid-cols-3 gap-3">
                 <label className="block col-span-3 sm:col-span-1">
-                  <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">City *</span>
+                  <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                    City *
+                  </span>
                   <input
                     type="text"
                     value={city}
-                    onChange={e => setCity(e.target.value)}
+                    onChange={(e) => setCity(e.target.value)}
                     placeholder="City"
                     className="mt-1.5 w-full bg-background border border-input rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary transition"
                     required
@@ -385,11 +409,13 @@ export default function AccountAddressesPage() {
                 </label>
 
                 <label className="block col-span-3 sm:col-span-1">
-                  <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">State *</span>
+                  <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                    State *
+                  </span>
                   <input
                     type="text"
                     value={state}
-                    onChange={e => setState(e.target.value)}
+                    onChange={(e) => setState(e.target.value)}
                     placeholder="State"
                     className="mt-1.5 w-full bg-background border border-input rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary transition"
                     required
@@ -397,11 +423,13 @@ export default function AccountAddressesPage() {
                 </label>
 
                 <label className="block col-span-3 sm:col-span-1">
-                  <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">PIN Code *</span>
+                  <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                    PIN Code *
+                  </span>
                   <input
                     type="text"
                     value={pin}
-                    onChange={e => setPin(e.target.value)}
+                    onChange={(e) => setPin(e.target.value)}
                     placeholder="6 digits"
                     className="mt-1.5 w-full bg-background border border-input rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary transition"
                     required
@@ -414,10 +442,12 @@ export default function AccountAddressesPage() {
                   <input
                     type="checkbox"
                     checked={isDefault}
-                    onChange={e => setIsDefault(e.target.checked)}
+                    onChange={(e) => setIsDefault(e.target.checked)}
                     className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary cursor-pointer"
                   />
-                  <span className="text-sm font-medium text-foreground select-none">Set as default address</span>
+                  <span className="text-sm font-medium text-foreground select-none">
+                    Set as default address
+                  </span>
                 </label>
               </div>
 
@@ -444,4 +474,3 @@ export default function AccountAddressesPage() {
     </div>
   );
 }
-

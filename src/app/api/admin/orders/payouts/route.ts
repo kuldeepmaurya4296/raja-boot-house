@@ -31,7 +31,9 @@ export async function GET(request: Request) {
         "IFSC Code",
         "Bank Name",
         "Order Created At",
-      ].map(field => `"${field.replace(/"/g, '""')}"`).join(","),
+      ]
+        .map((field) => `"${field.replace(/"/g, '""')}"`)
+        .join(","),
     ];
 
     for (const order of orders) {
@@ -40,7 +42,7 @@ export async function GET(request: Request) {
       const upiId = details.upiId || "";
       const preference = details.preference || "N/A";
       const totalAmount = order.pricing?.total || 0;
-      
+
       const row = [
         order.orderId,
         (order.userId as any)?.name || "Guest",
@@ -56,7 +58,7 @@ export async function GET(request: Request) {
         order.createdAt ? new Date(order.createdAt).toISOString() : "",
       ];
 
-      csvRows.push(row.map(field => `"${(field || "").replace(/"/g, '""')}"`).join(","));
+      csvRows.push(row.map((field) => `"${(field || "").replace(/"/g, '""')}"`).join(","));
     }
 
     const csvContent = csvRows.join("\n");

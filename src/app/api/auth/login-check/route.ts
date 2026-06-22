@@ -16,28 +16,40 @@ export async function POST(request: Request) {
     const user = await User.findOne({ email: cleanedEmail });
 
     if (!user) {
-      return NextResponse.json({ 
-        error: "No account found with this email address. Please sign up first." 
-      }, { status: 400 });
+      return NextResponse.json(
+        {
+          error: "No account found with this email address. Please sign up first.",
+        },
+        { status: 400 },
+      );
     }
 
     if (!user.password) {
-      return NextResponse.json({ 
-        error: "This email is registered via Google Sign-In. Please sign in using Google." 
-      }, { status: 400 });
+      return NextResponse.json(
+        {
+          error: "This email is registered via Google Sign-In. Please sign in using Google.",
+        },
+        { status: 400 },
+      );
     }
 
     if (!user.isActive) {
-      return NextResponse.json({ 
-        error: "Your account has been deactivated. Please contact support." 
-      }, { status: 403 });
+      return NextResponse.json(
+        {
+          error: "Your account has been deactivated. Please contact support.",
+        },
+        { status: 403 },
+      );
     }
 
     const isValid = await bcrypt.compare(password, user.password);
     if (!isValid) {
-      return NextResponse.json({ 
-        error: "Incorrect password. Please check your credentials and try again." 
-      }, { status: 400 });
+      return NextResponse.json(
+        {
+          error: "Incorrect password. Please check your credentials and try again.",
+        },
+        { status: 400 },
+      );
     }
 
     return NextResponse.json({ success: true });

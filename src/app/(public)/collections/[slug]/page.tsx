@@ -23,13 +23,13 @@ async function getCollectionData(slug: string) {
   // Fetch products inside this collection
   const productsDocs = await Product.find({
     _id: { $in: collectionDoc.products },
-    isActive: true
+    isActive: true,
   })
-  .populate({ path: "category", model: Category })
-  .populate({ path: "brand", model: Brand })
-  .lean();
+    .populate({ path: "category", model: Category })
+    .populate({ path: "brand", model: Brand })
+    .lean();
 
-  const products = productsDocs.map(p => normalizeProduct(p));
+  const products = productsDocs.map((p) => normalizeProduct(p));
 
   return {
     collection: {
@@ -38,14 +38,14 @@ async function getCollectionData(slug: string) {
       description: collectionDoc.description || "",
       imageUrl: collectionDoc.imageUrl || "/assets/hero-boots.jpg",
     },
-    products
+    products,
   };
 }
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { slug } = await params;
   const { isReady } = await ensureDbReady();
-  
+
   let collection = null;
   if (isReady) {
     collection = await Collection.findOne({ slug, isActive: true });
@@ -53,21 +53,25 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
   if (!collection) {
     return {
-      title: "Collection Not Found — Raja Boot House"
+      title: "Collection Not Found — Raja Boot House",
     };
   }
 
   return {
     title: `${collection.name} — Raja Boot House`,
-    description: collection.description || `Browse the exclusive ${collection.name} collection at Raja Boot House.`,
+    description:
+      collection.description ||
+      `Browse the exclusive ${collection.name} collection at Raja Boot House.`,
     alternates: {
       canonical: `/collections/${slug}`,
     },
     openGraph: {
       title: `${collection.name} — Raja Boot House`,
-      description: collection.description || `Browse the exclusive ${collection.name} collection at Raja Boot House.`,
-      images: [{ url: collection.imageUrl || "/assets/hero-boots.jpg" }]
-    }
+      description:
+        collection.description ||
+        `Browse the exclusive ${collection.name} collection at Raja Boot House.`,
+      images: [{ url: collection.imageUrl || "/assets/hero-boots.jpg" }],
+    },
   };
 }
 
@@ -79,7 +83,9 @@ export default async function CollectionPage({ params }: PageProps) {
     return (
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-20 text-center">
         <h1 className="font-serif text-3xl font-bold text-charcoal mb-4">Collection Not Found</h1>
-        <p className="text-muted-foreground mb-6">The collection you are looking for does not exist or has been removed.</p>
+        <p className="text-muted-foreground mb-6">
+          The collection you are looking for does not exist or has been removed.
+        </p>
         <Link href="/shop" className="underline font-semibold text-primary">
           Go to shop catalog
         </Link>
@@ -92,44 +98,46 @@ export default async function CollectionPage({ params }: PageProps) {
   const collectionJsonLd = {
     "@context": "https://schema.org",
     "@type": "CollectionPage",
-    "name": collection.name,
-    "description": collection.description || `Browse the exclusive ${collection.name} collection at Raja Boot House.`,
-    "url": `https://rbh.maurya-tech.com/collections/${collection.slug}`,
-    "image": collection.imageUrl || "/assets/hero-boots.jpg",
-    "mainEntity": {
+    name: collection.name,
+    description:
+      collection.description ||
+      `Browse the exclusive ${collection.name} collection at Raja Boot House.`,
+    url: `https://rbh.maurya-tech.com/collections/${collection.slug}`,
+    image: collection.imageUrl || "/assets/hero-boots.jpg",
+    mainEntity: {
       "@type": "ItemList",
-      "numberOfItems": products.length,
-      "itemListElement": products.slice(0, 12).map((product: any, idx: number) => ({
+      numberOfItems: products.length,
+      itemListElement: products.slice(0, 12).map((product: any, idx: number) => ({
         "@type": "ListItem",
-        "position": idx + 1,
-        "url": `https://rbh.maurya-tech.com/shop/${product.slug}`
-      }))
-    }
+        position: idx + 1,
+        url: `https://rbh.maurya-tech.com/shop/${product.slug}`,
+      })),
+    },
   };
 
   const breadcrumbsJsonLd = {
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",
-    "itemListElement": [
+    itemListElement: [
       {
         "@type": "ListItem",
-        "position": 1,
-        "name": "Home",
-        "item": "https://rbh.maurya-tech.com"
+        position: 1,
+        name: "Home",
+        item: "https://rbh.maurya-tech.com",
       },
       {
         "@type": "ListItem",
-        "position": 2,
-        "name": "Shop",
-        "item": "https://rbh.maurya-tech.com/shop"
+        position: 2,
+        name: "Shop",
+        item: "https://rbh.maurya-tech.com/shop",
       },
       {
         "@type": "ListItem",
-        "position": 3,
-        "name": collection.name,
-        "item": `https://rbh.maurya-tech.com/collections/${collection.slug}`
-      }
-    ]
+        position: 3,
+        name: collection.name,
+        item: `https://rbh.maurya-tech.com/collections/${collection.slug}`,
+      },
+    ],
   };
 
   return (
@@ -150,7 +158,7 @@ export default async function CollectionPage({ params }: PageProps) {
           alt={collection.name}
           className="absolute inset-0 h-full w-full object-cover"
         />
-        
+
         {/* Dynamic decorative texture overlay */}
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-transparent via-transparent to-black/30 z-10" />
 
@@ -186,7 +194,9 @@ export default async function CollectionPage({ params }: PageProps) {
         {/* Product Grid */}
         {products.length === 0 ? (
           <div className="py-20 text-center border border-dashed border-border rounded-2xl bg-card">
-            <p className="text-base text-muted-foreground">No products are currently in this collection.</p>
+            <p className="text-base text-muted-foreground">
+              No products are currently in this collection.
+            </p>
             <Link
               href="/shop"
               className="mt-4 inline-block bg-primary text-primary-foreground px-6 py-2.5 rounded-full text-xs font-semibold hover:bg-primary/95 transition-colors"

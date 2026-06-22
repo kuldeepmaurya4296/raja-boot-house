@@ -1,7 +1,18 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Bold, Italic, Underline, List, ListOrdered, Link, Trash2, Heading1, Heading2, HelpCircle } from "lucide-react";
+import {
+  Bold,
+  Italic,
+  Underline,
+  List,
+  ListOrdered,
+  Link,
+  Trash2,
+  Heading1,
+  Heading2,
+  HelpCircle,
+} from "lucide-react";
 
 interface RichTextEditorProps {
   value: string;

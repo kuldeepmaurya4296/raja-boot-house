@@ -17,13 +17,13 @@ export default async function EditProductPage({ params }: { params: Promise<{ id
   }
 
   await dbConnect();
-  
+
   const [productRaw, categoriesRaw, brandsRaw] = await Promise.all([
     Product.findById(id).lean(),
     Category.find({ isActive: true }).select("name _id").lean(),
-    Brand.find({ isActive: true }).select("name _id").sort({ name: 1 }).lean()
+    Brand.find({ isActive: true }).select("name _id").sort({ name: 1 }).lean(),
   ]);
-  
+
   if (!productRaw) {
     notFound();
   }
@@ -47,15 +47,17 @@ export default async function EditProductPage({ params }: { params: Promise<{ id
     category: productRaw.category?.toString() || "",
     gender: productRaw.gender,
     occasion: productRaw.occasion || [],
-    images: productRaw.images?.map((img: any) => ({ url: img.url, public_id: img.public_id })) || [],
-    variants: productRaw.variants?.map((v: any) => ({
-      size: v.size,
-      color: v.color,
-      colorHex: v.colorHex,
-      stock: v.stock,
-      sku: v.sku,
-      images: v.images?.map((img: any) => ({ url: img.url, public_id: img.public_id })) || [],
-    })) || [],
+    images:
+      productRaw.images?.map((img: any) => ({ url: img.url, public_id: img.public_id })) || [],
+    variants:
+      productRaw.variants?.map((v: any) => ({
+        size: v.size,
+        color: v.color,
+        colorHex: v.colorHex,
+        stock: v.stock,
+        sku: v.sku,
+        images: v.images?.map((img: any) => ({ url: img.url, public_id: img.public_id })) || [],
+      })) || [],
     price: productRaw.price,
     salePrice: productRaw.salePrice,
     isFeatured: productRaw.isFeatured,

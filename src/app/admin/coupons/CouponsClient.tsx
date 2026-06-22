@@ -27,7 +27,7 @@ export function CouponsClient() {
   const [searchQuery, setSearchQuery] = useState("");
   const [showModal, setShowModal] = useState(false);
   const [editingCoupon, setEditingCoupon] = useState<CouponData | null>(null);
-  
+
   // Form States
   const [code, setCode] = useState("");
   const [type, setType] = useState<"Flat" | "Percentage" | "Free Shipping">("Flat");
@@ -66,13 +66,13 @@ export function CouponsClient() {
     setType("Flat");
     setValue("0");
     setMinCartValue("0");
-    
+
     // Set default dates
     const today = new Date().toISOString().split("T")[0];
     const nextMonth = new Date();
     nextMonth.setMonth(nextMonth.getMonth() + 1);
     const tillDate = nextMonth.toISOString().split("T")[0];
-    
+
     setValidFrom(today);
     setValidTill(tillDate);
     setUsageLimit("");
@@ -94,7 +94,8 @@ export function CouponsClient() {
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm("Are you sure you want to delete this coupon? This action cannot be undone.")) return;
+    if (!confirm("Are you sure you want to delete this coupon? This action cannot be undone."))
+      return;
     try {
       const res = await fetch(`/api/coupons?id=${id}`, {
         method: "DELETE",
@@ -169,9 +170,10 @@ export function CouponsClient() {
     }
   };
 
-  const filteredCoupons = coupons.filter(c => 
-    c.code.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    c.type.toLowerCase().includes(searchQuery.toLowerCase())
+  const filteredCoupons = coupons.filter(
+    (c) =>
+      c.code.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      c.type.toLowerCase().includes(searchQuery.toLowerCase()),
   );
 
   const formatDateString = (dateStr: string) => {
@@ -179,73 +181,114 @@ export function CouponsClient() {
     return new Date(dateStr).toLocaleDateString("en-IN", {
       day: "numeric",
       month: "short",
-      year: "numeric"
+      year: "numeric",
     });
   };
 
   const cols: Column<CouponData>[] = [
-    { key: "code", header: "Coupon Code", render: c => (
-      <div className="flex items-center gap-2">
-        <Ticket className="h-4 w-4 text-cognac" />
-        <span className="font-bold font-mono tracking-wider text-sm bg-muted px-2 py-0.5 rounded border border-border text-foreground">
-          {c.code}
+    {
+      key: "code",
+      header: "Coupon Code",
+      render: (c) => (
+        <div className="flex items-center gap-2">
+          <Ticket className="h-4 w-4 text-cognac" />
+          <span className="font-bold font-mono tracking-wider text-sm bg-muted px-2 py-0.5 rounded border border-border text-foreground">
+            {c.code}
+          </span>
+        </div>
+      ),
+    },
+    {
+      key: "type",
+      header: "Type",
+      render: (c) => (
+        <span className="text-xs font-semibold px-2 py-1 rounded bg-secondary text-secondary-foreground">
+          {c.type}
         </span>
-      </div>
-    )},
-    { key: "type", header: "Type", render: c => (
-      <span className="text-xs font-semibold px-2 py-1 rounded bg-secondary text-secondary-foreground">
-        {c.type}
-      </span>
-    )},
-    { key: "value", header: "Discount Value", render: c => (
-      <span className="font-serif font-bold text-sm">
-        {c.type === "Percentage" ? `${c.value}%` : c.type === "Free Shipping" ? "Free Shipping" : formatINR(c.value)}
-      </span>
-    )},
-    { key: "minCart", header: "Min Cart Value", render: c => (
-      <span className="text-sm text-muted-foreground">{c.minCartValue > 0 ? formatINR(c.minCartValue) : "No Minimum"}</span>
-    )},
-    { key: "usage", header: "Usage (Used / Limit)", render: c => (
-      <span className="text-xs font-medium">
-        {c.usedCount} / {c.usageLimit !== undefined ? c.usageLimit : "∞"}
-      </span>
-    )},
-    { key: "expiry", header: "Expiry Date", render: c => (
-      <div className="flex items-center gap-1 text-xs text-muted-foreground">
-        <Calendar className="h-3.5 w-3.5" />
-        <span>{formatDateString(c.validTill)}</span>
-      </div>
-    )},
-    { key: "status", header: "Status", render: c => {
-      const isExpired = new Date(c.validTill) < new Date();
-      return (
-        <span className={`inline-flex px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${
-          isExpired 
-            ? 'bg-amber-100 text-amber-800 border border-amber-200' 
-            : c.isActive 
-              ? 'bg-emerald-100 text-emerald-800 border border-emerald-200' 
-              : 'bg-muted text-muted-foreground border border-border'
-        }`}>
-          {isExpired ? 'Expired' : c.isActive ? 'Active' : 'Draft'}
+      ),
+    },
+    {
+      key: "value",
+      header: "Discount Value",
+      render: (c) => (
+        <span className="font-serif font-bold text-sm">
+          {c.type === "Percentage"
+            ? `${c.value}%`
+            : c.type === "Free Shipping"
+              ? "Free Shipping"
+              : formatINR(c.value)}
         </span>
-      );
-    }},
-    { key: "actions", header: "", className: "text-right", render: c => (
-      <div className="flex gap-1 justify-end">
-        <button 
-          onClick={() => openEditModal(c)} 
-          className="p-1.5 hover:bg-muted rounded cursor-pointer text-foreground transition"
-        >
-          <Edit className="h-3.5 w-3.5" />
-        </button>
-        <button 
-          onClick={() => handleDelete(c._id)}
-          className="p-1.5 hover:bg-destructive/10 text-destructive rounded cursor-pointer transition"
-        >
-          <Trash2 className="h-3.5 w-3.5" />
-        </button>
-      </div>
-    )},
+      ),
+    },
+    {
+      key: "minCart",
+      header: "Min Cart Value",
+      render: (c) => (
+        <span className="text-sm text-muted-foreground">
+          {c.minCartValue > 0 ? formatINR(c.minCartValue) : "No Minimum"}
+        </span>
+      ),
+    },
+    {
+      key: "usage",
+      header: "Usage (Used / Limit)",
+      render: (c) => (
+        <span className="text-xs font-medium">
+          {c.usedCount} / {c.usageLimit !== undefined ? c.usageLimit : "∞"}
+        </span>
+      ),
+    },
+    {
+      key: "expiry",
+      header: "Expiry Date",
+      render: (c) => (
+        <div className="flex items-center gap-1 text-xs text-muted-foreground">
+          <Calendar className="h-3.5 w-3.5" />
+          <span>{formatDateString(c.validTill)}</span>
+        </div>
+      ),
+    },
+    {
+      key: "status",
+      header: "Status",
+      render: (c) => {
+        const isExpired = new Date(c.validTill) < new Date();
+        return (
+          <span
+            className={`inline-flex px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${
+              isExpired
+                ? "bg-amber-100 text-amber-800 border border-amber-200"
+                : c.isActive
+                  ? "bg-emerald-100 text-emerald-800 border border-emerald-200"
+                  : "bg-muted text-muted-foreground border border-border"
+            }`}
+          >
+            {isExpired ? "Expired" : c.isActive ? "Active" : "Draft"}
+          </span>
+        );
+      },
+    },
+    {
+      key: "actions",
+      header: "",
+      className: "text-right",
+      render: (c) => (
+        <div className="flex gap-1 justify-end">
+          <button
+            onClick={() => openEditModal(c)}
+            className="p-1.5 hover:bg-muted rounded cursor-pointer text-foreground transition"
+          >
+            <Edit className="h-3.5 w-3.5" />
+          </button>
+          <button
+            onClick={() => handleDelete(c._id)}
+            className="p-1.5 hover:bg-destructive/10 text-destructive rounded cursor-pointer transition"
+          >
+            <Trash2 className="h-3.5 w-3.5" />
+          </button>
+        </div>
+      ),
+    },
   ];
 
   return (
@@ -283,10 +326,13 @@ export function CouponsClient() {
       {showModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           {/* Backdrop */}
-          <div className="absolute inset-0 bg-black/60 backdrop-blur-xs" onClick={() => setShowModal(false)} />
-          
+          <div
+            className="absolute inset-0 bg-black/60 backdrop-blur-xs"
+            onClick={() => setShowModal(false)}
+          />
+
           {/* Modal Container */}
-          <form 
+          <form
             onSubmit={handleSubmit}
             className="relative bg-card border border-border rounded-2xl shadow-2xl w-full max-w-md animate-in fade-in zoom-in-95 duration-200 flex flex-col max-h-[90vh]"
           >
@@ -298,9 +344,9 @@ export function CouponsClient() {
                   {editingCoupon ? "Edit Coupon" : "Create Coupon"}
                 </h3>
               </div>
-              <button 
-                type="button" 
-                onClick={() => setShowModal(false)} 
+              <button
+                type="button"
+                onClick={() => setShowModal(false)}
                 className="h-8 w-8 rounded-full hover:bg-muted flex items-center justify-center transition cursor-pointer"
               >
                 <X className="h-4 w-4" />
@@ -348,7 +394,8 @@ export function CouponsClient() {
               {type !== "Free Shipping" && (
                 <div className="space-y-1.5">
                   <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground block">
-                    Discount Value ({type === "Percentage" ? "%" : "₹"}) <span className="text-destructive">*</span>
+                    Discount Value ({type === "Percentage" ? "%" : "₹"}){" "}
+                    <span className="text-destructive">*</span>
                   </label>
                   <input
                     type="number"
@@ -426,7 +473,10 @@ export function CouponsClient() {
                   <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground block">
                     Active Status
                   </label>
-                  <p className="text-[10px] text-muted-foreground"> shoppers can immediately validate this coupon if active.</p>
+                  <p className="text-[10px] text-muted-foreground">
+                    {" "}
+                    shoppers can immediately validate this coupon if active.
+                  </p>
                 </div>
                 <button
                   type="button"

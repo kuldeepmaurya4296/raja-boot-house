@@ -41,14 +41,16 @@ export function BottomNav() {
                 )}
 
                 {/* Icon wrapper */}
-                <div className={`relative flex items-center justify-center h-7 w-7 rounded-xl transition-all duration-200 ${
-                  active
-                    ? "bg-primary/10 scale-110"
-                    : "group-hover:bg-muted scale-100"
-                }`}>
-                  <Icon className={`h-4.5 w-4.5 transition-colors ${
-                    active ? "text-primary" : "text-muted-foreground"
-                  }`} />
+                <div
+                  className={`relative flex items-center justify-center h-7 w-7 rounded-xl transition-all duration-200 ${
+                    active ? "bg-primary/10 scale-110" : "group-hover:bg-muted scale-100"
+                  }`}
+                >
+                  <Icon
+                    className={`h-4.5 w-4.5 transition-colors ${
+                      active ? "text-primary" : "text-muted-foreground"
+                    }`}
+                  />
                   {badge && count > 0 && (
                     <span className="absolute -top-1 -right-1 bg-cognac text-cream text-[8px] font-bold rounded-full h-4 min-w-4 px-0.5 flex items-center justify-center leading-none">
                       {count > 9 ? "9+" : count}
@@ -56,9 +58,11 @@ export function BottomNav() {
                   )}
                 </div>
 
-                <span className={`text-[9px] font-semibold tracking-wide transition-colors ${
-                  active ? "text-primary" : "text-muted-foreground"
-                }`}>
+                <span
+                  className={`text-[9px] font-semibold tracking-wide transition-colors ${
+                    active ? "text-primary" : "text-muted-foreground"
+                  }`}
+                >
                   {label}
                 </span>
               </Link>

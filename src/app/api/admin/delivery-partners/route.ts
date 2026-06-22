@@ -16,7 +16,10 @@ export async function GET() {
   try {
     const session = await auth();
     if (!session?.user?.id || (session.user.role !== "admin" && session.user.role !== "vendor")) {
-      return NextResponse.json({ error: "Unauthorized. Admin/Vendor role required." }, { status: 401 });
+      return NextResponse.json(
+        { error: "Unauthorized. Admin/Vendor role required." },
+        { status: 401 },
+      );
     }
 
     const db = await connectToDatabase();
@@ -30,7 +33,7 @@ export async function GET() {
     console.error("Failed to fetch delivery partners:", error);
     return NextResponse.json(
       { error: error.message || "Failed to fetch delivery partners" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -53,7 +56,10 @@ export async function POST(request: Request) {
     // Check duplicate name
     const existing = await DeliveryPartner.findOne({ name: parsed.name });
     if (existing) {
-      return NextResponse.json({ error: "A delivery partner or staff member with this name already exists" }, { status: 400 });
+      return NextResponse.json(
+        { error: "A delivery partner or staff member with this name already exists" },
+        { status: 400 },
+      );
     }
 
     const partner = await DeliveryPartner.create(parsed);
@@ -62,7 +68,7 @@ export async function POST(request: Request) {
     console.error("Failed to create delivery partner:", error);
     return NextResponse.json(
       { error: error.message || "Failed to create delivery partner" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -91,7 +97,10 @@ export async function PUT(request: Request) {
     // Check duplicate name excluding self
     const existing = await DeliveryPartner.findOne({ name: parsed.name, _id: { $ne: id } });
     if (existing) {
-      return NextResponse.json({ error: "A delivery partner or staff member with this name already exists" }, { status: 400 });
+      return NextResponse.json(
+        { error: "A delivery partner or staff member with this name already exists" },
+        { status: 400 },
+      );
     }
 
     const partner = await DeliveryPartner.findByIdAndUpdate(id, parsed, { new: true });
@@ -104,7 +113,7 @@ export async function PUT(request: Request) {
     console.error("Failed to update delivery partner:", error);
     return NextResponse.json(
       { error: error.message || "Failed to update delivery partner" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -138,7 +147,7 @@ export async function DELETE(request: Request) {
     console.error("Failed to delete delivery partner:", error);
     return NextResponse.json(
       { error: error.message || "Failed to delete delivery partner" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

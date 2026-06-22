@@ -11,9 +11,10 @@ export const metadata = {
   },
   openGraph: {
     title: "System Documentation — Raja Boot House",
-    description: "Comprehensive system manual, customer checkout guides, and administrator guides for Raja Boot House.",
+    description:
+      "Comprehensive system manual, customer checkout guides, and administrator guides for Raja Boot House.",
     type: "website",
-  }
+  },
 };
 
 export default function DocsIndexPage() {

@@ -11,7 +11,10 @@ const items = [
 
 export default async function VendorLayout({ children }: { children: React.ReactNode }) {
   const session = await auth();
-  if (!session?.user?.id || ((session.user as any).role !== "vendor" && (session.user as any).role !== "admin")) {
+  if (
+    !session?.user?.id ||
+    ((session.user as any).role !== "vendor" && (session.user as any).role !== "admin")
+  ) {
     redirect("/login");
   }
 

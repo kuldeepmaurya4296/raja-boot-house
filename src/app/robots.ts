@@ -20,4 +20,3 @@ export default function robots(): MetadataRoute.Robots {
     sitemap: "https://rbh.maurya-tech.com/sitemap.xml",
   };
 }
-

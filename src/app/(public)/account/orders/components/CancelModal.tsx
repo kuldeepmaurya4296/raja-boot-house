@@ -8,11 +8,7 @@ interface CancelModalProps {
   onSuccess: () => void;
 }
 
-export function CancelModal({
-  order,
-  onClose,
-  onSuccess,
-}: CancelModalProps) {
+export function CancelModal({ order, onClose, onSuccess }: CancelModalProps) {
   const [refundMethod, setRefundMethod] = useState<"SAME_METHOD" | "BANK" | "UPI">("SAME_METHOD");
   const [upiId, setUpiId] = useState("");
   const [bankDetails, setBankDetails] = useState({
@@ -24,7 +20,9 @@ export function CancelModal({
   const [reason, setReason] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
-  const isPrepaid = order.paymentMethod ? order.paymentMethod !== "COD" : order.payment?.method !== "COD";
+  const isPrepaid = order.paymentMethod
+    ? order.paymentMethod !== "COD"
+    : order.payment?.method !== "COD";
 
   const handleSubmit = async () => {
     if (isPrepaid) {
@@ -57,12 +55,15 @@ export function CancelModal({
         payload.refundPreference = {
           method: refundMethod,
           upiId: refundMethod === "UPI" ? upiId.trim() : undefined,
-          bankDetails: refundMethod === "BANK" ? {
-            bankName: bankDetails.bankName.trim(),
-            accountNumber: bankDetails.accountNumber.trim(),
-            ifsc: bankDetails.ifsc.trim(),
-            holderName: bankDetails.holderName.trim(),
-          } : undefined,
+          bankDetails:
+            refundMethod === "BANK"
+              ? {
+                  bankName: bankDetails.bankName.trim(),
+                  accountNumber: bankDetails.accountNumber.trim(),
+                  ifsc: bankDetails.ifsc.trim(),
+                  holderName: bankDetails.holderName.trim(),
+                }
+              : undefined,
         };
       }
 
@@ -103,7 +104,10 @@ export function CancelModal({
               <p className="text-xs text-muted-foreground mt-0.5">Order {order.orderId}</p>
             </div>
           </div>
-          <button onClick={onClose} className="h-8 w-8 rounded-full hover:bg-muted flex items-center justify-center transition cursor-pointer">
+          <button
+            onClick={onClose}
+            className="h-8 w-8 rounded-full hover:bg-muted flex items-center justify-center transition cursor-pointer"
+          >
             <X className="h-4 w-4" />
           </button>
         </div>
@@ -131,9 +135,12 @@ export function CancelModal({
           {/* Refund details if prepaid */}
           {isPrepaid && (
             <div className="bg-muted/30 border border-border rounded-xl p-4 space-y-3">
-              <h4 className="text-xs uppercase font-bold tracking-wider text-primary">Refund Destination</h4>
+              <h4 className="text-xs uppercase font-bold tracking-wider text-primary">
+                Refund Destination
+              </h4>
               <p className="text-[11px] text-muted-foreground leading-relaxed">
-                Since this is a prepaid order, please select where you would like to receive your refund:
+                Since this is a prepaid order, please select where you would like to receive your
+                refund:
               </p>
 
               <div className="space-y-2">
@@ -198,7 +205,9 @@ export function CancelModal({
                     <input
                       type="text"
                       value={bankDetails.holderName}
-                      onChange={(e) => setBankDetails(prev => ({ ...prev, holderName: e.target.value }))}
+                      onChange={(e) =>
+                        setBankDetails((prev) => ({ ...prev, holderName: e.target.value }))
+                      }
                       placeholder="As per bank records"
                       className="w-full rounded-lg border border-border bg-background px-3 py-2 text-xs focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary transition"
                     />
@@ -211,7 +220,9 @@ export function CancelModal({
                       <input
                         type="text"
                         value={bankDetails.bankName}
-                        onChange={(e) => setBankDetails(prev => ({ ...prev, bankName: e.target.value }))}
+                        onChange={(e) =>
+                          setBankDetails((prev) => ({ ...prev, bankName: e.target.value }))
+                        }
                         placeholder="e.g. SBI, HDFC"
                         className="w-full rounded-lg border border-border bg-background px-3 py-2 text-xs focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary transition"
                       />
@@ -223,7 +234,12 @@ export function CancelModal({
                       <input
                         type="text"
                         value={bankDetails.ifsc}
-                        onChange={(e) => setBankDetails(prev => ({ ...prev, ifsc: e.target.value.toUpperCase() }))}
+                        onChange={(e) =>
+                          setBankDetails((prev) => ({
+                            ...prev,
+                            ifsc: e.target.value.toUpperCase(),
+                          }))
+                        }
                         placeholder="e.g. SBIN0001234"
                         className="w-full rounded-lg border border-border bg-background px-3 py-2 text-xs focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary transition"
                       />
@@ -236,7 +252,9 @@ export function CancelModal({
                     <input
                       type="text"
                       value={bankDetails.accountNumber}
-                      onChange={(e) => setBankDetails(prev => ({ ...prev, accountNumber: e.target.value }))}
+                      onChange={(e) =>
+                        setBankDetails((prev) => ({ ...prev, accountNumber: e.target.value }))
+                      }
                       placeholder="Enter bank account number"
                       className="w-full rounded-lg border border-border bg-background px-3 py-2 text-xs focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary transition"
                     />

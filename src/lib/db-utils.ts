@@ -24,11 +24,15 @@ export function normalizeProduct(p: any) {
     brandName = p.brand;
   } else {
     brandName =
-      p.vendorId === "v1" ? "Lakhani" :
-      p.vendorId === "v2" ? "Touch" :
-      p.vendorId === "v3" ? "Paragon" :
-      p.vendorId === "v4" ? "Goldstar" :
-      "Raja Boot House";
+      p.vendorId === "v1"
+        ? "Lakhani"
+        : p.vendorId === "v2"
+          ? "Touch"
+          : p.vendorId === "v3"
+            ? "Paragon"
+            : p.vendorId === "v4"
+              ? "Goldstar"
+              : "Raja Boot House";
   }
 
   // Resolve brandId — only keep it as a string
@@ -41,12 +45,14 @@ export function normalizeProduct(p: any) {
 
   // Resolve category slug safely
   const category =
-    (p.category && typeof p.category === "object" && p.category.slug)
+    p.category && typeof p.category === "object" && p.category.slug
       ? p.category.slug
-      : (typeof p.category === "string" ? p.category : "shoes");
+      : typeof p.category === "string"
+        ? p.category
+        : "shoes";
 
   return {
-    id: p._id ? p._id.toString() : (p.id || ""),
+    id: p._id ? p._id.toString() : p.id || "",
     slug: p.slug || "",
     name: p.name || "",
     category,
@@ -54,35 +60,77 @@ export function normalizeProduct(p: any) {
     brandId,
     vendorId: toStr(p.vendorId),
     price: p.salePrice !== undefined ? Number(p.salePrice) : Number(p.price || 0),
-    compareAt: p.salePrice !== undefined ? Number(p.price) : (p.compareAt !== undefined ? Number(p.compareAt) : undefined),
-    variants: p.variants ? p.variants.map((v: any) => ({
-      size: v.size,
-      color: v.color || "",
-      colorHex: v.colorHex || "",
-      stock: Number(v.stock || 0),
-      sku: v.sku || "",
-      images: v.images ? v.images.map((img: any) => ({ url: String(img.url || ""), public_id: String(img.public_id || "") })) : [],
-    })) : [],
-    image: p.images && p.images[0] ? String(p.images[0].url) : (p.image || "/assets/product-placeholder.jpg"),
-    gallery: p.images ? p.images.map((img: any) => String(img.url)) : (p.gallery || []),
+    compareAt:
+      p.salePrice !== undefined
+        ? Number(p.price)
+        : p.compareAt !== undefined
+          ? Number(p.compareAt)
+          : undefined,
+    variants: p.variants
+      ? p.variants.map((v: any) => ({
+          size: v.size,
+          color: v.color || "",
+          colorHex: v.colorHex || "",
+          stock: Number(v.stock || 0),
+          sku: v.sku || "",
+          images: v.images
+            ? v.images.map((img: any) => ({
+                url: String(img.url || ""),
+                public_id: String(img.public_id || ""),
+              }))
+            : [],
+        }))
+      : [],
+    image:
+      p.images && p.images[0]
+        ? String(p.images[0].url)
+        : p.image || "/assets/product-placeholder.jpg",
+    gallery: p.images ? p.images.map((img: any) => String(img.url)) : p.gallery || [],
     description: p.description || "",
-    details: p.tags && p.tags.length > 0 ? p.tags.map(String) : (p.details || ["Premium craftsmanship", "Durability assured"]),
-    colors: Array.from(new Set(p.variants ? p.variants.map((v: any) => String(v.color || "")) : (p.colors || []))) as string[],
-    sizes: Array.from(new Set(p.variants ? p.variants.map((v: any) => Number(v.size)) : (p.sizes || []))) as number[],
-    stock: p.variants ? p.variants.reduce((acc: number, v: any) => acc + Number(v.stock || 0), 0) : (p.stock !== undefined ? Number(p.stock) : 0),
-    rating: p.rating ? (typeof p.rating === "number" ? p.rating : Number(p.rating.average || 4.5)) : 4.5,
-    reviewsCount: p.rating ? (typeof p.rating === "number" ? (p.reviewsCount || 0) : Number(p.rating.count || 0)) : (p.reviewsCount || 0),
-    badge: (p.isFeatured ? "bestseller" : p.isNewArrival ? "new" : p.badge) as "new" | "bestseller" | "sale" | undefined,
-    createdAt: p.createdAt ? (p.createdAt instanceof Date ? p.createdAt.toISOString().split("T")[0] : String(p.createdAt)) : "2025-06-08",
+    details:
+      p.tags && p.tags.length > 0
+        ? p.tags.map(String)
+        : p.details || ["Premium craftsmanship", "Durability assured"],
+    colors: Array.from(
+      new Set(p.variants ? p.variants.map((v: any) => String(v.color || "")) : p.colors || []),
+    ) as string[],
+    sizes: Array.from(
+      new Set(p.variants ? p.variants.map((v: any) => Number(v.size)) : p.sizes || []),
+    ) as number[],
+    stock: p.variants
+      ? p.variants.reduce((acc: number, v: any) => acc + Number(v.stock || 0), 0)
+      : p.stock !== undefined
+        ? Number(p.stock)
+        : 0,
+    rating: p.rating
+      ? typeof p.rating === "number"
+        ? p.rating
+        : Number(p.rating.average || 4.5)
+      : 4.5,
+    reviewsCount: p.rating
+      ? typeof p.rating === "number"
+        ? p.reviewsCount || 0
+        : Number(p.rating.count || 0)
+      : p.reviewsCount || 0,
+    badge: (p.isFeatured ? "bestseller" : p.isNewArrival ? "new" : p.badge) as
+      | "new"
+      | "bestseller"
+      | "sale"
+      | undefined,
+    createdAt: p.createdAt
+      ? p.createdAt instanceof Date
+        ? p.createdAt.toISOString().split("T")[0]
+        : String(p.createdAt)
+      : "2025-06-08",
   };
 }
 
 export async function updateProductRating(productId: string) {
   const Review = mongoose.models.Review || (await import("./models/Review")).default;
   const Product = mongoose.models.Product || (await import("./models/Product")).default;
-  
+
   const allReviews = await Review.find({ productId, isApproved: true });
-  
+
   // Group reviews by userId
   const reviewsByUser: Record<string, any[]> = {};
   allReviews.forEach((r) => {
@@ -120,12 +168,14 @@ export async function cleanupExpiredPendingOrders() {
       status: "PLACED",
       "payment.method": { $ne: "COD" },
       "payment.status": "PENDING",
-      createdAt: { $lt: expiryTime }
+      createdAt: { $lt: expiryTime },
     });
 
     if (expiredOrders.length === 0) return;
 
-    console.log(`[Passive Cleanup] Found ${expiredOrders.length} expired pending orders. Clean-up started...`);
+    console.log(
+      `[Passive Cleanup] Found ${expiredOrders.length} expired pending orders. Clean-up started...`,
+    );
 
     for (const order of expiredOrders) {
       console.log(`[Passive Cleanup] Auto-cancelling expired order ${order.orderId}`);
@@ -136,11 +186,11 @@ export async function cleanupExpiredPendingOrders() {
           {
             _id: item.productId,
             "variants.size": item.size,
-            "variants.color": item.color
+            "variants.color": item.color,
           },
           {
-            $inc: { "variants.$.stock": item.qty }
-          }
+            $inc: { "variants.$.stock": item.qty },
+          },
         );
       }
 
@@ -149,7 +199,7 @@ export async function cleanupExpiredPendingOrders() {
       order.statusHistory.push({
         status: "CANCELLED",
         timestamp: new Date(),
-        note: "Payment window expired. Order cancelled automatically."
+        note: "Payment window expired. Order cancelled automatically.",
       });
 
       await order.save();

@@ -25,7 +25,7 @@ export async function GET(request: Request) {
             p.name?.toLowerCase().includes(normalizedQuery) ||
             p.description?.toLowerCase().includes(normalizedQuery) ||
             p.brand?.toLowerCase().includes(normalizedQuery) ||
-            p.category?.toLowerCase().includes(normalizedQuery)
+            p.category?.toLowerCase().includes(normalizedQuery),
         );
       return NextResponse.json(results);
     }
@@ -62,7 +62,6 @@ export async function GET(request: Request) {
       .populate({ path: "category", model: Category })
       .populate({ path: "brand", model: Brand });
 
-
     const normalized = products.map((p: any) => normalizeProduct(p));
 
     return NextResponse.json(normalized);
@@ -70,7 +69,7 @@ export async function GET(request: Request) {
     console.error("Search API failed:", error);
     return NextResponse.json(
       { error: error.message || "An error occurred during search query resolution" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

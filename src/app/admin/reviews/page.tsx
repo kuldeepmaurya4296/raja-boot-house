@@ -2,7 +2,18 @@
 
 import React, { useState, useEffect } from "react";
 import { DashboardPage } from "@/modules/admin/dashboard/components/DashboardLayout";
-import { Star, Check, X, Trash2, Search, Loader2, Eye, Edit2, ShieldCheck, ShieldAlert } from "lucide-react";
+import {
+  Star,
+  Check,
+  X,
+  Trash2,
+  Search,
+  Loader2,
+  Eye,
+  Edit2,
+  ShieldCheck,
+  ShieldAlert,
+} from "lucide-react";
 import { toast } from "sonner";
 import Link from "next/link";
 import { formatINR } from "@/lib/format";
@@ -36,12 +47,12 @@ export default function AdminReviewsPage() {
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [ratingFilter, setRatingFilter] = useState<number | "all">("all");
-  
+
   // Dialog/Modal states
   const [selectedReview, setSelectedReview] = useState<AdminReview | null>(null);
   const [isViewOpen, setIsViewOpen] = useState(false);
   const [isEditOpen, setIsEditOpen] = useState(false);
-  
+
   // Edit form states
   const [editRating, setEditRating] = useState(5);
   const [editHoverRating, setEditHoverRating] = useState<number | null>(null);
@@ -111,8 +122,8 @@ export default function AdminReviewsPage() {
         prev.map((r) =>
           r._id === selectedReview._id
             ? { ...r, rating: editRating, title: editTitle.trim(), comment: editComment.trim() }
-            : r
-        )
+            : r,
+        ),
       );
       setIsEditOpen(false);
       setSelectedReview(null);
@@ -195,11 +206,7 @@ export default function AdminReviewsPage() {
               onClick={() => interactive && setEditRating(starValue)}
               className={`h-4.5 w-4.5 ${
                 interactive ? "cursor-pointer hover:scale-115 transition-transform" : ""
-              } ${
-                isFilled
-                  ? "fill-brass text-brass"
-                  : "text-muted/40 hover:text-brass/75"
-              }`}
+              } ${isFilled ? "fill-brass text-brass" : "text-muted/40 hover:text-brass/75"}`}
             />
           );
         })}
@@ -228,7 +235,9 @@ export default function AdminReviewsPage() {
           <span className="text-xs text-muted-foreground font-semibold">Filter by Rating:</span>
           <select
             value={ratingFilter}
-            onChange={(e) => setRatingFilter(e.target.value === "all" ? "all" : Number(e.target.value))}
+            onChange={(e) =>
+              setRatingFilter(e.target.value === "all" ? "all" : Number(e.target.value))
+            }
             className="bg-background border border-border rounded-xl px-3 py-2 text-xs font-semibold outline-none cursor-pointer"
           >
             <option value="all">All Ratings</option>
@@ -274,7 +283,10 @@ export default function AdminReviewsPage() {
               </thead>
               <tbody className="divide-y divide-border/60">
                 {filteredReviews.map((r) => (
-                  <tr key={r._id} className="hover:bg-muted/20 transition-colors text-muted-foreground">
+                  <tr
+                    key={r._id}
+                    className="hover:bg-muted/20 transition-colors text-muted-foreground"
+                  >
                     {/* Product */}
                     <td className="px-5 py-4 min-w-[200px]">
                       {r.productId ? (
@@ -285,7 +297,9 @@ export default function AdminReviewsPage() {
                             className="h-10 w-10 object-cover rounded-lg border border-border bg-muted shrink-0"
                           />
                           <div className="min-w-0">
-                            <p className="font-semibold text-charcoal truncate max-w-[150px]">{r.productId.name}</p>
+                            <p className="font-semibold text-charcoal truncate max-w-[150px]">
+                              {r.productId.name}
+                            </p>
                             <Link
                               href={`/shop/${r.productId.slug}`}
                               target="_blank"
@@ -305,14 +319,22 @@ export default function AdminReviewsPage() {
                       <div className="flex items-center gap-2">
                         <div className="h-8 w-8 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold text-xs uppercase shrink-0 border border-border/10 overflow-hidden">
                           {r.userId?.avatar ? (
-                            <img src={r.userId.avatar} alt="" className="h-full w-full object-cover" />
+                            <img
+                              src={r.userId.avatar}
+                              alt=""
+                              className="h-full w-full object-cover"
+                            />
                           ) : (
                             <span>{r.userId?.name?.charAt(0) || "A"}</span>
                           )}
                         </div>
                         <div className="min-w-0">
-                          <p className="font-semibold text-charcoal truncate max-w-[120px]">{r.userId?.name || "Anonymous"}</p>
-                          <p className="text-[10px] text-muted-foreground/75 truncate max-w-[120px]">{r.userId?.email || "No email"}</p>
+                          <p className="font-semibold text-charcoal truncate max-w-[120px]">
+                            {r.userId?.name || "Anonymous"}
+                          </p>
+                          <p className="text-[10px] text-muted-foreground/75 truncate max-w-[120px]">
+                            {r.userId?.email || "No email"}
+                          </p>
                         </div>
                       </div>
                     </td>
@@ -328,8 +350,12 @@ export default function AdminReviewsPage() {
                     {/* Title & Body preview */}
                     <td className="px-5 py-4 max-w-xs">
                       <div className="min-w-0">
-                        {r.title && <p className="font-semibold text-charcoal truncate">{r.title}</p>}
-                        <p className="text-xs text-muted-foreground/80 truncate">{r.comment || "(No text review)"}</p>
+                        {r.title && (
+                          <p className="font-semibold text-charcoal truncate">{r.title}</p>
+                        )}
+                        <p className="text-xs text-muted-foreground/80 truncate">
+                          {r.comment || "(No text review)"}
+                        </p>
                       </div>
                     </td>
 
@@ -338,7 +364,7 @@ export default function AdminReviewsPage() {
                       {new Date(r.createdAt).toLocaleDateString("en-IN", {
                         day: "numeric",
                         month: "short",
-                        year: "numeric"
+                        year: "numeric",
                       })}
                     </td>
 
@@ -391,39 +417,63 @@ export default function AdminReviewsPage() {
       )}
 
       {/* VIEW MODAL DIALOG */}
-      <AdminModal isOpen={isViewOpen} onClose={() => { setIsViewOpen(false); setSelectedReview(null); }} title="Review Details">
+      <AdminModal
+        isOpen={isViewOpen}
+        onClose={() => {
+          setIsViewOpen(false);
+          setSelectedReview(null);
+        }}
+        title="Review Details"
+      >
         {selectedReview && (
           <div className="space-y-5">
             {/* Reviewer & Product info grid */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-muted/30 p-4 rounded-xl border border-border/40">
               <div>
-                <h4 className="text-[10px] uppercase font-bold text-muted-foreground tracking-wider mb-2">Reviewer Info</h4>
+                <h4 className="text-[10px] uppercase font-bold text-muted-foreground tracking-wider mb-2">
+                  Reviewer Info
+                </h4>
                 <div className="flex items-center gap-2.5">
                   <div className="h-9 w-9 rounded-full bg-primary/15 text-primary flex items-center justify-center font-bold text-sm uppercase overflow-hidden shrink-0 border border-border/10">
                     {selectedReview.userId?.avatar ? (
-                      <img src={selectedReview.userId.avatar} alt="" className="h-full w-full object-cover" />
+                      <img
+                        src={selectedReview.userId.avatar}
+                        alt=""
+                        className="h-full w-full object-cover"
+                      />
                     ) : (
                       <span>{selectedReview.userId?.name?.charAt(0) || "A"}</span>
                     )}
                   </div>
                   <div className="min-w-0">
-                    <p className="text-xs font-bold text-charcoal truncate">{selectedReview.userId?.name || "Anonymous"}</p>
-                    <p className="text-[10px] text-muted-foreground truncate">{selectedReview.userId?.email || "No email ID"}</p>
+                    <p className="text-xs font-bold text-charcoal truncate">
+                      {selectedReview.userId?.name || "Anonymous"}
+                    </p>
+                    <p className="text-[10px] text-muted-foreground truncate">
+                      {selectedReview.userId?.email || "No email ID"}
+                    </p>
                   </div>
                 </div>
               </div>
 
               <div>
-                <h4 className="text-[10px] uppercase font-bold text-muted-foreground tracking-wider mb-2">Product Info</h4>
+                <h4 className="text-[10px] uppercase font-bold text-muted-foreground tracking-wider mb-2">
+                  Product Info
+                </h4>
                 {selectedReview.productId ? (
                   <div className="flex items-center gap-2.5">
                     <img
-                      src={selectedReview.productId.images?.[0]?.url || "/assets/product-placeholder.jpg"}
+                      src={
+                        selectedReview.productId.images?.[0]?.url ||
+                        "/assets/product-placeholder.jpg"
+                      }
                       alt={selectedReview.productId.name}
                       className="h-9 w-9 object-cover rounded-lg border border-border bg-card shrink-0"
                     />
                     <div className="min-w-0">
-                      <p className="text-xs font-bold text-charcoal truncate">{selectedReview.productId.name}</p>
+                      <p className="text-xs font-bold text-charcoal truncate">
+                        {selectedReview.productId.name}
+                      </p>
                       <Link
                         href={`/shop/${selectedReview.productId.slug}`}
                         target="_blank"
@@ -447,23 +497,34 @@ export default function AdminReviewsPage() {
                 <span className="text-xs font-bold text-charcoal">({selectedReview.rating}.0)</span>
               </div>
               <div className="text-xs text-muted-foreground">
-                <span className="font-semibold text-charcoal">Posted:</span> {new Date(selectedReview.createdAt).toLocaleString("en-IN")}
+                <span className="font-semibold text-charcoal">Posted:</span>{" "}
+                {new Date(selectedReview.createdAt).toLocaleString("en-IN")}
               </div>
             </div>
 
             {/* Title & Comment Content */}
             <div className="space-y-2">
-              <span className="text-[10px] uppercase font-bold text-muted-foreground tracking-wider block">Review Content</span>
-              {selectedReview.title && <h3 className="font-bold text-charcoal text-sm">{selectedReview.title}</h3>}
+              <span className="text-[10px] uppercase font-bold text-muted-foreground tracking-wider block">
+                Review Content
+              </span>
+              {selectedReview.title && (
+                <h3 className="font-bold text-charcoal text-sm">{selectedReview.title}</h3>
+              )}
               <p className="text-xs text-muted-foreground leading-relaxed whitespace-pre-wrap bg-muted/20 p-4 rounded-xl border border-border/30">
-                {selectedReview.comment || <span className="italic text-muted-foreground/60">No written details provided.</span>}
+                {selectedReview.comment || (
+                  <span className="italic text-muted-foreground/60">
+                    No written details provided.
+                  </span>
+                )}
               </p>
             </div>
 
             {/* Images Gallery */}
             {selectedReview.images && selectedReview.images.length > 0 && (
               <div className="space-y-2">
-                <span className="text-[10px] uppercase font-bold text-muted-foreground tracking-wider block">Attached Photos ({selectedReview.images.length})</span>
+                <span className="text-[10px] uppercase font-bold text-muted-foreground tracking-wider block">
+                  Attached Photos ({selectedReview.images.length})
+                </span>
                 <div className="flex flex-wrap gap-2.5">
                   {selectedReview.images.map((url, idx) => (
                     <a
@@ -473,7 +534,11 @@ export default function AdminReviewsPage() {
                       rel="noopener noreferrer"
                       className="h-20 w-20 rounded-xl overflow-hidden border border-border bg-muted hover:opacity-90 transition shadow-sm"
                     >
-                      <img src={url} alt="Attached review photo" className="h-full w-full object-cover" />
+                      <img
+                        src={url}
+                        alt="Attached review photo"
+                        className="h-full w-full object-cover"
+                      />
                     </a>
                   ))}
                 </div>
@@ -483,7 +548,10 @@ export default function AdminReviewsPage() {
             {/* Footer buttons */}
             <div className="flex justify-end gap-3 pt-2">
               <button
-                onClick={() => { setIsViewOpen(false); openEditDialog(selectedReview); }}
+                onClick={() => {
+                  setIsViewOpen(false);
+                  openEditDialog(selectedReview);
+                }}
                 className="px-5 py-2 bg-primary/10 hover:bg-primary/20 text-primary text-xs font-bold rounded-full transition cursor-pointer"
               >
                 Edit Review
@@ -504,16 +572,29 @@ export default function AdminReviewsPage() {
       </AdminModal>
 
       {/* EDIT MODAL DIALOG */}
-      <AdminModal isOpen={isEditOpen} onClose={() => { setIsEditOpen(false); setSelectedReview(null); }} title="Edit Review">
+      <AdminModal
+        isOpen={isEditOpen}
+        onClose={() => {
+          setIsEditOpen(false);
+          setSelectedReview(null);
+        }}
+        title="Edit Review"
+      >
         {selectedReview && (
           <form onSubmit={handleEditSubmit} className="space-y-5">
             {/* User & Product Header summary */}
             <div className="flex items-center justify-between text-xs text-muted-foreground border-b border-border/40 pb-3">
               <p>
-                Editing review for <span className="font-semibold text-charcoal">{selectedReview.productId?.name || "Removed Product"}</span>
+                Editing review for{" "}
+                <span className="font-semibold text-charcoal">
+                  {selectedReview.productId?.name || "Removed Product"}
+                </span>
               </p>
               <p>
-                By <span className="font-semibold text-charcoal">{selectedReview.userId?.name || "Anonymous"}</span>
+                By{" "}
+                <span className="font-semibold text-charcoal">
+                  {selectedReview.userId?.name || "Anonymous"}
+                </span>
               </p>
             </div>
 
@@ -557,7 +638,10 @@ export default function AdminReviewsPage() {
             <div className="flex justify-end gap-3 pt-2.5">
               <button
                 type="button"
-                onClick={() => { setIsEditOpen(false); setSelectedReview(null); }}
+                onClick={() => {
+                  setIsEditOpen(false);
+                  setSelectedReview(null);
+                }}
                 className="px-5 py-2.5 border border-border hover:bg-muted text-xs font-semibold rounded-full transition cursor-pointer"
               >
                 Cancel
@@ -601,8 +685,8 @@ function AdminModal({
   return (
     <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
       {/* Backdrop overlay */}
-      <div 
-        onClick={onClose} 
+      <div
+        onClick={onClose}
         className="fixed inset-0 bg-charcoal/50 backdrop-blur-xs transition-opacity animate-fade-in"
       />
 
@@ -620,9 +704,7 @@ function AdminModal({
         </div>
 
         {/* Scrollable Content */}
-        <div className="p-6 overflow-y-auto flex-1">
-          {children}
-        </div>
+        <div className="p-6 overflow-y-auto flex-1">{children}</div>
       </div>
     </div>
   );

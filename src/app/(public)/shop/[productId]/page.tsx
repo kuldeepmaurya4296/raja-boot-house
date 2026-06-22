@@ -21,7 +21,7 @@ async function getProductData(productId: string) {
     console.warn("Database connection is not ready. Returning null product data.");
     return null;
   }
-  
+
   // Try finding by slug first, then by ObjectId id
   let productDoc = await Product.findOne({ slug: productId, isActive: true })
     .populate({ path: "category", model: Category })
@@ -43,10 +43,15 @@ async function getProductData(productId: string) {
 
   // Calculate reviewNumber chronologically per user
   const userReviewCounts: Record<string, number> = {};
-  const sortedChronologically = [...reviewsDocs].sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+  const sortedChronologically = [...reviewsDocs].sort(
+    (a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime(),
+  );
   const reviewNumbers: Record<string, number> = {};
   sortedChronologically.forEach((r) => {
-    const uId = r.userId && typeof r.userId === "object" && "_id" in r.userId ? (r.userId as any)._id.toString() : r.userId?.toString() || "anonymous";
+    const uId =
+      r.userId && typeof r.userId === "object" && "_id" in r.userId
+        ? (r.userId as any)._id.toString()
+        : r.userId?.toString() || "anonymous";
     if (!userReviewCounts[uId]) {
       userReviewCounts[uId] = 0;
     }
@@ -57,9 +62,18 @@ async function getProductData(productId: string) {
   const mappedReviews = reviewsDocs.map((r: any) => ({
     id: r._id.toString(),
     productId: r.productId.toString(),
-    userName: r.userId && typeof r.userId === "object" && "name" in r.userId ? (r.userId as any).name : "Anonymous",
-    userId: r.userId && typeof r.userId === "object" && "_id" in r.userId ? (r.userId as any)._id.toString() : r.userId?.toString() || "",
-    userAvatar: r.userId && typeof r.userId === "object" && "avatar" in r.userId ? (r.userId as any).avatar : undefined,
+    userName:
+      r.userId && typeof r.userId === "object" && "name" in r.userId
+        ? (r.userId as any).name
+        : "Anonymous",
+    userId:
+      r.userId && typeof r.userId === "object" && "_id" in r.userId
+        ? (r.userId as any)._id.toString()
+        : r.userId?.toString() || "",
+    userAvatar:
+      r.userId && typeof r.userId === "object" && "avatar" in r.userId
+        ? (r.userId as any).avatar
+        : undefined,
     rating: r.rating,
     title: r.title || "",
     body: r.comment || "",
@@ -67,33 +81,37 @@ async function getProductData(productId: string) {
     createdAt: new Date(r.createdAt).toLocaleDateString("en-IN", {
       day: "numeric",
       month: "short",
-      year: "numeric"
+      year: "numeric",
     }),
     verified: r.isVerifiedPurchase || false,
     reviewNumber: reviewNumbers[r._id.toString()] || 1,
-    helpfulVotes: r.helpfulVotes || 0
+    helpfulVotes: r.helpfulVotes || 0,
   }));
 
   // Fetch related products
   const relatedDocs = await Product.find({
     category: productDoc.category,
     _id: { $ne: productDoc._id },
-    isActive: true
-  }).limit(4).populate({ path: "category", model: Category });
+    isActive: true,
+  })
+    .limit(4)
+    .populate({ path: "category", model: Category });
 
   // JSON round-trip to guarantee all values are plain serializable objects
   // (strips any residual Mongoose/BSON types that slipped through normalizeProduct)
-  return JSON.parse(JSON.stringify({
-    product: normalizedProduct,
-    reviews: mappedReviews,
-    related: relatedDocs.map(p => normalizeProduct(p))
-  }));
+  return JSON.parse(
+    JSON.stringify({
+      product: normalizedProduct,
+      reviews: mappedReviews,
+      related: relatedDocs.map((p) => normalizeProduct(p)),
+    }),
+  );
 }
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { productId } = await params;
   const { isReady } = await ensureDbReady();
-  
+
   let product = null;
   if (isReady) {
     product = await Product.findOne({ slug: productId, isActive: true });
@@ -105,7 +123,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   if (!product) {
     return {
       title: "Product Not Found — Raja Boot House",
-      description: "This footwear style is not available."
+      description: "This footwear style is not available.",
     };
   }
 
@@ -118,8 +136,8 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     openGraph: {
       title: `${product.name} — Raja Boot House`,
       description: product.description?.slice(0, 160),
-      images: [{ url: product.images?.[0]?.url || "/assets/product-placeholder.jpg" }]
-    }
+      images: [{ url: product.images?.[0]?.url || "/assets/product-placeholder.jpg" }],
+    },
   };
 }
 
@@ -131,7 +149,9 @@ export default async function ProductPage({ params }: PageProps) {
     return (
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-20 text-center">
         <h1 className="font-serif text-3xl font-bold text-charcoal mb-4">Product Not Found</h1>
-        <p className="text-muted-foreground mb-6">The style you are looking for does not exist or has been removed.</p>
+        <p className="text-muted-foreground mb-6">
+          The style you are looking for does not exist or has been removed.
+        </p>
         <Link href="/shop" className="underline font-semibold text-primary">
           Back to shop
         </Link>
@@ -143,58 +163,64 @@ export default async function ProductPage({ params }: PageProps) {
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "Product",
-    "name": data.product.name,
-    "image": data.product.gallery,
-    "description": data.product.description,
-    "sku": data.product.id,
-    "brand": {
+    name: data.product.name,
+    image: data.product.gallery,
+    description: data.product.description,
+    sku: data.product.id,
+    brand: {
       "@type": "Brand",
-      "name": data.product.brand || "Raja Boot House"
+      name: data.product.brand || "Raja Boot House",
     },
-    "offers": {
+    offers: {
       "@type": "Offer",
-      "url": `https://rbh.maurya-tech.com/shop/${data.product.slug}`,
-      "priceCurrency": "INR",
-      "price": data.product.price,
-      "itemCondition": "https://schema.org/NewCondition",
-      "availability": data.product.stock > 0 ? "https://schema.org/InStock" : "https://schema.org/OutOfStock"
+      url: `https://rbh.maurya-tech.com/shop/${data.product.slug}`,
+      priceCurrency: "INR",
+      price: data.product.price,
+      itemCondition: "https://schema.org/NewCondition",
+      availability:
+        data.product.stock > 0 ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
     },
-    "aggregateRating": data.product.reviewsCount > 0 ? {
-      "@type": "AggregateRating",
-      "ratingValue": data.product.rating,
-      "reviewCount": data.product.reviewsCount
-    } : undefined
+    aggregateRating:
+      data.product.reviewsCount > 0
+        ? {
+            "@type": "AggregateRating",
+            ratingValue: data.product.rating,
+            reviewCount: data.product.reviewsCount,
+          }
+        : undefined,
   };
 
   const breadcrumbsJsonLd = {
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",
-    "itemListElement": [
+    itemListElement: [
       {
         "@type": "ListItem",
-        "position": 1,
-        "name": "Home",
-        "item": "https://rbh.maurya-tech.com"
+        position: 1,
+        name: "Home",
+        item: "https://rbh.maurya-tech.com",
       },
       {
         "@type": "ListItem",
-        "position": 2,
-        "name": "Shop",
-        "item": "https://rbh.maurya-tech.com/shop"
+        position: 2,
+        name: "Shop",
+        item: "https://rbh.maurya-tech.com/shop",
       },
       {
         "@type": "ListItem",
-        "position": 3,
-        "name": data.product.category ? (data.product.category.charAt(0).toUpperCase() + data.product.category.slice(1)) : "Footwear",
-        "item": `https://rbh.maurya-tech.com/shop?category=${data.product.category || "all"}`
+        position: 3,
+        name: data.product.category
+          ? data.product.category.charAt(0).toUpperCase() + data.product.category.slice(1)
+          : "Footwear",
+        item: `https://rbh.maurya-tech.com/shop?category=${data.product.category || "all"}`,
       },
       {
         "@type": "ListItem",
-        "position": 4,
-        "name": data.product.name,
-        "item": `https://rbh.maurya-tech.com/shop/${data.product.slug}`
-      }
-    ]
+        position: 4,
+        name: data.product.name,
+        item: `https://rbh.maurya-tech.com/shop/${data.product.slug}`,
+      },
+    ],
   };
 
   return (
@@ -220,11 +246,11 @@ export async function generateStaticParams() {
   try {
     const { isReady } = await ensureDbReady();
     if (!isReady) return [];
-    
+
     // Pre-generate static paths for the top 12 active products at build time
     const products = await Product.find({ isActive: true }).select("slug").limit(12).lean();
     return products.map((p: any) => ({
-      productId: p.slug
+      productId: p.slug,
     }));
   } catch (err) {
     console.error("Failed to generate static params for products:", err);

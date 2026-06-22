@@ -13,9 +13,11 @@ export async function GET() {
     return NextResponse.json(banners);
   } catch (error: any) {
     console.error("Failed to fetch banners:", error);
-    return NextResponse.json({ error: error.message || "Failed to fetch banners" }, { status: 500 });
+    return NextResponse.json(
+      { error: error.message || "Failed to fetch banners" },
+      { status: 500 },
+    );
   }
 }
 
 export const revalidate = 86400;
-

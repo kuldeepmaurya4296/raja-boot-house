@@ -24,43 +24,45 @@ export default function AccountWishlistPage() {
 
     setLoading(true);
     Promise.all(
-      wishlist.map(id => 
+      wishlist.map((id) =>
         fetch(`/api/products/${id}`)
-          .then(res => res.json())
-          .catch(() => null)
-      )
-    ).then(results => {
-      const validProducts = results.filter((p): p is Product => p !== null && !p.error);
-      setItems(validProducts);
-      
-      // Initialize default sizes for each product
-      const defaults: Record<string, number> = {};
-      validProducts.forEach(p => {
-        if (p.sizes && p.sizes.length > 0) {
-          defaults[p.id] = p.sizes[0];
-        }
-      });
-      setSelectedSizes(prev => ({ ...defaults, ...prev }));
-    }).finally(() => setLoading(false));
+          .then((res) => res.json())
+          .catch(() => null),
+      ),
+    )
+      .then((results) => {
+        const validProducts = results.filter((p): p is Product => p !== null && !p.error);
+        setItems(validProducts);
+
+        // Initialize default sizes for each product
+        const defaults: Record<string, number> = {};
+        validProducts.forEach((p) => {
+          if (p.sizes && p.sizes.length > 0) {
+            defaults[p.id] = p.sizes[0];
+          }
+        });
+        setSelectedSizes((prev) => ({ ...defaults, ...prev }));
+      })
+      .finally(() => setLoading(false));
   }, [wishlist]);
 
   const handleSizeChange = (productId: string, size: number) => {
-    setSelectedSizes(prev => ({
+    setSelectedSizes((prev) => ({
       ...prev,
-      [productId]: size
+      [productId]: size,
     }));
   };
 
   const handleMoveToBag = (product: Product) => {
     const size = selectedSizes[product.id] || product.sizes?.[0] || 7;
     const color = product.colors?.[0] || "Default";
-    
+
     // Add to cart
     add(product, { size, color, quantity: 1 });
-    
+
     // Remove from wishlist
     toggleWish(product.id);
-    
+
     // Toast notification
     toast.success(`Moved ${product.name} to Cart!`, {
       description: `Size: UK/IND ${size} · Color: ${color}`,
@@ -80,7 +82,7 @@ export default function AccountWishlistPage() {
           <div className="h-4 w-24 bg-muted rounded-full"></div>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-          {[1, 2, 3].map(i => (
+          {[1, 2, 3].map((i) => (
             <div key={i} className="flex flex-col gap-3 border border-border/60 rounded-2xl p-4">
               <div className="aspect-square bg-muted rounded-xl"></div>
               <div className="h-4 bg-muted rounded w-3/4"></div>
@@ -98,7 +100,9 @@ export default function AccountWishlistPage() {
       <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-2">
         <div>
           <h2 className="font-serif text-2xl font-bold text-foreground">Wishlist</h2>
-          <p className="text-xs text-muted-foreground mt-0.5">Your curated list of style favorites</p>
+          <p className="text-xs text-muted-foreground mt-0.5">
+            Your curated list of style favorites
+          </p>
         </div>
         {items.length > 0 && (
           <span className="text-[11px] font-semibold text-muted-foreground bg-muted px-3 py-1.5 rounded-full w-fit">
@@ -109,7 +113,7 @@ export default function AccountWishlistPage() {
 
       <AnimatePresence mode="popLayout">
         {items.length === 0 ? (
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.95 }}
@@ -120,22 +124,23 @@ export default function AccountWishlistPage() {
             </div>
             <p className="font-serif text-lg font-bold text-foreground">Your Wishlist is Empty</p>
             <p className="text-sm text-muted-foreground mt-1 max-w-sm mx-auto">
-              Save your favorite sneakers, formals, and bridal footwear here to keep track of their stock and prices.
+              Save your favorite sneakers, formals, and bridal footwear here to keep track of their
+              stock and prices.
             </p>
-            <Link href="/shop" className="mt-6 inline-flex items-center gap-2 bg-primary hover:bg-cognac text-primary-foreground rounded-full px-6 py-2.5 text-xs font-bold shadow-md transition-all">
+            <Link
+              href="/shop"
+              className="mt-6 inline-flex items-center gap-2 bg-primary hover:bg-cognac text-primary-foreground rounded-full px-6 py-2.5 text-xs font-bold shadow-md transition-all"
+            >
               <ShoppingBag className="h-4 w-4" />
               <span>Explore Collection</span>
             </Link>
           </motion.div>
         ) : (
-          <motion.div 
-            layout
-            className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6"
-          >
-            {items.map(p => {
+          <motion.div layout className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+            {items.map((p) => {
               const stock = p.stock ?? 10;
               const selectedSize = selectedSizes[p.id] || p.sizes?.[0] || 7;
-              
+
               // Stock badge style
               let stockLabel = "In Stock";
               let stockClass = "bg-green-500/10 text-green-700 border-green-500/20";
@@ -165,13 +170,15 @@ export default function AccountWishlistPage() {
                         className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-500"
                         loading="lazy"
                       />
-                      
+
                       {/* Top Action Row */}
                       <div className="absolute top-2.5 inset-x-2.5 flex justify-between items-center">
-                        <span className={`px-2.5 py-1 text-[9px] font-bold uppercase tracking-wider rounded-full border ${stockClass}`}>
+                        <span
+                          className={`px-2.5 py-1 text-[9px] font-bold uppercase tracking-wider rounded-full border ${stockClass}`}
+                        >
                           {stockLabel}
                         </span>
-                        
+
                         <button
                           onClick={() => handleRemove(p.id, p.name)}
                           className="h-8.5 w-8.5 rounded-full bg-cream/90 hover:bg-red-50 text-charcoal hover:text-red-600 backdrop-blur shadow-sm grid place-items-center transition cursor-pointer border-0"
@@ -194,14 +201,16 @@ export default function AccountWishlistPage() {
                           </span>
                         )}
                       </div>
-                      
+
                       <h3 className="font-serif text-sm font-bold text-foreground leading-snug line-clamp-1">
                         {p.name}
                       </h3>
 
                       {/* Prices */}
                       <div className="flex items-baseline gap-2">
-                        <span className="text-sm font-extrabold text-foreground">{formatINR(p.price)}</span>
+                        <span className="text-sm font-extrabold text-foreground">
+                          {formatINR(p.price)}
+                        </span>
                         {p.compareAt && (
                           <span className="text-xs text-muted-foreground line-through font-medium">
                             {formatINR(p.compareAt)}
@@ -217,7 +226,7 @@ export default function AccountWishlistPage() {
                           Select UK Size:
                         </p>
                         <div className="flex flex-wrap gap-1.5">
-                          {p.sizes.map(size => (
+                          {p.sizes.map((size) => (
                             <button
                               key={size}
                               onClick={() => handleSizeChange(p.id, size)}

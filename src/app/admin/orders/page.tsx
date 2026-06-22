@@ -7,26 +7,27 @@ import { cleanupExpiredPendingOrders } from "@/lib/db-utils";
 
 export const dynamic = "force-dynamic";
 
-export default async function AdminOrdersPage({ searchParams }: { searchParams: Promise<{ [key: string]: string | undefined }> }) {
+export default async function AdminOrdersPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ [key: string]: string | undefined }>;
+}) {
   await dbConnect();
 
   // Passively cleanup any expired pending orders
   await cleanupExpiredPendingOrders();
 
   const params = await searchParams;
-  
+
   const q = params.q || "";
   const page = parseInt(params.page || "1", 10);
   const limit = 10;
   const sortKey = params.sort || "createdAt";
   const sortOrder = params.order === "asc" ? 1 : -1;
   const statusFilter = params.status || "";
-  
+
   const query: any = {
-    $or: [
-      { "payment.method": "COD" },
-      { "payment.status": { $ne: "PENDING" } }
-    ]
+    $or: [{ "payment.method": "COD" }, { "payment.status": { $ne: "PENDING" } }],
   };
   if (statusFilter) {
     query.status = statusFilter.toUpperCase();
@@ -56,14 +57,11 @@ export default async function AdminOrdersPage({ searchParams }: { searchParams: 
     Order.aggregate([
       {
         $match: {
-          $or: [
-            { "payment.method": "COD" },
-            { "payment.status": { $ne: "PENDING" } }
-          ]
-        }
+          $or: [{ "payment.method": "COD" }, { "payment.status": { $ne: "PENDING" } }],
+        },
       },
-      { $group: { _id: "$status", count: { $sum: 1 } } }
-    ])
+      { $group: { _id: "$status", count: { $sum: 1 } } },
+    ]),
   ]);
 
   const statusCounts: Record<string, number> = {};
@@ -75,7 +73,7 @@ export default async function AdminOrdersPage({ searchParams }: { searchParams: 
     }
   });
   statusCounts["ALL"] = totalCount;
-    
+
   const orders = ordersRaw.map((o: any) => ({
     id: o._id.toString(),
     orderId: o.orderId,

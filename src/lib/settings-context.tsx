@@ -36,16 +36,16 @@ const defaultSettings: Settings = {
   shippingMethods: [
     { id: "std", name: "Standard", desc: "5–7 days", price: 0 },
     { id: "exp", name: "Express", desc: "2–3 days", price: 150 },
-    { id: "same", name: "Same-day (Jawa Rewa)", desc: "Today", price: 350 }
+    { id: "same", name: "Same-day (Jawa Rewa)", desc: "Today", price: 350 },
   ],
   razorpayEnabled: true,
-  codEnabled: true
+  codEnabled: true,
 };
 
 const SettingsContext = createContext<SettingsContextType>({
   ...defaultSettings,
   loading: true,
-  refreshSettings: async () => {}
+  refreshSettings: async () => {},
 });
 
 export function SettingsProvider({ children }: { children: React.ReactNode }) {

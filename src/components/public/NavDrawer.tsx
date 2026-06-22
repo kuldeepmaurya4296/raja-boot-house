@@ -54,7 +54,9 @@ export function NavDrawer({ onClose, categoriesList, session, accountLink }: Nav
 
         {/* Navigation Links */}
         <div className="flex flex-col gap-1 flex-grow p-4">
-          <p className="text-[9px] uppercase tracking-[0.2em] text-muted-foreground/60 font-bold px-3 mb-1">Shop by Category</p>
+          <p className="text-[9px] uppercase tracking-[0.2em] text-muted-foreground/60 font-bold px-3 mb-1">
+            Shop by Category
+          </p>
           <Link
             href="/shop"
             onClick={onClose}
@@ -88,12 +90,20 @@ export function NavDrawer({ onClose, categoriesList, session, accountLink }: Nav
                     className="h-full w-full rounded-full object-cover"
                     onError={() => setDrawerAvatarError(true)}
                   />
+                ) : session.user?.name ? (
+                  session.user.name
+                    .split(" ")
+                    .map((n: any) => n[0])
+                    .join("")
+                    .slice(0, 2)
                 ) : (
-                  session.user?.name ? session.user.name.split(" ").map((n: any) => n[0]).join("").slice(0, 2) : "U"
+                  "U"
                 )}
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-xs font-bold text-foreground truncate">{session.user?.name || "Member"}</p>
+                <p className="text-xs font-bold text-foreground truncate">
+                  {session.user?.name || "Member"}
+                </p>
                 <p className="text-[10px] text-muted-foreground truncate">{session.user?.email}</p>
               </div>
               <Link

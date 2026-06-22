@@ -20,7 +20,7 @@ function LoginForm() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     // Client-side validations
     if (!email.trim() || !password) {
       toast.error("Email and password are required.");
@@ -40,9 +40,9 @@ function LoginForm() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
       });
-      
+
       const checkData = await checkRes.json();
-      
+
       if (!checkRes.ok) {
         toast.error(checkData.error || "Login validation failed.");
         setLoading(false);
@@ -84,7 +84,9 @@ function LoginForm() {
         <p className="text-sm text-muted-foreground text-center mt-1">Sign in to your account</p>
         <form className="mt-6 space-y-4" onSubmit={handleSubmit}>
           <label className="block">
-            <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Email</span>
+            <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+              Email
+            </span>
             <input
               type="email"
               value={email}
@@ -96,8 +98,13 @@ function LoginForm() {
           </label>
           <label className="block">
             <div className="flex justify-between items-center">
-              <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Password</span>
-              <Link href="/forgot-password" className="text-xs text-primary font-semibold hover:underline cursor-pointer">
+              <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                Password
+              </span>
+              <Link
+                href="/forgot-password"
+                className="text-xs text-primary font-semibold hover:underline cursor-pointer"
+              >
                 Forgot password?
               </Link>
             </div>
@@ -115,11 +122,7 @@ function LoginForm() {
                 onClick={() => setShowPassword(!showPassword)}
                 className="absolute inset-y-0 right-0 pr-3 flex items-center text-muted-foreground hover:text-foreground cursor-pointer"
               >
-                {showPassword ? (
-                  <EyeOff className="h-4 w-4" />
-                ) : (
-                  <Eye className="h-4 w-4" />
-                )}
+                {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
               </button>
             </div>
           </label>
@@ -134,7 +137,9 @@ function LoginForm() {
 
         <div className="relative flex py-5 items-center">
           <div className="flex-grow border-t border-border"></div>
-          <span className="flex-shrink mx-4 text-muted-foreground text-xs uppercase tracking-wider">Or</span>
+          <span className="flex-shrink mx-4 text-muted-foreground text-xs uppercase tracking-wider">
+            Or
+          </span>
           <div className="flex-grow border-t border-border"></div>
         </div>
 
@@ -164,12 +169,19 @@ function LoginForm() {
         </button>
 
         <p className="text-xs text-center mt-5 text-muted-foreground">
-          New here? <Link href="/signup" className="text-primary font-semibold underline">Create an account</Link>
+          New here?{" "}
+          <Link href="/signup" className="text-primary font-semibold underline">
+            Create an account
+          </Link>
         </p>
       </div>
       <div className="mt-6 flex justify-center gap-4 text-xs">
-        <Link href="/account" className="underline">Customer portal</Link>
-        <Link href="/admin" className="underline">Admin</Link>
+        <Link href="/account" className="underline">
+          Customer portal
+        </Link>
+        <Link href="/admin" className="underline">
+          Admin
+        </Link>
         {/* <Link href="/vendor" className="underline">Vendor</Link> */}
       </div>
     </div>
@@ -188,11 +200,13 @@ export default function LoginPage() {
   }
 
   return (
-    <Suspense fallback={
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-20 text-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary mx-auto"></div>
-      </div>
-    }>
+    <Suspense
+      fallback={
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-20 text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary mx-auto"></div>
+        </div>
+      }
+    >
       <LoginForm />
     </Suspense>
   );

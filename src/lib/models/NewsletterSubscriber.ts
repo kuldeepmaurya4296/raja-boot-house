@@ -22,7 +22,7 @@ const NewsletterSubscriberSchema: Schema = new Schema(
     phone: { type: String, required: true, trim: true },
     message: { type: String, trim: true },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
 export default mongoose.models.NewsletterSubscriber ||

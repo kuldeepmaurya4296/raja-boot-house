@@ -165,7 +165,8 @@ export function DeliveryPartnerModal({
                 className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary transition"
               />
               <p className="text-[10px] text-muted-foreground mt-1">
-                Use <code className="bg-muted px-1 rounded font-bold">{"{{tracking}}"}</code> where the AWB number should be inserted.
+                Use <code className="bg-muted px-1 rounded font-bold">{"{{tracking}}"}</code> where
+                the AWB number should be inserted.
               </p>
             </div>
           )}
@@ -178,7 +179,10 @@ export function DeliveryPartnerModal({
               onChange={(e) => setIsActive(e.target.checked)}
               className="h-4 w-4 rounded border-border text-primary focus:ring-primary accent-primary cursor-pointer"
             />
-            <label htmlFor="isActive" className="text-xs font-semibold text-muted-foreground select-none cursor-pointer">
+            <label
+              htmlFor="isActive"
+              className="text-xs font-semibold text-muted-foreground select-none cursor-pointer"
+            >
               Active Status (Available for assignments)
             </label>
           </div>

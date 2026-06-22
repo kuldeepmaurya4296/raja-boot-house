@@ -22,10 +22,7 @@ export async function POST(request: Request) {
     const validation = subscribeSchema.safeParse(body);
 
     if (!validation.success) {
-      return NextResponse.json(
-        { error: validation.error.errors[0].message },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: validation.error.errors[0].message }, { status: 400 });
     }
 
     const { name, email, phone, message } = validation.data;
@@ -35,7 +32,7 @@ export async function POST(request: Request) {
     if (existing) {
       return NextResponse.json(
         { error: "This email is already subscribed to our newsletter." },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -59,7 +56,7 @@ export async function POST(request: Request) {
     console.error("Newsletter subscription failed:", error);
     return NextResponse.json(
       { error: error.message || "An error occurred during subscription." },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

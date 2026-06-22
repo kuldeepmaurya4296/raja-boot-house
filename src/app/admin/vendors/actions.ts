@@ -63,7 +63,10 @@ export async function deleteCategory(id: string) {
     await dbConnect();
     const productsCount = await Product.countDocuments({ category: id });
     if (productsCount > 0) {
-      return { success: false, error: `Cannot delete category. ${productsCount} products are attached to it.` };
+      return {
+        success: false,
+        error: `Cannot delete category. ${productsCount} products are attached to it.`,
+      };
     }
     await Category.findByIdAndDelete(id);
     revalidatePath("/admin/inventory/categories");
@@ -119,7 +122,10 @@ export async function deleteBrand(id: string) {
     await dbConnect();
     const productsCount = await Product.countDocuments({ brand: id });
     if (productsCount > 0) {
-      return { success: false, error: `Cannot delete brand. ${productsCount} products are attached to it.` };
+      return {
+        success: false,
+        error: `Cannot delete brand. ${productsCount} products are attached to it.`,
+      };
     }
     await Brand.findByIdAndDelete(id);
     revalidatePath("/admin/inventory/brands");
@@ -199,10 +205,12 @@ const variantSchema = z.object({
   colorHex: z.string().min(1, "Color hex is required"),
   stock: z.coerce.number().min(0, "Stock cannot be negative"),
   sku: z.string().min(1, "SKU is required"),
-  images: z.array(z.object({
-    url: z.string().url("Must be a valid URL"),
-    public_id: z.string()
-  })),
+  images: z.array(
+    z.object({
+      url: z.string().url("Must be a valid URL"),
+      public_id: z.string(),
+    }),
+  ),
 });
 
 const productSchema = z.object({
@@ -213,10 +221,14 @@ const productSchema = z.object({
   category: z.string().min(1, "Category is required"),
   gender: z.enum(["Men", "Women", "Children", "Unisex"]),
   occasion: z.array(z.string()).min(1, "At least one occasion is required"),
-  images: z.array(z.object({
-    url: z.string().url("Must be a valid URL"),
-    public_id: z.string()
-  })).min(1, "At least one image is required"),
+  images: z
+    .array(
+      z.object({
+        url: z.string().url("Must be a valid URL"),
+        public_id: z.string(),
+      }),
+    )
+    .min(1, "At least one image is required"),
   variants: z.array(variantSchema).min(1, "At least one variant is required"),
   price: z.coerce.number().min(0, "Price must be positive"),
   salePrice: z.coerce.number().min(0, "Sale price must be positive"),

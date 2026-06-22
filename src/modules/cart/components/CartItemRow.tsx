@@ -55,7 +55,18 @@ export function CartItemRow({ item, lineKey, onRemove, onQtyChange }: CartItemRo
               <span className="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 bg-muted text-muted-foreground rounded-full border border-border/60">
                 <span
                   className="h-2 w-2 rounded-full border border-black/15 shrink-0"
-                  style={{ backgroundColor: item.color?.toLowerCase() === "black" ? "#1a1a1a" : item.color?.toLowerCase() === "brown" ? "#7B4F26" : item.color?.toLowerCase() === "white" ? "#f9f9f7" : item.color?.toLowerCase() === "tan" ? "#C9A96E" : "#888" }}
+                  style={{
+                    backgroundColor:
+                      item.color?.toLowerCase() === "black"
+                        ? "#1a1a1a"
+                        : item.color?.toLowerCase() === "brown"
+                          ? "#7B4F26"
+                          : item.color?.toLowerCase() === "white"
+                            ? "#f9f9f7"
+                            : item.color?.toLowerCase() === "tan"
+                              ? "#C9A96E"
+                              : "#888",
+                  }}
                 />
                 {item.color}
               </span>

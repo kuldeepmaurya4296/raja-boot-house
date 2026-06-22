@@ -10,29 +10,32 @@ import { updateProductRating } from "@/lib/db-utils";
 
 function addReviewNumbers(reviews: any[]) {
   // Sort copies chronologically (oldest first)
-  const sorted = [...reviews].sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
-  
+  const sorted = [...reviews].sort(
+    (a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime(),
+  );
+
   const userReviewCounts: Record<string, number> = {};
   const reviewNumbers: Record<string, number> = {};
-  
+
   sorted.forEach((r) => {
-    const uId = r.userId && typeof r.userId === "object" && "_id" in r.userId 
-      ? (r.userId as any)._id.toString() 
-      : r.userId?.toString() || "anonymous";
-      
+    const uId =
+      r.userId && typeof r.userId === "object" && "_id" in r.userId
+        ? (r.userId as any)._id.toString()
+        : r.userId?.toString() || "anonymous";
+
     if (!userReviewCounts[uId]) {
       userReviewCounts[uId] = 0;
     }
     userReviewCounts[uId]++;
     reviewNumbers[r._id.toString()] = userReviewCounts[uId];
   });
-  
+
   return reviews.map((r) => {
     const obj = r.toObject ? r.toObject() : r;
     return {
       ...obj,
       id: r._id.toString(),
-      reviewNumber: reviewNumbers[r._id.toString()] || 1
+      reviewNumber: reviewNumbers[r._id.toString()] || 1,
     };
   });
 }
@@ -54,7 +57,10 @@ export async function GET(request: Request) {
     // If fetching admin list (no product ID or explicitly admin request)
     if (!productId) {
       if (!isAdmin) {
-        return NextResponse.json({ error: "Unauthorized. Admin role required to fetch all reviews." }, { status: 401 });
+        return NextResponse.json(
+          { error: "Unauthorized. Admin role required to fetch all reviews." },
+          { status: 401 },
+        );
       }
 
       // Fetch all reviews for admin dashboard
@@ -84,7 +90,10 @@ export async function GET(request: Request) {
     return NextResponse.json(addReviewNumbers(reviews));
   } catch (error: any) {
     console.error("Failed to fetch reviews:", error);
-    return NextResponse.json({ error: error.message || "Failed to fetch reviews" }, { status: 500 });
+    return NextResponse.json(
+      { error: error.message || "Failed to fetch reviews" },
+      { status: 500 },
+    );
   }
 }
 
@@ -98,7 +107,10 @@ export async function POST(request: Request) {
     const { productId, rating, title, comment, body, images } = await request.json();
 
     if (!productId || !rating) {
-      return NextResponse.json({ error: "productId and rating are required fields" }, { status: 400 });
+      return NextResponse.json(
+        { error: "productId and rating are required fields" },
+        { status: 400 },
+      );
     }
 
     const db = await connectToDatabase();
@@ -107,10 +119,7 @@ export async function POST(request: Request) {
     }
 
     // Update all existing reviews by this user for this product to this new rating
-    await Review.updateMany(
-      { productId, userId: session.user.id },
-      { rating }
-    );
+    await Review.updateMany({ productId, userId: session.user.id }, { rating });
 
     // Check if user has purchased the item
     const deliveredOrder = await Order.findOne({
@@ -139,7 +148,10 @@ export async function POST(request: Request) {
     return NextResponse.json({ success: true, review: newReview });
   } catch (error: any) {
     console.error("Failed to submit review:", error);
-    return NextResponse.json({ error: error.message || "Failed to submit review" }, { status: 500 });
+    return NextResponse.json(
+      { error: error.message || "Failed to submit review" },
+      { status: 500 },
+    );
   }
 }
 
@@ -147,7 +159,7 @@ export async function PUT(request: Request) {
   try {
     const session = await auth();
     const isAdmin = session?.user && (session.user as any).role === "admin";
-    
+
     if (!isAdmin) {
       return NextResponse.json({ error: "Unauthorized. Admin role required." }, { status: 401 });
     }
@@ -170,10 +182,7 @@ export async function PUT(request: Request) {
 
     if (rating !== undefined) {
       // Update all reviews of the same user for the same product to this rating
-      await Review.updateMany(
-        { productId: review.productId, userId: review.userId },
-        { rating }
-      );
+      await Review.updateMany({ productId: review.productId, userId: review.userId }, { rating });
       review.rating = rating;
     }
     if (title !== undefined) review.title = title;
@@ -187,7 +196,10 @@ export async function PUT(request: Request) {
     return NextResponse.json({ success: true, review });
   } catch (error: any) {
     console.error("Failed to update review:", error);
-    return NextResponse.json({ error: error.message || "Failed to update review" }, { status: 500 });
+    return NextResponse.json(
+      { error: error.message || "Failed to update review" },
+      { status: 500 },
+    );
   }
 }
 
@@ -219,7 +231,10 @@ export async function DELETE(request: Request) {
     const isOwner = review.userId.toString() === session.user.id;
 
     if (!isAdmin && !isOwner) {
-      return NextResponse.json({ error: "Unauthorized. You do not own this review." }, { status: 403 });
+      return NextResponse.json(
+        { error: "Unauthorized. You do not own this review." },
+        { status: 403 },
+      );
     }
 
     const productId = review.productId.toString();
@@ -231,7 +246,10 @@ export async function DELETE(request: Request) {
     return NextResponse.json({ success: true, message: "Review deleted successfully" });
   } catch (error: any) {
     console.error("Failed to delete review:", error);
-    return NextResponse.json({ error: error.message || "Failed to delete review" }, { status: 500 });
+    return NextResponse.json(
+      { error: error.message || "Failed to delete review" },
+      { status: 500 },
+    );
   }
 }
 
@@ -256,7 +274,7 @@ export async function PATCH(request: Request) {
     const review = await Review.findByIdAndUpdate(
       reviewId,
       { $inc: { helpfulVotes: 1 } },
-      { new: true }
+      { new: true },
     );
 
     if (!review) {
@@ -266,7 +284,10 @@ export async function PATCH(request: Request) {
     return NextResponse.json({ success: true, helpfulVotes: review.helpfulVotes || 0 });
   } catch (error: any) {
     console.error("Failed to update helpful votes:", error);
-    return NextResponse.json({ error: error.message || "Failed to update helpful votes" }, { status: 500 });
+    return NextResponse.json(
+      { error: error.message || "Failed to update helpful votes" },
+      { status: 500 },
+    );
   }
 }
 

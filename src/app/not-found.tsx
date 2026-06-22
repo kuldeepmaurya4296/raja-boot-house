@@ -23,7 +23,8 @@ export default function NotFound() {
             Page Not Found
           </h1>
           <p className="text-sm text-muted-foreground max-w-sm mx-auto leading-relaxed">
-            The footwear style or destination you are seeking has wandered off the path or has been retired from our catalog.
+            The footwear style or destination you are seeking has wandered off the path or has been
+            retired from our catalog.
           </p>
         </div>
 
@@ -36,7 +37,7 @@ export default function NotFound() {
             Explore Catalog
             <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
           </Link>
-          
+
           <Link
             href="/"
             className="w-full sm:w-auto px-6 py-3 bg-card border border-border/80 text-charcoal hover:bg-muted text-sm font-semibold rounded-full transition-all flex items-center justify-center cursor-pointer"

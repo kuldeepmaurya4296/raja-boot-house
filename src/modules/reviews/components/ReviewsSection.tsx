@@ -2,7 +2,18 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import { useSession } from "next-auth/react";
-import { Star, MessageSquarePlus, Check, Trash2, Upload, X, ChevronLeft, ChevronRight, Image as ImageIcon, Loader2 } from "lucide-react";
+import {
+  Star,
+  MessageSquarePlus,
+  Check,
+  Trash2,
+  Upload,
+  X,
+  ChevronLeft,
+  ChevronRight,
+  Image as ImageIcon,
+  Loader2,
+} from "lucide-react";
 import { toast } from "sonner";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -40,14 +51,15 @@ export function ReviewsSection({ reviews, productId }: ReviewsSectionProps) {
     ? localReviews.filter((r) => r.userId === session.user.id)
     : [];
 
-  const oldestUserReview = userReviews.length > 0
-    ? [...userReviews].sort((a, b) => {
-        if (a.reviewNumber !== undefined && b.reviewNumber !== undefined) {
-          return a.reviewNumber - b.reviewNumber;
-        }
-        return a.id.localeCompare(b.id);
-      })[0]
-    : null;
+  const oldestUserReview =
+    userReviews.length > 0
+      ? [...userReviews].sort((a, b) => {
+          if (a.reviewNumber !== undefined && b.reviewNumber !== undefined) {
+            return a.reviewNumber - b.reviewNumber;
+          }
+          return a.id.localeCompare(b.id);
+        })[0]
+      : null;
 
   // Form states
   const [showForm, setShowForm] = useState(false);
@@ -62,7 +74,7 @@ export function ReviewsSection({ reviews, productId }: ReviewsSectionProps) {
       setRating(oldestUserReview ? oldestUserReview.rating : 5);
     }
   }, [showForm, oldestUserReview]);
-  
+
   // Image upload states
   const [uploadedImages, setUploadedImages] = useState<string[]>([]);
   const [isUploading, setIsUploading] = useState(false);
@@ -188,7 +200,7 @@ export function ReviewsSection({ reviews, productId }: ReviewsSectionProps) {
       }
 
       toast.success("Review submitted successfully! Thank you for your feedback.");
-      
+
       // Append the live approved review immediately to the UI list
       if (data.review) {
         const newReviewItem = {
@@ -204,11 +216,11 @@ export function ReviewsSection({ reviews, productId }: ReviewsSectionProps) {
           createdAt: new Date().toLocaleDateString("en-IN", {
             day: "numeric",
             month: "short",
-            year: "numeric"
+            year: "numeric",
           }),
           verified: data.review.isVerifiedPurchase || false,
-          reviewNumber: (localReviews.filter(r => r.userId === session?.user?.id).length) + 1,
-          helpfulVotes: 0
+          reviewNumber: localReviews.filter((r) => r.userId === session?.user?.id).length + 1,
+          helpfulVotes: 0,
         };
         setLocalReviews((prev) => {
           const updatedPrev = prev.map((r) => {
@@ -235,7 +247,8 @@ export function ReviewsSection({ reviews, productId }: ReviewsSectionProps) {
   };
 
   const handleDeleteReview = async (reviewId: string) => {
-    if (!confirm("Are you sure you want to delete this review? This action cannot be undone.")) return;
+    if (!confirm("Are you sure you want to delete this review? This action cannot be undone."))
+      return;
 
     try {
       const res = await fetch(`/api/reviews?id=${reviewId}`, {
@@ -258,7 +271,7 @@ export function ReviewsSection({ reviews, productId }: ReviewsSectionProps) {
 
   const handleHelpfulVote = async (reviewId: string) => {
     if (votedReviews.includes(reviewId)) return;
-    
+
     if (status !== "authenticated") {
       toast.error("Please sign in to vote on reviews.");
       return;
@@ -278,7 +291,7 @@ export function ReviewsSection({ reviews, productId }: ReviewsSectionProps) {
       }
 
       toast.success("Thanks for your feedback!");
-      
+
       // Update localReviews helpful count
       setLocalReviews((prev) =>
         prev.map((r) => {
@@ -286,7 +299,7 @@ export function ReviewsSection({ reviews, productId }: ReviewsSectionProps) {
             return { ...r, helpfulVotes: (r.helpfulVotes || 0) + 1 };
           }
           return r;
-        })
+        }),
       );
 
       // Update votedReviews
@@ -329,9 +342,7 @@ export function ReviewsSection({ reviews, productId }: ReviewsSectionProps) {
       <div className="flex gap-1">
         {[...Array(5)].map((_, i) => {
           const starValue = i + 1;
-          const isFilled = interactive
-            ? starValue <= (hoverRating ?? rating)
-            : starValue <= count;
+          const isFilled = interactive ? starValue <= (hoverRating ?? rating) : starValue <= count;
 
           return (
             <Star
@@ -341,11 +352,7 @@ export function ReviewsSection({ reviews, productId }: ReviewsSectionProps) {
               onClick={() => interactive && setRating(starValue)}
               className={`transition-all duration-150 ${
                 interactive ? "h-6 w-6 cursor-pointer hover:scale-110" : "h-4 w-4"
-              } ${
-                isFilled
-                  ? "fill-brass text-brass"
-                  : "text-muted/40 hover:text-brass/70"
-              }`}
+              } ${isFilled ? "fill-brass text-brass" : "text-muted/40 hover:text-brass/70"}`}
             />
           );
         })}
@@ -371,9 +378,12 @@ export function ReviewsSection({ reviews, productId }: ReviewsSectionProps) {
   });
 
   const totalCount = uniqueUserReviews.length;
-  const averageRating = totalCount > 0 
-    ? parseFloat((uniqueUserReviews.reduce((sum, r) => sum + r.rating, 0) / totalCount).toFixed(1))
-    : 0;
+  const averageRating =
+    totalCount > 0
+      ? parseFloat(
+          (uniqueUserReviews.reduce((sum, r) => sum + r.rating, 0) / totalCount).toFixed(1),
+        )
+      : 0;
 
   const ratingCounts = [0, 0, 0, 0, 0]; // Index 0 = 1 star, Index 4 = 5 star
   uniqueUserReviews.forEach((r) => {
@@ -383,7 +393,8 @@ export function ReviewsSection({ reviews, productId }: ReviewsSectionProps) {
   });
 
   // Check if current user has already reviewed the product
-  const userHasReviewed = session?.user?.id && localReviews.some((r) => r.userId === session.user.id);
+  const userHasReviewed =
+    session?.user?.id && localReviews.some((r) => r.userId === session.user.id);
   const isAdmin = session?.user && (session.user as any).role === "admin";
 
   // Filter & Sort Reviews
@@ -400,13 +411,17 @@ export function ReviewsSection({ reviews, productId }: ReviewsSectionProps) {
 
   return (
     <section className="mt-16 md:mt-24 max-w-4xl border-t border-border/70 pt-16">
-      <h2 className="font-serif text-2xl md:text-3xl font-bold text-charcoal mb-8">Customer Reviews</h2>
+      <h2 className="font-serif text-2xl md:text-3xl font-bold text-charcoal mb-8">
+        Customer Reviews
+      </h2>
 
       {/* Review Dashboard Statistics Panel */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8 bg-card border border-border/80 rounded-2xl p-6 md:p-8 mb-10 shadow-sm">
         {/* Left Side: Summary */}
         <div className="flex flex-col justify-center items-center md:items-start text-center md:text-left border-b md:border-b-0 md:border-r border-border/70 pb-6 md:pb-0 md:pr-8">
-          <div className="text-5xl font-serif font-black text-charcoal">{averageRating || "0.0"}</div>
+          <div className="text-5xl font-serif font-black text-charcoal">
+            {averageRating || "0.0"}
+          </div>
           <div className="mt-2.5">{renderStars(Math.round(averageRating))}</div>
           <p className="text-xs text-muted-foreground mt-3 font-medium">
             Based on {totalCount} {totalCount === 1 ? "rating" : "ratings"}
@@ -424,7 +439,9 @@ export function ReviewsSection({ reviews, productId }: ReviewsSectionProps) {
                 key={stars}
                 onClick={() => setFilterRating(isActiveFilter ? null : stars)}
                 className={`flex items-center gap-3 w-full group text-left cursor-pointer outline-none py-0.5 px-2 rounded-lg hover:bg-muted/50 transition-colors ${
-                  isActiveFilter ? "bg-muted font-bold text-primary" : "text-muted-foreground hover:text-foreground"
+                  isActiveFilter
+                    ? "bg-muted font-bold text-primary"
+                    : "text-muted-foreground hover:text-foreground"
                 }`}
               >
                 <span className="text-xs font-semibold w-12 shrink-0 flex items-center gap-0.5">
@@ -437,7 +454,9 @@ export function ReviewsSection({ reviews, productId }: ReviewsSectionProps) {
                   />
                 </div>
                 <span className="text-xs font-semibold w-10 text-right shrink-0">{pct}%</span>
-                <span className="text-[10px] text-muted-foreground/60 w-8 text-right shrink-0">({count})</span>
+                <span className="text-[10px] text-muted-foreground/60 w-8 text-right shrink-0">
+                  ({count})
+                </span>
               </button>
             );
           })}
@@ -449,16 +468,19 @@ export function ReviewsSection({ reviews, productId }: ReviewsSectionProps) {
         <div className="text-sm text-muted-foreground">
           {filterRating !== null ? (
             <span className="flex items-center gap-2">
-              Showing reviews with {filterRating} stars ({filteredReviews.length} of {localReviews.length}).
-              <button 
-                onClick={() => setFilterRating(null)} 
+              Showing reviews with {filterRating} stars ({filteredReviews.length} of{" "}
+              {localReviews.length}).
+              <button
+                onClick={() => setFilterRating(null)}
                 className="text-primary font-bold hover:underline cursor-pointer text-xs"
               >
                 Show all reviews
               </button>
             </span>
           ) : (
-            <span>Showing {filteredReviews.length} of {localReviews.length} reviews</span>
+            <span>
+              Showing {filteredReviews.length} of {localReviews.length} reviews
+            </span>
           )}
         </div>
 
@@ -478,7 +500,9 @@ export function ReviewsSection({ reviews, productId }: ReviewsSectionProps) {
       {/* Auth Prompt */}
       {status !== "authenticated" && (
         <div className="bg-card border border-border/80 rounded-2xl p-6 text-center mb-8 shadow-sm">
-          <p className="text-sm text-muted-foreground mb-4">Have you purchased this product? Sign in to share your thoughts.</p>
+          <p className="text-sm text-muted-foreground mb-4">
+            Have you purchased this product? Sign in to share your thoughts.
+          </p>
           <Link
             href={`/login?callbackUrl=${encodeURIComponent(pathname)}`}
             className="inline-block bg-primary text-primary-foreground px-6 py-2.5 rounded-full text-xs font-bold hover:bg-primary/95 transition shadow-sm"
@@ -490,7 +514,10 @@ export function ReviewsSection({ reviews, productId }: ReviewsSectionProps) {
 
       {/* Review Submission Form */}
       {showForm && !submitted && (
-        <form onSubmit={handleSubmit} className="bg-card border border-border rounded-2xl p-6 md:p-8 mb-10 space-y-5 shadow-sm">
+        <form
+          onSubmit={handleSubmit}
+          className="bg-card border border-border rounded-2xl p-6 md:p-8 mb-10 space-y-5 shadow-sm"
+        >
           <h3 className="font-serif font-bold text-lg text-charcoal">Write a Review</h3>
 
           {/* Overall Rating */}
@@ -501,7 +528,8 @@ export function ReviewsSection({ reviews, productId }: ReviewsSectionProps) {
             {renderStars(rating, true)}
             {oldestUserReview && (
               <p className="text-xs text-cognac font-semibold mt-1">
-                Note: Updating this rating will also update your {userReviews.length} previous review{userReviews.length > 1 ? "s" : ""} for this product.
+                Note: Updating this rating will also update your {userReviews.length} previous
+                review{userReviews.length > 1 ? "s" : ""} for this product.
               </p>
             )}
           </div>
@@ -539,7 +567,7 @@ export function ReviewsSection({ reviews, productId }: ReviewsSectionProps) {
             <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground block">
               Upload Images <span className="text-muted-foreground/50">(optional, up to 5)</span>
             </label>
-            
+
             <div className="flex flex-wrap items-center gap-3">
               <input
                 type="file"
@@ -568,7 +596,10 @@ export function ReviewsSection({ reviews, productId }: ReviewsSectionProps) {
 
               {/* Thumbnails preview grid */}
               {uploadedImages.map((url, idx) => (
-                <div key={url} className="relative h-20 w-20 rounded-xl overflow-hidden border border-border group shadow-sm">
+                <div
+                  key={url}
+                  className="relative h-20 w-20 rounded-xl overflow-hidden border border-border group shadow-sm"
+                >
                   <img
                     src={url}
                     alt="Review upload preview"
@@ -695,7 +726,10 @@ export function ReviewsSection({ reviews, productId }: ReviewsSectionProps) {
             const isUserOwner = session?.user?.id === r.userId;
             const canDelete = isUserOwner || isAdmin;
             return (
-              <div key={r.id} className="bg-card border border-border/70 rounded-2xl p-6 shadow-sm flex gap-4 items-start relative group transition-shadow hover:shadow">
+              <div
+                key={r.id}
+                className="bg-card border border-border/70 rounded-2xl p-6 shadow-sm flex gap-4 items-start relative group transition-shadow hover:shadow"
+              >
                 {/* User Avatar */}
                 <div className="h-10 w-10 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold text-sm uppercase shrink-0 overflow-hidden border border-border/10">
                   {r.userAvatar ? (
@@ -721,7 +755,9 @@ export function ReviewsSection({ reviews, productId }: ReviewsSectionProps) {
                         </span>
                       )}
                     </div>
-                    <span className="text-[11px] text-muted-foreground font-medium">{r.createdAt}</span>
+                    <span className="text-[11px] text-muted-foreground font-medium">
+                      {r.createdAt}
+                    </span>
                   </div>
 
                   {/* Rating Stars */}
@@ -729,7 +765,9 @@ export function ReviewsSection({ reviews, productId }: ReviewsSectionProps) {
 
                   {/* Title & Comment */}
                   {r.title && <h4 className="font-bold text-sm text-charcoal mb-1.5">{r.title}</h4>}
-                  <p className="text-sm text-muted-foreground leading-relaxed whitespace-pre-wrap">{r.body}</p>
+                  <p className="text-sm text-muted-foreground leading-relaxed whitespace-pre-wrap">
+                    {r.body}
+                  </p>
 
                   {/* Review Images Gallery */}
                   {r.images && r.images.length > 0 && (
@@ -762,13 +800,15 @@ export function ReviewsSection({ reviews, productId }: ReviewsSectionProps) {
                         }`}
                       >
                         {votedReviews.includes(r.id) && <Check className="h-3.5 w-3.5" />}
-                        <span>
-                          {votedReviews.includes(r.id) ? "Helpful" : "Helpful?"}
-                        </span>
+                        <span>{votedReviews.includes(r.id) ? "Helpful" : "Helpful?"}</span>
                         {r.helpfulVotes !== undefined && r.helpfulVotes > 0 && (
-                          <span className={`px-1.5 py-0.5 rounded text-[10px] font-bold ${
-                            votedReviews.includes(r.id) ? "bg-cognac/20 text-cognac" : "bg-muted-foreground/10 text-muted-foreground"
-                          }`}>
+                          <span
+                            className={`px-1.5 py-0.5 rounded text-[10px] font-bold ${
+                              votedReviews.includes(r.id)
+                                ? "bg-cognac/20 text-cognac"
+                                : "bg-muted-foreground/10 text-muted-foreground"
+                            }`}
+                          >
                             {r.helpfulVotes}
                           </span>
                         )}
@@ -795,12 +835,12 @@ export function ReviewsSection({ reviews, productId }: ReviewsSectionProps) {
 
       {/* Lightbox Modal / Overlay */}
       {lightboxIndex !== null && (
-        <div 
+        <div
           className="fixed inset-0 bg-charcoal/95 z-[9999] flex flex-col items-center justify-center backdrop-blur-sm p-4 animate-fade-in"
           onClick={closeLightbox}
         >
           {/* Close button */}
-          <button 
+          <button
             onClick={closeLightbox}
             className="absolute top-6 right-6 p-2 bg-background/10 hover:bg-background/20 text-white rounded-full transition cursor-pointer"
           >
@@ -808,9 +848,12 @@ export function ReviewsSection({ reviews, productId }: ReviewsSectionProps) {
           </button>
 
           {/* Centered Image Container */}
-          <div className="relative max-w-4xl max-h-[80vh] w-full flex items-center justify-center" onClick={(e) => e.stopPropagation()}>
-            <img 
-              src={lightboxImages[lightboxIndex]} 
+          <div
+            className="relative max-w-4xl max-h-[80vh] w-full flex items-center justify-center"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <img
+              src={lightboxImages[lightboxIndex]}
               alt="High resolution review view"
               className="max-w-full max-h-[85vh] object-contain rounded-lg shadow-2xl transition-transform duration-300"
             />

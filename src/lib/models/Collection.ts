@@ -22,7 +22,8 @@ const CollectionSchema: Schema = new Schema(
     isFeatured: { type: Boolean, default: false },
     isActive: { type: Boolean, default: true },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
-export default mongoose.models.Collection || mongoose.model<ICollection>("Collection", CollectionSchema);
+export default mongoose.models.Collection ||
+  mongoose.model<ICollection>("Collection", CollectionSchema);

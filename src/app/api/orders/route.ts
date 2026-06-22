@@ -10,6 +10,10 @@ import { sendOrderConfirmationEmail, sendOrderStatusEmail } from "@/lib/email";
 import Settings from "@/lib/models/Settings";
 import Coupon from "@/lib/models/Coupon";
 import { cleanupExpiredPendingOrders } from "@/lib/db-utils";
+import { rateLimit, getClientIp } from "@/lib/rate-limit";
+import { logAdminActivity } from "@/lib/activity-logger";
+import LoyaltyPoints from "@/lib/models/LoyaltyPoints";
+import FlashSale from "@/lib/models/FlashSale";
 
 export async function GET(request: Request) {
   try {
@@ -30,10 +34,7 @@ export async function GET(request: Request) {
     await cleanupExpiredPendingOrders();
 
     let query: any = {
-      $or: [
-        { "payment.method": "COD" },
-        { "payment.status": { $ne: "PENDING" } }
-      ]
+      $or: [{ "payment.method": "COD" }, { "payment.status": { $ne: "PENDING" } }],
     };
     if (session.user.role !== "admin" && session.user.role !== "vendor") {
       query.userId = session.user.id;
@@ -61,7 +62,7 @@ const defaultGeneral = {
 const defaultShipping = [
   { id: "std", name: "Standard", desc: "5–7 days", price: 0 },
   { id: "exp", name: "Express", desc: "2–3 days", price: 150 },
-  { id: "same", name: "Same-day (Jawa Rewa)", desc: "Today", price: 350 }
+  { id: "same", name: "Same-day (Jawa Rewa)", desc: "Today", price: 350 },
 ];
 
 export async function POST(request: Request) {
@@ -69,6 +70,15 @@ export async function POST(request: Request) {
     const session = await auth();
     if (!session?.user?.id) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    // Rate limit: 10 orders per user per minute
+    const limiter = rateLimit(`order:${session.user.id}`, { limit: 10, windowSeconds: 60 });
+    if (!limiter.allowed) {
+      return NextResponse.json(
+        { error: `Too many order attempts. Please try again in ${limiter.resetIn} seconds.` },
+        { status: 429 },
+      );
     }
 
     const body = await request.json();
@@ -88,7 +98,7 @@ export async function POST(request: Request) {
     // Load Settings
     const [generalDoc, shippingDoc] = await Promise.all([
       Settings.findOne({ key: "general" }).lean(),
-      Settings.findOne({ key: "shipping_methods" }).lean()
+      Settings.findOne({ key: "shipping_methods" }).lean(),
     ]);
 
     const general = generalDoc ? { ...defaultGeneral, ...generalDoc.value } : defaultGeneral;
@@ -102,23 +112,47 @@ export async function POST(request: Request) {
       if (!prod) {
         return NextResponse.json({ error: `Product not found: ${item.name}` }, { status: 400 });
       }
-      
+
       // Check stock
       const variant = prod.variants.find(
-        (v: any) => v.size === item.size && v.color === item.color
+        (v: any) => v.size === item.size && v.color === item.color,
       );
       if (!variant) {
-        return NextResponse.json({
-          error: `Variant not found for product ${prod.name} (Size: ${item.size}, Color: ${item.color})`,
-        }, { status: 400 });
+        return NextResponse.json(
+          {
+            error: `Variant not found for product ${prod.name} (Size: ${item.size}, Color: ${item.color})`,
+          },
+          { status: 400 },
+        );
       }
       if (variant.stock < item.qty) {
-        return NextResponse.json({
-          error: `Insufficient stock for product ${prod.name} (Size: ${item.size}, Color: ${item.color}). Available: ${variant.stock}, requested: ${item.qty}`,
-        }, { status: 400 });
+        return NextResponse.json(
+          {
+            error: `Insufficient stock for product ${prod.name} (Size: ${item.size}, Color: ${item.color}). Available: ${variant.stock}, requested: ${item.qty}`,
+          },
+          { status: 400 },
+        );
       }
-      
-      computedSubtotal += prod.salePrice * item.qty;
+
+      // Validate price against any active flash sale
+      const now = new Date();
+      const activeFlashSale = await FlashSale.findOne({
+        isActive: true,
+        startTime: { $lte: now },
+        endTime: { $gte: now },
+        products: prod._id,
+      }).lean();
+
+      let itemPrice = prod.salePrice;
+      if (activeFlashSale) {
+        if (activeFlashSale.discountType === "PERCENTAGE") {
+          itemPrice = Math.round(prod.salePrice * (1 - activeFlashSale.discountValue / 100));
+        } else if (activeFlashSale.discountType === "FLAT") {
+          itemPrice = Math.max(0, prod.salePrice - activeFlashSale.discountValue);
+        }
+      }
+
+      computedSubtotal += itemPrice * item.qty;
 
       enrichedItems.push({
         productId: item.productId,
@@ -126,7 +160,7 @@ export async function POST(request: Request) {
         image: item.image,
         size: item.size,
         color: item.color,
-        price: prod.salePrice,
+        price: itemPrice,
         qty: item.qty,
         returnDays: prod.returnDays ?? 7,
       });
@@ -134,15 +168,19 @@ export async function POST(request: Request) {
 
     // Validate subtotal
     if (pricing.subtotal !== computedSubtotal) {
-      return NextResponse.json({
-        error: `Subtotal verification failed. Calculated: ₹${computedSubtotal}, received: ₹${pricing.subtotal}`
-      }, { status: 400 });
+      return NextResponse.json(
+        {
+          error: `Subtotal verification failed. Calculated: ₹${computedSubtotal}, received: ₹${pricing.subtotal}`,
+        },
+        { status: 400 },
+      );
     }
 
     // Server-side Coupon validation
     let computedCouponDiscount = 0;
+    let dbCoupon: any = null;
     if (coupon?.code) {
-      const dbCoupon = await Coupon.findOne({ code: coupon.code.toUpperCase(), isActive: true });
+      dbCoupon = await Coupon.findOne({ code: coupon.code.toUpperCase(), isActive: true });
       if (!dbCoupon) {
         return NextResponse.json({ error: "Invalid or inactive coupon code." }, { status: 400 });
       }
@@ -150,12 +188,26 @@ export async function POST(request: Request) {
       // Check dates
       const now = new Date();
       if (now < new Date(dbCoupon.validFrom) || now > new Date(dbCoupon.validTill)) {
-        return NextResponse.json({ error: "Coupon code has expired or is not yet valid." }, { status: 400 });
+        return NextResponse.json(
+          { error: "Coupon code has expired or is not yet valid." },
+          { status: 400 },
+        );
+      }
+
+      // Check usage limit
+      if (dbCoupon.usageLimit && dbCoupon.usedCount >= dbCoupon.usageLimit) {
+        return NextResponse.json(
+          { error: "This coupon has reached its maximum usage limit." },
+          { status: 400 },
+        );
       }
 
       // Check minimum cart value
       if (computedSubtotal < dbCoupon.minCartValue) {
-        return NextResponse.json({ error: `Coupon requires a minimum cart value of ₹${dbCoupon.minCartValue}.` }, { status: 400 });
+        return NextResponse.json(
+          { error: `Coupon requires a minimum cart value of ₹${dbCoupon.minCartValue}.` },
+          { status: 400 },
+        );
       }
 
       // Calculate discount
@@ -170,23 +222,29 @@ export async function POST(request: Request) {
 
     // Validate couponDiscount from payload matches computed value
     if (pricing.couponDiscount !== computedCouponDiscount) {
-      return NextResponse.json({
-        error: `Coupon discount validation failed. Calculated: ₹${computedCouponDiscount}, received: ₹${pricing.couponDiscount}`
-      }, { status: 400 });
+      return NextResponse.json(
+        {
+          error: `Coupon discount validation failed. Calculated: ₹${computedCouponDiscount}, received: ₹${pricing.couponDiscount}`,
+        },
+        { status: 400 },
+      );
     }
 
     // Validate shipping cost
     let computedShippingCost = 0;
     const clientShippingCost = pricing.shipping;
-    const isFreeShippingCoupon = coupon?.code && (await Coupon.findOne({ code: coupon.code.toUpperCase() }))?.type === "Free Shipping";
-    
+    const isFreeShippingCoupon = dbCoupon?.type === "Free Shipping";
+
     if (isFreeShippingCoupon) {
       computedShippingCost = 0;
     } else {
       // Find method matching client shipping cost
       const matchedMethod = shippingMethods.find((m: any) => m.price === clientShippingCost);
       if (!matchedMethod && clientShippingCost !== 0) {
-        return NextResponse.json({ error: "Invalid shipping method/cost selected." }, { status: 400 });
+        return NextResponse.json(
+          { error: "Invalid shipping method/cost selected." },
+          { status: 400 },
+        );
       }
       computedShippingCost = clientShippingCost;
     }
@@ -196,18 +254,42 @@ export async function POST(request: Request) {
     const computedTax = Math.round(taxableAmount * (general.taxRate / 100));
     const computedTotal = Math.max(0, taxableAmount + computedShippingCost + computedTax);
 
+    const pointsDiscount = pricing.pointsDiscount || 0;
+
+    // Validate loyalty points if redeemed
+    if (pointsDiscount > 0) {
+      const balanceResult = await LoyaltyPoints.aggregate([
+        { $match: { userId: new mongoose.Types.ObjectId(userId) } },
+        { $group: { _id: null, balance: { $sum: "$points" } } },
+      ]);
+      const userBalance = balanceResult.length > 0 ? balanceResult[0].balance : 0;
+      if (pointsDiscount > userBalance) {
+        return NextResponse.json(
+          {
+            error: `Insufficient loyalty points. Balance: ${userBalance}, attempted to redeem: ${pointsDiscount}`,
+          },
+          { status: 400 },
+        );
+      }
+    }
+
+    const finalComputedTotal = Math.max(0, computedTotal - pointsDiscount);
+
     // Final security check: validate total price matches
-    if (pricing.total !== computedTotal) {
-      return NextResponse.json({
-        error: `Price verification failed. Calculated total: ₹${computedTotal}, received: ₹${pricing.total}. Please try again.`
-      }, { status: 400 });
+    if (pricing.total !== finalComputedTotal) {
+      return NextResponse.json(
+        {
+          error: `Price verification failed. Calculated total: ₹${finalComputedTotal}, received: ₹${pricing.total}. Please try again.`,
+        },
+        { status: 400 },
+      );
     }
 
     // Generate unique sequential orderId prefix as RBH and 5 digit suffix using atomic Mongo counter
     const counter = await Counter.findOneAndUpdate(
       { _id: "orderId" },
       { $inc: { seq: 1 } },
-      { upsert: true, new: true }
+      { upsert: true, new: true },
     );
     const orderId = `RBH-${String(counter.seq).padStart(5, "0")}`;
 
@@ -219,15 +301,17 @@ export async function POST(request: Request) {
           {
             _id: item.productId,
             variants: {
-              $elemMatch: { size: item.size, color: item.color, stock: { $gte: item.qty } }
-            }
+              $elemMatch: { size: item.size, color: item.color, stock: { $gte: item.qty } },
+            },
           },
           {
-            $inc: { "variants.$.stock": -item.qty }
-          }
+            $inc: { "variants.$.stock": -item.qty },
+          },
         );
         if (updateResult.modifiedCount === 0) {
-          throw new Error(`Insufficient stock for variant (Size: ${item.size}, Color: ${item.color}) of ${item.name}.`);
+          throw new Error(
+            `Insufficient stock for variant (Size: ${item.size}, Color: ${item.color}) of ${item.name}.`,
+          );
         }
         decrementedItems.push(item);
       }
@@ -241,11 +325,14 @@ export async function POST(request: Request) {
             "variants.color": rolledBack.color,
           },
           {
-            $inc: { "variants.$.stock": rolledBack.qty }
-          }
+            $inc: { "variants.$.stock": rolledBack.qty },
+          },
         );
       }
-      return NextResponse.json({ error: err.message || "Failed to reserve stock due to high demand. Please try again." }, { status: 400 });
+      return NextResponse.json(
+        { error: err.message || "Failed to reserve stock due to high demand. Please try again." },
+        { status: 400 },
+      );
     }
 
     let order;
@@ -260,12 +347,15 @@ export async function POST(request: Request) {
           subtotal: computedSubtotal,
           shipping: computedShippingCost,
           couponDiscount: computedCouponDiscount,
-          total: computedTotal,
+          pointsDiscount: pointsDiscount,
+          total: finalComputedTotal,
         },
-        coupon: coupon?.code ? {
-          code: coupon.code.toUpperCase(),
-          discountAmount: computedCouponDiscount,
-        } : undefined,
+        coupon: coupon?.code
+          ? {
+              code: coupon.code.toUpperCase(),
+              discountAmount: computedCouponDiscount,
+            }
+          : undefined,
         payment: {
           method: payment?.method || "COD",
           razorpayOrderId: payment?.razorpayOrderId || null,
@@ -285,17 +375,33 @@ export async function POST(request: Request) {
             "variants.color": rolledBack.color,
           },
           {
-            $inc: { "variants.$.stock": rolledBack.qty }
-          }
+            $inc: { "variants.$.stock": rolledBack.qty },
+          },
         );
       }
       throw orderErr;
     }
 
+    // Increment coupon usage count after successful order creation
+    if (dbCoupon) {
+      await Coupon.findByIdAndUpdate(dbCoupon._id, { $inc: { usedCount: 1 } });
+    }
+
+    // Decrement loyalty points if redeemed
+    if (pointsDiscount > 0) {
+      await LoyaltyPoints.create({
+        userId,
+        points: -pointsDiscount,
+        type: "REDEEMED",
+        orderId: order.orderId,
+        description: `Redeemed points on checkout for order #${order.orderId}`,
+      });
+    }
+
     // Send order confirmation email asynchronously for COD orders immediately
     if (order.payment.method === "COD" && session?.user?.email) {
       sendOrderConfirmationEmail(session.user.email, order).catch((err) =>
-        console.error("Order confirmation email error:", err)
+        console.error("Order confirmation email error:", err),
       );
     }
 
@@ -310,14 +416,16 @@ const standardOrder = ["PLACED", "CONFIRMED", "PACKED", "SHIPPED", "OUT_FOR_DELI
 
 function isTransitionAllowed(currentStatus: string, nextStatus: string): boolean {
   if (currentStatus === nextStatus) {
-    return currentStatus !== "DELIVERED" && currentStatus !== "CANCELLED" && currentStatus !== "REFUNDED";
+    return (
+      currentStatus !== "DELIVERED" && currentStatus !== "CANCELLED" && currentStatus !== "REFUNDED"
+    );
   }
   if (currentStatus === "REFUNDED") return false;
-  
+
   if (currentStatus === "CANCELLED") {
     return nextStatus === "REFUNDED";
   }
-  
+
   // RETURN_REQUESTED can be approved (→ RETURN_APPROVED) or rejected (→ DELIVERED)
   if (currentStatus === "RETURN_REQUESTED") {
     return nextStatus === "RETURN_APPROVED" || nextStatus === "DELIVERED";
@@ -327,35 +435,35 @@ function isTransitionAllowed(currentStatus: string, nextStatus: string): boolean
   if (currentStatus === "RETURN_APPROVED") {
     return nextStatus === "RETURNED";
   }
-  
+
   if (currentStatus === "RETURNED") {
     return nextStatus === "REFUNDED";
   }
-  
+
   const curIdx = standardOrder.indexOf(currentStatus);
   if (curIdx === -1) return false;
-  
+
   if (nextStatus === "CANCELLED") {
     return currentStatus !== "DELIVERED";
   }
-  
+
   // Customer-initiated return request from DELIVERED
   if (nextStatus === "RETURN_REQUESTED") {
     return currentStatus === "DELIVERED";
   }
-  
+
   // Only admin can directly mark as RETURN_APPROVED or RETURNED
   if (nextStatus === "RETURN_APPROVED" || nextStatus === "RETURNED") {
     return false;
   }
-  
+
   if (nextStatus === "REFUNDED") {
     return false;
   }
-  
+
   const nextIdx = standardOrder.indexOf(nextStatus);
   if (nextIdx === -1) return false;
-  
+
   return nextIdx > curIdx;
 }
 
@@ -367,16 +475,16 @@ export async function PUT(request: Request) {
     }
 
     const body = await request.json();
-    const { 
-      orderId, 
-      status, 
-      note, 
-      deliveryMethod, 
-      deliveryPersonName, 
-      deliveryPersonPhone, 
-      courier, 
+    const {
+      orderId,
+      status,
+      note,
+      deliveryMethod,
+      deliveryPersonName,
+      deliveryPersonPhone,
+      courier,
       trackingNumber,
-      refundPreference 
+      refundPreference,
     } = body;
 
     if (!orderId || !status) {
@@ -397,7 +505,10 @@ export async function PUT(request: Request) {
       dbSession = await mongoose.startSession();
       dbSession.startTransaction();
     } catch (sessErr) {
-      console.warn("MongoDB replica set / session not supported, falling back to non-transactional execution:", sessErr);
+      console.warn(
+        "MongoDB replica set / session not supported, falling back to non-transactional execution:",
+        sessErr,
+      );
     }
 
     const sessionOptions = dbSession ? { session: dbSession } : {};
@@ -420,19 +531,28 @@ export async function PUT(request: Request) {
         if (status === "CANCELLED") {
           const allowedCancelStatuses = ["PLACED", "CONFIRMED", "PACKED"];
           if (!allowedCancelStatuses.includes(currentStatus)) {
-            return NextResponse.json({ error: "Cannot cancel order once it has been shipped." }, { status: 400 });
+            return NextResponse.json(
+              { error: "Cannot cancel order once it has been shipped." },
+              { status: 400 },
+            );
           }
         }
 
         if (status === "RETURN_REQUESTED") {
           if (currentStatus !== "DELIVERED") {
-            return NextResponse.json({ error: "Only delivered orders can be returned." }, { status: 400 });
+            return NextResponse.json(
+              { error: "Only delivered orders can be returned." },
+              { status: 400 },
+            );
           }
 
           const deliveredStep = order.statusHistory?.find((h: any) => h.status === "DELIVERED");
           const deliveredAt = deliveredStep ? new Date(deliveredStep.timestamp) : null;
           if (!deliveredAt) {
-            return NextResponse.json({ error: "Delivery date timestamp not found." }, { status: 400 });
+            return NextResponse.json(
+              { error: "Delivery date timestamp not found." },
+              { status: 400 },
+            );
           }
 
           // Calculate days elapsed since delivery
@@ -446,17 +566,23 @@ export async function PUT(request: Request) {
           }, 0);
 
           if (diffDays > maxReturnDays) {
-            return NextResponse.json({ 
-              error: `The return period of ${maxReturnDays} days has expired. (Delivered ${diffDays} days ago)` 
-            }, { status: 400 });
+            return NextResponse.json(
+              {
+                error: `The return period of ${maxReturnDays} days has expired. (Delivered ${diffDays} days ago)`,
+              },
+              { status: 400 },
+            );
           }
         }
       }
 
       if (!isTransitionAllowed(currentStatus, status)) {
-        return NextResponse.json({
-          error: `Invalid status transition from ${currentStatus} to ${status}. Reverting or invalid bypassing is blocked.`
-        }, { status: 400 });
+        return NextResponse.json(
+          {
+            error: `Invalid status transition from ${currentStatus} to ${status}. Reverting or invalid bypassing is blocked.`,
+          },
+          { status: 400 },
+        );
       }
 
       // 2. Process Shipping Details (if transition to SHIPPED)
@@ -464,7 +590,10 @@ export async function PUT(request: Request) {
         let trackingUrl = "";
         if (deliveryMethod === "THIRD_PARTY" && courier && trackingNumber) {
           const DeliveryPartner = (await import("@/lib/models/DeliveryPartner")).default;
-          const partner = await DeliveryPartner.findOne({ name: courier, type: "THIRD_PARTY" }).session(dbSession || null);
+          const partner = await DeliveryPartner.findOne({
+            name: courier,
+            type: "THIRD_PARTY",
+          }).session(dbSession || null);
           if (partner?.trackingUrlTemplate) {
             trackingUrl = partner.trackingUrlTemplate.replace("{{tracking}}", trackingNumber);
           }
@@ -483,10 +612,21 @@ export async function PUT(request: Request) {
       if (status === "REFUNDED") {
         const { refundMethod, refundTransactionId } = body;
         if (!refundMethod || (refundMethod !== "ONLINE" && refundMethod !== "CASH")) {
-          return NextResponse.json({ error: "A valid refund method (ONLINE or CASH) is required." }, { status: 400 });
+          return NextResponse.json(
+            { error: "A valid refund method (ONLINE or CASH) is required." },
+            { status: 400 },
+          );
         }
-        if (refundMethod === "ONLINE" && (!refundTransactionId || typeof refundTransactionId !== "string" || !refundTransactionId.trim())) {
-          return NextResponse.json({ error: "Transaction ID is compulsory for online refunds." }, { status: 400 });
+        if (
+          refundMethod === "ONLINE" &&
+          (!refundTransactionId ||
+            typeof refundTransactionId !== "string" ||
+            !refundTransactionId.trim())
+        ) {
+          return NextResponse.json(
+            { error: "Transaction ID is compulsory for online refunds." },
+            { status: 400 },
+          );
         }
 
         order.refundDetails = {
@@ -494,7 +634,7 @@ export async function PUT(request: Request) {
           transactionId: refundMethod === "ONLINE" ? refundTransactionId.trim() : undefined,
           refundedAt: new Date(),
         };
-        
+
         order.payment.status = "REFUNDED";
       }
 
@@ -502,29 +642,37 @@ export async function PUT(request: Request) {
       if (status === "DELIVERED" && order.payment.method === "COD") {
         const { codPaymentReceived } = body;
         if (!codPaymentReceived) {
-          return NextResponse.json({ error: "Confirmation of payment collection is required for delivering COD orders." }, { status: 400 });
+          return NextResponse.json(
+            { error: "Confirmation of payment collection is required for delivering COD orders." },
+            { status: 400 },
+          );
         }
         order.payment.status = "PAID";
       }
 
       // 5. Process Cancellation / Return Stock Rollback
-      if ((status === "CANCELLED" && currentStatus !== "CANCELLED") || (status === "RETURNED" && currentStatus !== "RETURNED")) {
+      if (
+        (status === "CANCELLED" && currentStatus !== "CANCELLED") ||
+        (status === "RETURNED" && currentStatus !== "RETURNED")
+      ) {
         // Rollback stock atomically using $elemMatch and decrement update
         for (const item of order.items) {
           const updateResult = await Product.updateOne(
             {
               _id: item.productId,
               variants: {
-                $elemMatch: { size: item.size, color: item.color }
-              }
+                $elemMatch: { size: item.size, color: item.color },
+              },
             },
             {
-              $inc: { "variants.$.stock": item.qty }
+              $inc: { "variants.$.stock": item.qty },
             },
-            sessionOptions
+            sessionOptions,
           );
           if (updateResult.modifiedCount === 0) {
-            throw new Error(`Failed to restore stock for product ${item.name} size ${item.size} color ${item.color}.`);
+            throw new Error(
+              `Failed to restore stock for product ${item.name} size ${item.size} color ${item.color}.`,
+            );
           }
         }
 
@@ -536,17 +684,20 @@ export async function PUT(request: Request) {
 
           // If prepaid order, process refund preference
           if (order.payment.method !== "COD" && refundPreference) {
-            const preference = refundPreference.method === "SAME_METHOD" ? "ORIGINAL" : refundPreference.method;
-            
+            const preference =
+              refundPreference.method === "SAME_METHOD" ? "ORIGINAL" : refundPreference.method;
+
             order.refundDetails = {
               preference,
               upiId: refundPreference.upiId,
-              bankDetails: refundPreference.bankDetails ? {
-                accountHolderName: refundPreference.bankDetails.holderName,
-                bankName: refundPreference.bankDetails.bankName,
-                accountNumber: refundPreference.bankDetails.accountNumber,
-                ifscCode: refundPreference.bankDetails.ifsc,
-              } : undefined,
+              bankDetails: refundPreference.bankDetails
+                ? {
+                    accountHolderName: refundPreference.bankDetails.holderName,
+                    bankName: refundPreference.bankDetails.bankName,
+                    accountNumber: refundPreference.bankDetails.accountNumber,
+                    ifscCode: refundPreference.bankDetails.ifsc,
+                  }
+                : undefined,
             };
 
             if (refundPreference.method === "SAME_METHOD") {
@@ -570,7 +721,7 @@ export async function PUT(request: Request) {
                     notes: {
                       reason: "Customer cancellation",
                       orderId: order.orderId,
-                    }
+                    },
                   });
                   refundId = refund.id;
                   rzpRefundSuccess = true;
@@ -594,7 +745,8 @@ export async function PUT(request: Request) {
             } else {
               // Bank transfer or UPI ID, payouts managed by admin manually
               order.payment.status = "REFUND_PENDING";
-              order.refundDetails.method = refundPreference.method === "UPI" ? "UPI" : "BANK_TRANSFER";
+              order.refundDetails.method =
+                refundPreference.method === "UPI" ? "UPI" : "BANK_TRANSFER";
             }
           }
         }
@@ -630,7 +782,11 @@ export async function PUT(request: Request) {
         action: status !== currentStatus ? `STATUS_UPDATE_${status}` : `METADATA_UPDATE_${status}`,
         performedBy: userSession.user.id,
         timestamp: new Date(),
-        details: note || (status !== currentStatus ? `Order status changed to ${status}` : `Order details updated`),
+        details:
+          note ||
+          (status !== currentStatus
+            ? `Order status changed to ${status}`
+            : `Order details updated`),
       });
 
       await order.save(sessionOptions);
@@ -644,11 +800,51 @@ export async function PUT(request: Request) {
         const customer = await User.findById(order.userId).select("email").lean();
         if (customer?.email) {
           sendOrderStatusEmail(customer.email, order, status, note).catch((err) =>
-            console.error("Order status update email error:", err)
+            console.error("Order status update email error:", err),
           );
         }
       } catch (emailErr) {
         console.error("Failed to fetch customer email for status update notification:", emailErr);
+      }
+
+      // Log admin/vendor activity
+      if (isAdminOrVendor) {
+        await logAdminActivity({
+          action: "UPDATE_ORDER_STATUS",
+          details: `Updated order status for ${orderId} from "${currentStatus}" to "${status}"`,
+        });
+      }
+
+      // Award loyalty points on delivery
+      if (status === "DELIVERED" && currentStatus !== "DELIVERED") {
+        const earnedPoints = Math.round((order.pricing?.total || 0) * 0.05);
+        if (earnedPoints > 0) {
+          await LoyaltyPoints.create({
+            userId: order.userId,
+            points: earnedPoints,
+            type: "EARNED",
+            orderId: order.orderId,
+            description: `Earned points on delivery of order #${order.orderId}`,
+          });
+        }
+      }
+
+      // Deduct points earned on this order if returned
+      if (status === "RETURNED" && currentStatus !== "RETURNED") {
+        const earnedPointsLog = await LoyaltyPoints.findOne({
+          userId: order.userId,
+          orderId: order.orderId,
+          type: "EARNED",
+        });
+        if (earnedPointsLog) {
+          await LoyaltyPoints.create({
+            userId: order.userId,
+            points: -earnedPointsLog.points,
+            type: "REFUNDED",
+            orderId: order.orderId,
+            description: `Deducted points due to return of order #${order.orderId}`,
+          });
+        }
       }
 
       return NextResponse.json({ success: true, order });
@@ -664,8 +860,9 @@ export async function PUT(request: Request) {
     }
   } catch (error: any) {
     console.error("Failed to update order status:", error);
-    return NextResponse.json({ error: error.message || "Failed to update order status" }, { status: 500 });
+    return NextResponse.json(
+      { error: error.message || "Failed to update order status" },
+      { status: 500 },
+    );
   }
 }
-
-

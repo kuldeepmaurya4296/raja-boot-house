@@ -10,7 +10,7 @@ export async function GET() {
     }
 
     const brands = await Brand.find({ isActive: true }).sort({ order: 1 }).lean();
-    
+
     // Return a simplified array of brand names for the marquee
     const brandNames = brands.map((b: any) => b.name);
 

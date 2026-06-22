@@ -6,7 +6,7 @@ import Brand from "@/lib/models/Brand";
 
 import { ensureDbReady, normalizeProduct } from "@/lib/db-utils";
 
-export async function GET(request: Request, { params }: { params: Promise<{ slug: string }> }) {
+export async function GET(request: Request, { params }: { params: Promise<any> }) {
   try {
     const { slug } = await params;
 
@@ -29,12 +29,16 @@ export async function GET(request: Request, { params }: { params: Promise<{ slug
       return NextResponse.json({ error: "Product not found" }, { status: 404 });
     }
 
-    return NextResponse.json(normalizeProduct(product));
+    const { applyFlashSaleToSingleProduct } = await import("@/lib/flash-sale-utils");
+    const norm = normalizeProduct(product);
+    const withFlashSale = await applyFlashSaleToSingleProduct(norm);
+
+    return NextResponse.json(withFlashSale);
   } catch (error: any) {
     console.error("Failed to fetch product details:", error);
     return NextResponse.json(
       { error: error.message || "Failed to fetch product details" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

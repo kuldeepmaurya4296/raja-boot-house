@@ -3,6 +3,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState, useEffect, type ReactNode } from "react";
 import { Logo } from "@/components/shared/Logo";
+import { NotificationBell } from "@/modules/admin/shared/components/NotificationBell";
 import {
   Menu,
   X,
@@ -25,7 +26,8 @@ import {
   Wallet,
   HelpCircle,
   MessageSquare,
-  Truck
+  Truck,
+  Zap,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { useSession, signOut } from "next-auth/react";
@@ -45,6 +47,7 @@ const iconMap: Record<string, LucideIcon> = {
   HelpCircle,
   MessageSquare,
   Truck,
+  Zap,
 };
 
 export interface NavItem {
@@ -83,7 +86,7 @@ export function DashboardLayout({
       setSidebarOpen(false);
     }
   };
-  
+
   // Track expanded parent submenus
   const [expandedMenus, setExpandedMenus] = useState<Record<string, boolean>>({
     Inventory: true, // open Inventory submenu by default
@@ -110,12 +113,18 @@ export function DashboardLayout({
       {/* Sidebar */}
       <aside
         className={`fixed lg:sticky top-0 inset-y-0 left-0 z-50 bg-sidebar text-sidebar-foreground transition-all duration-300 flex flex-col h-screen border-r border-sidebar-border/40 shrink-0 ${
-          sidebarOpen ? "w-64 translate-x-0" : "w-0 -translate-x-full lg:w-[72px] lg:translate-x-0 overflow-hidden"
+          sidebarOpen
+            ? "w-64 translate-x-0"
+            : "w-0 -translate-x-full lg:w-[72px] lg:translate-x-0 overflow-hidden"
         }`}
       >
-        <div className={`flex flex-col h-full shrink-0 transition-all duration-300 ${sidebarOpen ? "w-64" : "w-64 lg:w-[72px]"}`}>
+        <div
+          className={`flex flex-col h-full shrink-0 transition-all duration-300 ${sidebarOpen ? "w-64" : "w-64 lg:w-[72px]"}`}
+        >
           {/* Header */}
-          <div className={`h-16 px-5 flex items-center justify-between border-b border-sidebar-border/40 shrink-0 ${sidebarOpen ? "" : "lg:px-0 lg:justify-center"}`}>
+          <div
+            className={`h-16 px-5 flex items-center justify-between border-b border-sidebar-border/40 shrink-0 ${sidebarOpen ? "" : "lg:px-0 lg:justify-center"}`}
+          >
             {sidebarOpen ? (
               <>
                 <Logo size={32} />
@@ -153,7 +162,9 @@ export function DashboardLayout({
 
                 if (hasSubItems) {
                   const isExpanded = !!expandedMenus[label];
-                  const isAnyChildActive = subItems.some((sub) => path === sub.to || path.startsWith(sub.to + "/"));
+                  const isAnyChildActive = subItems.some(
+                    (sub) => path === sub.to || path.startsWith(sub.to + "/"),
+                  );
 
                   return (
                     <div key={label} className="space-y-0.5">
@@ -206,7 +217,11 @@ export function DashboardLayout({
                   );
                 }
 
-                const active = exact ? path === to : to ? (path === to || path.startsWith(to + "/")) : false;
+                const active = exact
+                  ? path === to
+                  : to
+                    ? path === to || path.startsWith(to + "/")
+                    : false;
                 const activeStyles =
                   accent === "accent"
                     ? "bg-sidebar-accent text-brass font-semibold"
@@ -234,9 +249,11 @@ export function DashboardLayout({
           {/* Sidebar Footer */}
           <div className="p-4 border-t border-sidebar-border/40 flex flex-col gap-3 bg-sidebar/95 backdrop-blur-md shrink-0">
             {session?.user && (
-              <div className={`flex items-center gap-2.5 p-2 bg-sidebar-accent/40 rounded-xl border border-sidebar-border/30 transition-all duration-300 ${
-                sidebarOpen ? "" : "lg:justify-center lg:p-1.5"
-              }`}>
+              <div
+                className={`flex items-center gap-2.5 p-2 bg-sidebar-accent/40 rounded-xl border border-sidebar-border/30 transition-all duration-300 ${
+                  sidebarOpen ? "" : "lg:justify-center lg:p-1.5"
+                }`}
+              >
                 <div className="h-9 w-9 rounded-full bg-primary text-primary-foreground flex items-center justify-center font-semibold text-sm uppercase shadow-sm shrink-0 overflow-hidden">
                   {!sidebarImgError && session.user.image ? (
                     <img
@@ -246,13 +263,19 @@ export function DashboardLayout({
                       onError={() => setSidebarImgError(true)}
                     />
                   ) : (
-                    <span>{session.user.name ? session.user.name.charAt(0).toUpperCase() : "U"}</span>
+                    <span>
+                      {session.user.name ? session.user.name.charAt(0).toUpperCase() : "U"}
+                    </span>
                   )}
                 </div>
                 {sidebarOpen && (
                   <div className="flex-1 min-w-0">
-                    <p className="text-xs font-semibold text-sidebar-foreground truncate">{session.user.name || "User"}</p>
-                    <p className="text-[10px] text-sidebar-foreground/60 truncate capitalize">{(session.user as any).role || "admin"}</p>
+                    <p className="text-xs font-semibold text-sidebar-foreground truncate">
+                      {session.user.name || "User"}
+                    </p>
+                    <p className="text-[10px] text-sidebar-foreground/60 truncate capitalize">
+                      {(session.user as any).role || "admin"}
+                    </p>
                   </div>
                 )}
               </div>
@@ -302,16 +325,17 @@ export function DashboardLayout({
             <h1 className="font-serif text-lg md:text-xl font-semibold">{title}</h1>
           </div>
           <div className="flex items-center gap-4">
-            <button className="p-2 hover:bg-muted rounded-full relative">
-              <Bell className="h-4.5 w-4.5" />
-              <span className="absolute top-1.5 right-1.5 h-2 w-2 bg-primary rounded-full" />
-            </button>
+            <NotificationBell />
             <div className="flex items-center gap-3">
               <div className="hidden sm:flex flex-col text-right">
-                <span className="text-xs font-semibold text-foreground">{session?.user?.name || "Admin"}</span>
-                <span className="text-[10px] text-muted-foreground capitalize">{(session?.user as any)?.role || "admin"}</span>
+                <span className="text-xs font-semibold text-foreground">
+                  {session?.user?.name || "Admin"}
+                </span>
+                <span className="text-[10px] text-muted-foreground capitalize">
+                  {(session?.user as any)?.role || "admin"}
+                </span>
               </div>
-              <button 
+              <button
                 onClick={() => signOut({ callbackUrl: "/" })}
                 className="flex items-center gap-2 pl-2 pr-3 py-1.5 rounded-full hover:bg-red-50 hover:text-red-600 transition-colors cursor-pointer"
               >
@@ -324,7 +348,9 @@ export function DashboardLayout({
                       onError={() => setHeaderImgError(true)}
                     />
                   ) : (
-                    <span>{session?.user?.name ? session.user.name.charAt(0).toUpperCase() : "U"}</span>
+                    <span>
+                      {session?.user?.name ? session.user.name.charAt(0).toUpperCase() : "U"}
+                    </span>
                   )}
                 </div>
                 <span className="hidden md:inline text-sm font-medium">Logout</span>

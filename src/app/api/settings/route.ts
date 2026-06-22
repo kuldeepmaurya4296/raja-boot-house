@@ -17,7 +17,7 @@ const defaultGeneral = {
 const defaultShipping = [
   { id: "std", name: "Standard", desc: "5–7 days", price: 0 },
   { id: "exp", name: "Express", desc: "2–3 days", price: 150 },
-  { id: "same", name: "Same-day (Jawa Rewa)", desc: "Today", price: 350 }
+  { id: "same", name: "Same-day (Jawa Rewa)", desc: "Today", price: 350 },
 ];
 
 export async function GET() {
@@ -29,7 +29,7 @@ export async function GET() {
 
     const [generalDoc, shippingDoc] = await Promise.all([
       Settings.findOne({ key: "general" }).lean(),
-      Settings.findOne({ key: "shipping_methods" }).lean()
+      Settings.findOne({ key: "shipping_methods" }).lean(),
     ]);
 
     const general = generalDoc ? { ...defaultGeneral, ...generalDoc.value } : defaultGeneral;
@@ -37,11 +37,14 @@ export async function GET() {
 
     return NextResponse.json({
       ...general,
-      shippingMethods
+      shippingMethods,
     });
   } catch (error: any) {
     console.error("Failed to fetch settings:", error);
-    return NextResponse.json({ error: error.message || "Failed to fetch settings" }, { status: 500 });
+    return NextResponse.json(
+      { error: error.message || "Failed to fetch settings" },
+      { status: 500 },
+    );
   }
 }
 
@@ -53,10 +56,23 @@ export async function PUT(request: Request) {
     }
 
     const body = await request.json();
-    const { storeName, supportEmail, taxRate, currency, currencySymbol, defaultReturnDays, shippingMethods, razorpayEnabled, codEnabled } = body;
+    const {
+      storeName,
+      supportEmail,
+      taxRate,
+      currency,
+      currencySymbol,
+      defaultReturnDays,
+      shippingMethods,
+      razorpayEnabled,
+      codEnabled,
+    } = body;
 
     if (razorpayEnabled === false && codEnabled === false) {
-      return NextResponse.json({ error: "At least one payment method must be enabled." }, { status: 400 });
+      return NextResponse.json(
+        { error: "At least one payment method must be enabled." },
+        { status: 400 },
+      );
     }
 
     const db = await connectToDatabase();
@@ -67,30 +83,39 @@ export async function PUT(request: Request) {
     await Promise.all([
       Settings.findOneAndUpdate(
         { key: "general" },
-        { 
-          value: { 
-            storeName: storeName || defaultGeneral.storeName, 
-            supportEmail: supportEmail || defaultGeneral.supportEmail, 
+        {
+          value: {
+            storeName: storeName || defaultGeneral.storeName,
+            supportEmail: supportEmail || defaultGeneral.supportEmail,
             taxRate: typeof taxRate === "number" ? taxRate : defaultGeneral.taxRate,
             currency: currency || defaultGeneral.currency,
             currencySymbol: currencySymbol || defaultGeneral.currencySymbol,
-            defaultReturnDays: typeof defaultReturnDays === "number" ? defaultReturnDays : defaultGeneral.defaultReturnDays,
-            razorpayEnabled: typeof razorpayEnabled === "boolean" ? razorpayEnabled : defaultGeneral.razorpayEnabled,
+            defaultReturnDays:
+              typeof defaultReturnDays === "number"
+                ? defaultReturnDays
+                : defaultGeneral.defaultReturnDays,
+            razorpayEnabled:
+              typeof razorpayEnabled === "boolean"
+                ? razorpayEnabled
+                : defaultGeneral.razorpayEnabled,
             codEnabled: typeof codEnabled === "boolean" ? codEnabled : defaultGeneral.codEnabled,
-          } 
+          },
         },
-        { upsert: true, new: true }
+        { upsert: true, new: true },
       ),
       Settings.findOneAndUpdate(
         { key: "shipping_methods" },
         { value: shippingMethods || defaultShipping },
-        { upsert: true, new: true }
-      )
+        { upsert: true, new: true },
+      ),
     ]);
 
     return NextResponse.json({ success: true });
   } catch (error: any) {
     console.error("Failed to save settings:", error);
-    return NextResponse.json({ error: error.message || "Failed to save settings" }, { status: 500 });
+    return NextResponse.json(
+      { error: error.message || "Failed to save settings" },
+      { status: 500 },
+    );
   }
 }

@@ -8,7 +8,7 @@ export default async function EditCategoryPage({ params }: { params: Promise<{ i
   await dbConnect();
   const { id } = await params;
   const cat = await Category.findById(id).lean();
-  
+
   if (!cat) {
     notFound();
   }

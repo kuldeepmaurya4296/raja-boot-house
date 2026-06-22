@@ -104,7 +104,9 @@ export function DeliveryPartnersClient() {
       key: "type",
       header: "Type",
       render: (p) => (
-        <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${p.type === 'SELF' ? 'bg-orange-100 text-orange-800' : 'bg-blue-100 text-blue-800'}`}>
+        <span
+          className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${p.type === "SELF" ? "bg-orange-100 text-orange-800" : "bg-blue-100 text-blue-800"}`}
+        >
           {p.type === "SELF" ? "Self Rider" : "Courier Partner"}
         </span>
       ),
@@ -114,7 +116,11 @@ export function DeliveryPartnersClient() {
       header: "Phone / Details",
       render: (p) => (
         <span className="text-sm">
-          {p.type === "SELF" ? p.phone || "—" : p.trackingUrlTemplate ? "Tracking enabled" : "No tracking template"}
+          {p.type === "SELF"
+            ? p.phone || "—"
+            : p.trackingUrlTemplate
+              ? "Tracking enabled"
+              : "No tracking template"}
         </span>
       ),
     },
@@ -123,8 +129,10 @@ export function DeliveryPartnersClient() {
       header: "Status",
       sortKey: "isActive",
       render: (p) => (
-        <span className={`inline-flex px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase tracking-wider ${p.isActive ? 'bg-emerald-100 text-emerald-800' : 'bg-muted text-muted-foreground'}`}>
-          {p.isActive ? 'Active' : 'Inactive'}
+        <span
+          className={`inline-flex px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase tracking-wider ${p.isActive ? "bg-emerald-100 text-emerald-800" : "bg-muted text-muted-foreground"}`}
+        >
+          {p.isActive ? "Active" : "Inactive"}
         </span>
       ),
     },
@@ -169,7 +177,11 @@ export function DeliveryPartnersClient() {
                   : "border-transparent text-muted-foreground hover:text-foreground"
               }`}
             >
-              {tab === "ALL" ? "All Logistics" : tab === "SELF" ? "Self Riders" : "Courier Partners"}
+              {tab === "ALL"
+                ? "All Logistics"
+                : tab === "SELF"
+                  ? "Self Riders"
+                  : "Courier Partners"}
             </button>
           ))}
         </div>
@@ -199,7 +211,11 @@ export function DeliveryPartnersClient() {
         </div>
       ) : (
         <div className="bg-card border border-border rounded-2xl overflow-hidden shadow-sm">
-          <DataTable columns={cols} rows={filtered} empty="No delivery staff or partners configured." />
+          <DataTable
+            columns={cols}
+            rows={filtered}
+            empty="No delivery staff or partners configured."
+          />
         </div>
       )}
 

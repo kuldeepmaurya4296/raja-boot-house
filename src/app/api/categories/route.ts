@@ -19,14 +19,16 @@ export async function GET() {
           id: cat._id.toString(),
           productCount,
         };
-      })
+      }),
     );
     return NextResponse.json(categoriesWithCount);
   } catch (error: any) {
     console.error("Failed to fetch categories:", error);
-    return NextResponse.json({ error: error.message || "Failed to fetch categories" }, { status: 500 });
+    return NextResponse.json(
+      { error: error.message || "Failed to fetch categories" },
+      { status: 500 },
+    );
   }
 }
 
 export const revalidate = 3600;
-

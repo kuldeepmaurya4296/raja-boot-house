@@ -16,7 +16,7 @@ const BrandSchema: Schema = new Schema(
     order: { type: Number, default: 0 },
     isActive: { type: Boolean, default: true },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
 export default mongoose.models.Brand || mongoose.model<IBrand>("Brand", BrandSchema);

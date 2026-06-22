@@ -124,7 +124,9 @@ export async function sendOrderConfirmationEmail(toEmail: string, order: any) {
 
   const { orderId, items, pricing, shippingAddress } = order;
 
-  const itemsHtml = items.map((item: any) => `
+  const itemsHtml = items
+    .map(
+      (item: any) => `
     <tr>
       <td style="padding: 10px 0; border-bottom: 1px solid #E4E4E7;">
         <p style="font-size: 14px; font-weight: bold; margin: 0; color: #1C1917;">${item.name}</p>
@@ -134,7 +136,9 @@ export async function sendOrderConfirmationEmail(toEmail: string, order: any) {
         ₹${item.price * item.qty}
       </td>
     </tr>
-  `).join("");
+  `,
+    )
+    .join("");
 
   const mailOptions = {
     from: `"Raja Boot House" <${SUPPORT_EMAIL}>`,
@@ -169,16 +173,31 @@ export async function sendOrderConfirmationEmail(toEmail: string, order: any) {
             <td style="padding: 5px 0;">Subtotal</td>
             <td style="text-align: right; padding: 5px 0;">₹${pricing.subtotal}</td>
           </tr>
-          ${pricing.couponDiscount ? `
+          ${
+            pricing.couponDiscount
+              ? `
           <tr>
             <td style="padding: 5px 0; color: #16A34A;">Coupon Discount</td>
             <td style="text-align: right; padding: 5px 0; color: #16A34A;">-₹${pricing.couponDiscount}</td>
           </tr>
-          ` : ""}
+          `
+              : ""
+          }
           <tr>
             <td style="padding: 5px 0;">Shipping</td>
             <td style="text-align: right; padding: 5px 0;">${pricing.shipping === 0 ? "FREE" : `₹${pricing.shipping}`}</td>
           </tr>
+          ${(() => {
+            const tax =
+              pricing.total - (pricing.subtotal - (pricing.couponDiscount || 0)) - pricing.shipping;
+            return tax > 0
+              ? `
+          <tr>
+            <td style="padding: 5px 0;">Tax</td>
+            <td style="text-align: right; padding: 5px 0;">₹${tax}</td>
+          </tr>`
+              : "";
+          })()}
           <tr>
             <td style="padding: 5px 0; font-weight: bold; border-top: 1px solid #E4E4E7; padding-top: 10px;">Total Amount</td>
             <td style="text-align: right; font-weight: bold; border-top: 1px solid #E4E4E7; padding-top: 10px; font-size: 16px; color: #1C1917;">₹${pricing.total}</td>
@@ -225,7 +244,12 @@ export async function sendOrderConfirmationEmail(toEmail: string, order: any) {
 /**
  * Sends an order status update email to the customer
  */
-export async function sendOrderStatusEmail(toEmail: string, order: any, newStatus: string, note?: string) {
+export async function sendOrderStatusEmail(
+  toEmail: string,
+  order: any,
+  newStatus: string,
+  note?: string,
+) {
   const transporter = getTransporter();
   if (!transporter) return false;
 
@@ -287,6 +311,78 @@ export async function sendOrderStatusEmail(toEmail: string, order: any, newStatu
     return true;
   } catch (error) {
     console.error(`Failed to send order status email for ${orderId}:`, error);
+    return false;
+  }
+}
+
+/**
+ * Sends a recovery email for an abandoned cart
+ */
+export async function sendAbandonedCartEmail(toEmail: string, name: string, items: any[]) {
+  const transporter = getTransporter();
+  if (!transporter) return false;
+
+  const itemsHtml = items
+    .map(
+      (item) => `
+      <div style="display: flex; align-items: center; margin-bottom: 15px; padding-bottom: 15px; border-bottom: 1px solid #E4E4E7;">
+        <img src="${item.image}" alt="${item.name}" style="width: 60px; height: 60px; object-fit: cover; border-radius: 6px; border: 1px solid #E4E4E7; margin-right: 15px;" />
+        <div style="flex: 1; text-align: left;">
+          <h4 style="margin: 0; font-size: 14px; color: #1C1917;">${item.name}</h4>
+          <p style="margin: 3px 0 0 0; font-size: 11px; color: #71717A;">
+            Size: UK ${item.size} &middot; Color: ${item.color} &middot; Qty: ${item.quantity}
+          </p>
+        </div>
+        <div style="margin-left: auto; font-weight: bold; font-size: 14px; color: #8C6D58; min-width: 80px; text-align: right;">
+          ₹${new Intl.NumberFormat("en-IN").format(item.price * item.quantity)}
+        </div>
+      </div>
+    `,
+    )
+    .join("");
+
+  const mailOptions = {
+    from: `"Raja Boot House" <${SUPPORT_EMAIL}>`,
+    to: toEmail,
+    subject: "Still thinking about these shoes? — Raja Boot House",
+    html: `
+      <div style="font-family: 'Georgia', 'Times New Roman', serif; max-width: 600px; margin: 0 auto; padding: 30px; border: 1px solid #E4E4E7; background-color: #FAF9F6; color: #1C1917;">
+        <div style="text-align: center; margin-bottom: 30px;">
+          <h2 style="font-size: 28px; margin: 0; color: #1C1917; letter-spacing: 0.05em; text-transform: uppercase;">Raja Boot House</h2>
+          <p style="font-size: 10px; text-transform: uppercase; tracking-spacing: 0.2em; color: #8C6D58; margin-top: 5px; font-weight: bold;">Artisan Craftsmanship & Premium Brands</p>
+        </div>
+        <hr style="border: 0; border-top: 1px solid #E4E4E7; margin-bottom: 25px;" />
+        
+        <p style="font-size: 15px; line-height: 1.6; color: #27272A;">Dear ${name || "Customer"},</p>
+        <p style="font-size: 15px; line-height: 1.6; color: #27272A;">We noticed you left some beautiful footwear items in your shopping bag. They are still reserved for you, but popular styles sell out quickly!</p>
+        
+        <div style="margin: 25px 0; padding: 20px; background-color: #FFFFFF; border-radius: 12px; border: 1px solid #E4E4E7;">
+          <h3 style="margin-top: 0; margin-bottom: 20px; font-size: 14px; font-weight: bold; text-transform: uppercase; letter-spacing: 0.05em; color: #8C6D58; text-align: left;">Your Shopping Bag</h3>
+          ${itemsHtml}
+        </div>
+
+        <div style="text-align: center; margin: 35px 0;">
+          <a href="${process.env.NEXTAUTH_URL || "https://rajaboothouse.com"}/checkout" style="background-color: #1C1917; color: #FAF9F6; text-decoration: none; padding: 12px 28px; border-radius: 20px; font-size: 13px; font-weight: bold; text-transform: uppercase; letter-spacing: 0.1em; display: inline-block;">
+            Complete Your Checkout
+          </a>
+        </div>
+
+        <p style="font-size: 13px; line-height: 1.5; color: #71717A; text-align: center;">Need assistance? Just reply to this email or contact support at ${SUPPORT_EMAIL}</p>
+        
+        <hr style="border: 0; border-top: 1px solid #E4E4E7; margin: 30px 0 20px 0;" />
+        <div style="text-align: center; font-size: 11px; color: #71717A;">
+          <p style="margin: 0 0 5px 0;">Raja Boot House, Main Footwear Market, Gorakhpur, UP, India</p>
+        </div>
+      </div>
+    `,
+  };
+
+  try {
+    const info = await transporter.sendMail(mailOptions);
+    console.log(`Abandoned cart recovery email sent to ${toEmail}:`, info.messageId);
+    return true;
+  } catch (error) {
+    console.error(`Failed to send abandoned cart recovery email to ${toEmail}:`, error);
     return false;
   }
 }

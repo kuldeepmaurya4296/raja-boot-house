@@ -8,18 +8,19 @@ export const dynamic = "force-dynamic";
 
 export default async function NewCollectionPage() {
   await dbConnect();
-  
+
   // Fetch products to choose from
   const productsRaw = await Product.find({ isActive: true })
     .populate({ path: "brand", model: Brand })
     .select("name brand price images")
     .sort({ name: 1 })
     .lean();
-    
+
   const productsList = productsRaw.map((p: any) => {
-    const brandName = (p.brand && typeof p.brand === "object" && "name" in p.brand) 
-      ? p.brand.name 
-      : (p.brand || "Raja Boot House");
+    const brandName =
+      p.brand && typeof p.brand === "object" && "name" in p.brand
+        ? p.brand.name
+        : p.brand || "Raja Boot House";
 
     return {
       id: p._id.toString(),

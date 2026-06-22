@@ -17,17 +17,18 @@ export async function POST(request: Request) {
 
     const webhookSecret = process.env.RAZORPAY_WEBHOOK_SECRET;
 
-    if (webhookSecret) {
-      const expectedSignature = crypto
-        .createHmac("sha256", webhookSecret)
-        .update(rawBody)
-        .digest("hex");
+    if (!webhookSecret || webhookSecret.includes("dummy")) {
+      console.error("RAZORPAY_WEBHOOK_SECRET not configured. Rejecting webhook request.");
+      return NextResponse.json({ error: "Webhook secret not configured" }, { status: 503 });
+    }
 
-      if (expectedSignature !== signature) {
-        return NextResponse.json({ error: "Invalid webhook signature" }, { status: 400 });
-      }
-    } else {
-      console.warn("RAZORPAY_WEBHOOK_SECRET not defined. Skipping verification.");
+    const expectedSignature = crypto
+      .createHmac("sha256", webhookSecret)
+      .update(rawBody)
+      .digest("hex");
+
+    if (expectedSignature !== signature) {
+      return NextResponse.json({ error: "Invalid webhook signature" }, { status: 400 });
     }
 
     const body = JSON.parse(rawBody);
@@ -40,7 +41,9 @@ export async function POST(request: Request) {
 
     // If database is offline, skip updates but return 200 to Razorpay to avoid retries
     if (!isReady) {
-      console.error("Database offline during webhook processing. Returning 500 to trigger Razorpay retries.");
+      console.error(
+        "Database offline during webhook processing. Returning 500 to trigger Razorpay retries.",
+      );
       return NextResponse.json({ error: "Database offline" }, { status: 500 });
     }
 
@@ -75,7 +78,7 @@ export async function POST(request: Request) {
               if (customer?.email) {
                 const { sendOrderConfirmationEmail } = await import("@/lib/email");
                 sendOrderConfirmationEmail(customer.email, order).catch((err) =>
-                  console.error("Order confirmation email error via Webhook:", err)
+                  console.error("Order confirmation email error via Webhook:", err),
                 );
               }
             } catch (emailErr) {
@@ -93,8 +96,10 @@ export async function POST(request: Request) {
       if (razorpayOrderId) {
         const order = await Order.findOne({ "payment.razorpayOrderId": razorpayOrderId });
         if (order && order.payment.status === "PENDING" && order.status === "PLACED") {
-          console.log(`Webhook received: payment.failed for local order ${order.orderId}. Cancelling order and restoring stocks.`);
-          
+          console.log(
+            `Webhook received: payment.failed for local order ${order.orderId}. Cancelling order and restoring stocks.`,
+          );
+
           const Product = mongoose.models.Product || (await import("@/lib/models/Product")).default;
 
           // Rollback stock atomically
@@ -103,11 +108,11 @@ export async function POST(request: Request) {
               {
                 _id: item.productId,
                 "variants.size": item.size,
-                "variants.color": item.color
+                "variants.color": item.color,
               },
               {
-                $inc: { "variants.$.stock": item.qty }
-              }
+                $inc: { "variants.$.stock": item.qty },
+              },
             );
           }
 
@@ -116,7 +121,7 @@ export async function POST(request: Request) {
           order.statusHistory.push({
             status: "CANCELLED",
             timestamp: new Date(),
-            note: "Webhook received: payment.failed. Payment failed on gateway, order automatically cancelled."
+            note: "Webhook received: payment.failed. Payment failed on gateway, order automatically cancelled.",
           });
 
           await order.save();
@@ -130,7 +135,7 @@ export async function POST(request: Request) {
     console.error("Webhook processing failed:", error);
     return NextResponse.json(
       { error: error.message || "Webhook processing failed" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

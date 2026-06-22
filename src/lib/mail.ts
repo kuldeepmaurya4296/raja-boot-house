@@ -13,7 +13,7 @@ export async function sendEmail({
 }) {
   const host = process.env.SMTP_HOST || "smtp.gmail.com";
   const port = parseInt(process.env.SMTP_PORT || "465", 10);
-  
+
   const transporter = nodemailer.createTransport({
     host,
     port,

@@ -6,22 +6,23 @@ import { CustomersClient } from "./CustomersClient";
 
 export const dynamic = "force-dynamic";
 
-export default async function AdminCustomersPage({ searchParams }: { searchParams: Promise<{ [key: string]: string | undefined }> }) {
+export default async function AdminCustomersPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ [key: string]: string | undefined }>;
+}) {
   await dbConnect();
   const params = await searchParams;
-  
+
   const q = params.q || "";
   const page = parseInt(params.page || "1", 10);
   const limit = 10;
   const sortKey = params.sort || "createdAt";
   const sortOrder = params.order === "asc" ? 1 : -1;
-  
+
   const query: any = { role: "customer" };
   if (q) {
-    query.$or = [
-      { name: { $regex: q, $options: "i" } },
-      { email: { $regex: q, $options: "i" } }
-    ];
+    query.$or = [{ name: { $regex: q, $options: "i" } }, { email: { $regex: q, $options: "i" } }];
   }
 
   const sortObj: any = {};
@@ -33,9 +34,9 @@ export default async function AdminCustomersPage({ searchParams }: { searchParam
       .skip((page - 1) * limit)
       .limit(limit)
       .lean(),
-    User.countDocuments(query)
+    User.countDocuments(query),
   ]);
-    
+
   // Fetch stats for these users
   const userIds = usersRaw.map((u: any) => u._id);
   const ordersRaw = await Order.find({ userId: { $in: userIds } }).lean();

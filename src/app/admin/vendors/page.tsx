@@ -7,19 +7,23 @@ import { VendorsClient } from "./VendorsClient";
 
 export const dynamic = "force-dynamic";
 
-export default async function AdminVendorsPage({ searchParams }: { searchParams: Promise<{ [key: string]: string | undefined }> }) {
+export default async function AdminVendorsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ [key: string]: string | undefined }>;
+}) {
   await dbConnect();
   const params = await searchParams;
-  
+
   const q = params.q || "";
   const page = parseInt(params.page || "1", 10);
   const limit = 10;
   const sortKey = params.sort || "createdAt";
   const sortOrder = params.order === "asc" ? 1 : -1;
   const statusFilter = params.status || "";
-  
+
   const query: any = { role: "vendor" };
-  
+
   if (statusFilter === "active") {
     query.isActive = true;
   } else if (statusFilter === "pending") {
@@ -27,10 +31,7 @@ export default async function AdminVendorsPage({ searchParams }: { searchParams:
   }
 
   if (q) {
-    query.$or = [
-      { name: { $regex: q, $options: "i" } },
-      { email: { $regex: q, $options: "i" } }
-    ];
+    query.$or = [{ name: { $regex: q, $options: "i" } }, { email: { $regex: q, $options: "i" } }];
   }
 
   const sortObj: any = {};
@@ -42,19 +43,23 @@ export default async function AdminVendorsPage({ searchParams }: { searchParams:
       .skip((page - 1) * limit)
       .limit(limit)
       .lean(),
-    User.countDocuments(query)
+    User.countDocuments(query),
   ]);
-    
+
   // Pre-fetch all vendor products and orders
   const vendorIds = vendorsRaw.map((v: any) => v._id);
-  
+
   const [allVendorProducts, allVendorOrders] = await Promise.all([
-    Product.find({ vendorId: { $in: vendorIds } }).select("vendorId").lean(),
-    Order.find({ "items.vendorId": { $in: vendorIds } }).lean() // Assuming order items could store vendorId for split carts
+    Product.find({ vendorId: { $in: vendorIds } })
+      .select("vendorId")
+      .lean(),
+    Order.find({ "items.vendorId": { $in: vendorIds } }).lean(), // Assuming order items could store vendorId for split carts
   ]);
 
   const vendors = vendorsRaw.map((v: any) => {
-    const productsCount = allVendorProducts.filter((p: any) => p.vendorId?.toString() === v._id.toString()).length;
+    const productsCount = allVendorProducts.filter(
+      (p: any) => p.vendorId?.toString() === v._id.toString(),
+    ).length;
     // Compute revenue from orders that have items belonging to this vendor
     let revenue = 0;
     allVendorOrders.forEach((o: any) => {

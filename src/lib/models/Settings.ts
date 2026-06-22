@@ -12,7 +12,7 @@ const SettingsSchema: Schema = new Schema(
     key: { type: String, required: true, unique: true, index: true },
     value: { type: Schema.Types.Mixed, required: true },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
 export default mongoose.models.Settings || mongoose.model<ISettings>("Settings", SettingsSchema);

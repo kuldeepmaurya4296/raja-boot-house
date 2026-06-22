@@ -41,11 +41,14 @@ export async function GET() {
         totalOrders,
         totalSpent,
         savedAddressesCount,
-      }
+      },
     });
   } catch (error: any) {
     console.error("Profile GET error:", error);
-    return NextResponse.json({ error: error.message || "Failed to fetch profile" }, { status: 500 });
+    return NextResponse.json(
+      { error: error.message || "Failed to fetch profile" },
+      { status: 500 },
+    );
   }
 }
 
@@ -72,8 +75,10 @@ export async function PUT(request: Request) {
     const updatedUser = await User.findByIdAndUpdate(
       userId,
       { name, phone: phone || "" },
-      { new: true, runValidators: true }
-    ).select("-password").lean();
+      { new: true, runValidators: true },
+    )
+      .select("-password")
+      .lean();
 
     if (!updatedUser) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
@@ -87,11 +92,14 @@ export async function PUT(request: Request) {
         email: updatedUser.email,
         phone: updatedUser.phone || "",
         createdAt: updatedUser.createdAt,
-      }
+      },
     });
   } catch (error: any) {
     console.error("Profile PUT error:", error);
-    return NextResponse.json({ error: error.message || "Failed to update profile" }, { status: 500 });
+    return NextResponse.json(
+      { error: error.message || "Failed to update profile" },
+      { status: 500 },
+    );
   }
 }
 

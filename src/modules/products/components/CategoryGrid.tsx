@@ -9,11 +9,15 @@ import Image from "next/image";
 const fallbacks: Record<string, string> = {
   men: "https://images.unsplash.com/photo-1539185441755-769473a23570?q=80&w=800&auto=format&fit=crop",
   mens: "https://images.unsplash.com/photo-1539185441755-769473a23570?q=80&w=800&auto=format&fit=crop",
-  women: "https://images.unsplash.com/photo-1543163521-1bf539c55dd2?q=80&w=800&auto=format&fit=crop",
-  womens: "https://images.unsplash.com/photo-1543163521-1bf539c55dd2?q=80&w=800&auto=format&fit=crop",
+  women:
+    "https://images.unsplash.com/photo-1543163521-1bf539c55dd2?q=80&w=800&auto=format&fit=crop",
+  womens:
+    "https://images.unsplash.com/photo-1543163521-1bf539c55dd2?q=80&w=800&auto=format&fit=crop",
   kids: "https://images.unsplash.com/photo-1514989940723-e8e51635b782?q=80&w=800&auto=format&fit=crop",
-  bridal: "https://images.unsplash.com/photo-1596568300556-a3b043c53e3b?q=80&w=800&auto=format&fit=crop",
-  sports: "https://images.unsplash.com/photo-1542291026-7eec264c27ff?q=80&w=800&auto=format&fit=crop"
+  bridal:
+    "https://images.unsplash.com/photo-1596568300556-a3b043c53e3b?q=80&w=800&auto=format&fit=crop",
+  sports:
+    "https://images.unsplash.com/photo-1542291026-7eec264c27ff?q=80&w=800&auto=format&fit=crop",
 };
 
 export function CategoryGrid() {
@@ -38,14 +42,19 @@ export function CategoryGrid() {
     <section className="container mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-16 lg:py-24">
       <div className="flex items-end justify-between mb-8">
         <div>
-          <p className="text-[11px] uppercase tracking-[0.3em] text-cognac font-semibold mb-2">Browse</p>
+          <p className="text-[11px] uppercase tracking-[0.3em] text-cognac font-semibold mb-2">
+            Browse
+          </p>
           <h2 className="font-serif text-3xl md:text-5xl font-bold text-charcoal">Shop by Style</h2>
         </div>
-        <Link href="/shop" className="hidden md:inline text-sm font-semibold underline underline-offset-4 cursor-pointer">
+        <Link
+          href="/shop"
+          className="hidden md:inline text-sm font-semibold underline underline-offset-4 cursor-pointer"
+        >
           View all
         </Link>
       </div>
-      
+
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 md:gap-6">
         {categoriesList.map((c, i) => {
           const imgUrl = c.imageUrl || fallbacks[c.slug] || fallbacks[c.slug?.replace("s", "")];
@@ -76,18 +85,24 @@ export function CategoryGrid() {
                   )}
                   <div className="absolute inset-0 grain opacity-40" />
                   <div className="absolute inset-0 p-4 md:p-6 flex flex-col justify-end z-10">
-                    <h3 className={`font-serif text-base md:text-xl font-bold transition-colors duration-300 ${imgUrl ? "text-cream group-hover:text-brass" : "text-charcoal group-hover:text-primary"}`}>
+                    <h3
+                      className={`font-serif text-base md:text-xl font-bold transition-colors duration-300 ${imgUrl ? "text-cream group-hover:text-brass" : "text-charcoal group-hover:text-primary"}`}
+                    >
                       {c.name}
                     </h3>
-                    <p className={`text-[10px] uppercase tracking-wider mt-1 transition-colors duration-300 ${imgUrl ? "text-cream/80" : "text-muted-foreground"}`}>
+                    <p
+                      className={`text-[10px] uppercase tracking-wider mt-1 transition-colors duration-300 ${imgUrl ? "text-cream/80" : "text-muted-foreground"}`}
+                    >
                       {c.productCount || 0} styles
                     </p>
                   </div>
-                  <div className={`absolute top-4 right-4 h-8 w-8 rounded-full grid place-items-center text-xs transition z-10 ${
-                    imgUrl 
-                      ? "bg-cream text-charcoal group-hover:bg-primary group-hover:text-primary-foreground group-hover:scale-110" 
-                      : "bg-charcoal text-cream group-hover:bg-primary group-hover:scale-110"
-                  } duration-300`}>
+                  <div
+                    className={`absolute top-4 right-4 h-8 w-8 rounded-full grid place-items-center text-xs transition z-10 ${
+                      imgUrl
+                        ? "bg-cream text-charcoal group-hover:bg-primary group-hover:text-primary-foreground group-hover:scale-110"
+                        : "bg-charcoal text-cream group-hover:bg-primary group-hover:scale-110"
+                    } duration-300`}
+                  >
                     →
                   </div>
                 </div>
@@ -99,8 +114,8 @@ export function CategoryGrid() {
 
       {/* Mobile Shop All Button - Larger, Tappable & Premium */}
       <div className="mt-8 flex justify-center md:hidden">
-        <Link 
-          href="/shop" 
+        <Link
+          href="/shop"
           className="w-full bg-primary text-primary-foreground text-center py-4 rounded-xl text-xs sm:text-sm font-semibold uppercase tracking-wider hover:opacity-95 active:scale-98 transition shadow-md flex items-center justify-center gap-2 cursor-pointer border border-primary/20"
         >
           Shop All Styles →

@@ -20,4 +20,3 @@ declare module "next-auth/jwt" {
     role?: "customer" | "admin" | "vendor";
   }
 }
-

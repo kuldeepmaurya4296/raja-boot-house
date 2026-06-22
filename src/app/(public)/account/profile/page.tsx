@@ -3,18 +3,18 @@
 import { useState, useEffect } from "react";
 import { useSession, signOut } from "next-auth/react";
 import { toast } from "sonner";
-import { 
-  User, 
-  Mail, 
-  Phone, 
-  Calendar, 
-  ShieldCheck, 
-  Lock, 
-  Key, 
-  Save, 
+import {
+  User,
+  Mail,
+  Phone,
+  Calendar,
+  ShieldCheck,
+  Lock,
+  Key,
+  Save,
   LogOut,
   Sparkles,
-  Info
+  Info,
 } from "lucide-react";
 
 export default function AccountProfilePage() {
@@ -31,11 +31,11 @@ export default function AccountProfilePage() {
 
     setLoading(true);
     fetch("/api/user/profile")
-      .then(res => {
+      .then((res) => {
         if (!res.ok) throw new Error("Failed to load profile details");
         return res.json();
       })
-      .then(data => {
+      .then((data) => {
         if (data.success && data.user) {
           setName(data.user.name || "");
           setEmail(data.user.email || "");
@@ -43,7 +43,7 @@ export default function AccountProfilePage() {
           setJoinedAt(data.user.createdAt || "");
         }
       })
-      .catch(err => {
+      .catch((err) => {
         console.error(err);
         toast.error("Failed to load profile details.");
       })
@@ -71,7 +71,7 @@ export default function AccountProfilePage() {
       if (data.success && data.user) {
         setName(data.user.name);
         setPhone(data.user.phone);
-        
+
         // Refresh session
         await update();
         toast.success("Profile updated successfully!");
@@ -102,27 +102,32 @@ export default function AccountProfilePage() {
     ? name
         .split(" ")
         .filter(Boolean)
-        .map(s => s[0])
+        .map((s) => s[0])
         .join("")
         .toUpperCase()
     : "U";
 
   const memberYear = joinedAt ? new Date(joinedAt).getFullYear() : new Date().getFullYear();
-  const memberSinceStr = joinedAt 
-    ? new Date(joinedAt).toLocaleDateString("en-IN", { month: "long", year: "numeric" }) 
+  const memberSinceStr = joinedAt
+    ? new Date(joinedAt).toLocaleDateString("en-IN", { month: "long", year: "numeric" })
     : "June 2026";
 
   return (
     <div className="space-y-6">
       <div>
         <h2 className="font-serif text-2xl font-bold text-foreground">Profile Settings</h2>
-        <p className="text-xs text-muted-foreground mt-0.5">Manage your personal information and account security details</p>
+        <p className="text-xs text-muted-foreground mt-0.5">
+          Manage your personal information and account security details
+        </p>
       </div>
 
       <div className="grid md:grid-cols-3 gap-6 items-start">
         {/* Left Form Column */}
         <div className="md:col-span-2 space-y-6">
-          <form onSubmit={handleSubmit} className="bg-card border border-border rounded-2xl p-6 shadow-sm space-y-5">
+          <form
+            onSubmit={handleSubmit}
+            className="bg-card border border-border rounded-2xl p-6 shadow-sm space-y-5"
+          >
             <div className="flex items-center gap-4 pb-5 border-b border-border/60">
               <div className="h-16 w-16 rounded-full bg-brass/20 text-brass flex items-center justify-center font-serif text-xl font-bold border-2 border-brass/20">
                 {initials}
@@ -149,7 +154,7 @@ export default function AccountProfilePage() {
                   <input
                     type="text"
                     value={name}
-                    onChange={e => setName(e.target.value)}
+                    onChange={(e) => setName(e.target.value)}
                     className="w-full bg-background border border-input rounded-xl pl-9 pr-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brass/15 focus:border-brass transition font-medium text-foreground"
                     required
                     placeholder="Enter your full name"
@@ -175,7 +180,9 @@ export default function AccountProfilePage() {
                 </div>
                 <p className="text-[10px] text-muted-foreground/70 mt-1 flex items-center gap-1">
                   <Info className="h-3 w-3" />
-                  <span>Email address cannot be changed. Contact support to update your login email.</span>
+                  <span>
+                    Email address cannot be changed. Contact support to update your login email.
+                  </span>
                 </p>
               </div>
 
@@ -190,7 +197,7 @@ export default function AccountProfilePage() {
                   <input
                     type="tel"
                     value={phone}
-                    onChange={e => setPhone(e.target.value)}
+                    onChange={(e) => setPhone(e.target.value)}
                     placeholder="e.g. +91 98765 43210"
                     className="w-full bg-background border border-input rounded-xl pl-9 pr-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brass/15 focus:border-brass transition font-medium text-foreground"
                   />
@@ -217,10 +224,10 @@ export default function AccountProfilePage() {
                   </>
                 )}
               </button>
-              
+
               <button
                 type="button"
-                onClick={() => signOut({ callbackUrl: '/' })}
+                onClick={() => signOut({ callbackUrl: "/" })}
                 className="bg-background border border-input text-foreground hover:bg-muted font-bold rounded-full px-6 py-2.5 text-xs transition-colors flex items-center justify-center gap-2 cursor-pointer w-full sm:w-auto"
               >
                 <LogOut className="h-3.5 w-3.5 text-red-500" />
@@ -237,7 +244,7 @@ export default function AccountProfilePage() {
               <ShieldCheck className="h-4.5 w-4.5 text-brass" />
               <h3 className="font-bold text-sm">Account Security</h3>
             </div>
-            
+
             <div className="space-y-3.5">
               <div className="flex items-start gap-3">
                 <div className="p-1.5 bg-green-500/10 text-green-700 rounded-lg shrink-0">
@@ -270,7 +277,8 @@ export default function AccountProfilePage() {
                 <span>Style Haven Security Tip</span>
               </p>
               <p className="leading-relaxed">
-                Never share your login details or OTPs with anyone. We will never ask for your account password.
+                Never share your login details or OTPs with anyone. We will never ask for your
+                account password.
               </p>
             </div>
           </div>

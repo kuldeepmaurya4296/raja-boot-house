@@ -13,7 +13,8 @@ export function ColorSelector({ colors, selectedColor, onSelect }: ColorSelector
   return (
     <div>
       <p className="text-sm font-semibold mb-2.5">
-        Color: <span className="font-normal text-muted-foreground">{selectedColor || "Select color"}</span>
+        Color:{" "}
+        <span className="font-normal text-muted-foreground">{selectedColor || "Select color"}</span>
       </p>
       <div className="flex flex-wrap gap-3">
         {colors.map((c) => {
@@ -25,8 +26,8 @@ export function ColorSelector({ colors, selectedColor, onSelect }: ColorSelector
               onClick={() => onSelect(c.name)}
               title={c.name}
               className={`relative h-10 w-10 rounded-full border-2 flex items-center justify-center transition cursor-pointer outline-none hover:scale-105 active:scale-95 ${
-                isSelected 
-                  ? "border-primary ring-2 ring-primary/20" 
+                isSelected
+                  ? "border-primary ring-2 ring-primary/20"
                   : "border-border hover:border-charcoal"
               }`}
             >

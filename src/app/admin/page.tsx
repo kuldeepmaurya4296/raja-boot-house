@@ -10,11 +10,28 @@ import { SalesChart } from "@/modules/admin/dashboard/components/SalesChart";
 import { TopProductsList } from "@/modules/admin/dashboard/components/TopProductsList";
 
 const cols: Column<any>[] = [
-  { key: "orderId", header: "Order", render: o => <span className="font-semibold text-sm">{o.orderId || o.number}</span> },
-  { key: "customerName", header: "Customer", render: o => <span className="text-sm">{o.customerName || "—"}</span> },
-  { key: "createdAt", header: "Date", render: o => <span className="text-sm text-muted-foreground">{formatDate(o.createdAt)}</span> },
-  { key: "status", header: "Status", render: o => <StatusBadge status={o.status} /> },
-  { key: "total", header: "Total", render: o => <span className="font-semibold">{formatINR(o.total)}</span>, className: "text-right" },
+  {
+    key: "orderId",
+    header: "Order",
+    render: (o) => <span className="font-semibold text-sm">{o.orderId || o.number}</span>,
+  },
+  {
+    key: "customerName",
+    header: "Customer",
+    render: (o) => <span className="text-sm">{o.customerName || "—"}</span>,
+  },
+  {
+    key: "createdAt",
+    header: "Date",
+    render: (o) => <span className="text-sm text-muted-foreground">{formatDate(o.createdAt)}</span>,
+  },
+  { key: "status", header: "Status", render: (o) => <StatusBadge status={o.status} /> },
+  {
+    key: "total",
+    header: "Total",
+    render: (o) => <span className="font-semibold">{formatINR(o.total)}</span>,
+    className: "text-right",
+  },
 ];
 
 export default function AdminPage() {
@@ -59,40 +76,88 @@ export default function AdminPage() {
     <DashboardPage eyebrow="Today" title="Overview">
       {/* Metrics Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard label="Revenue" value={formatINR(revenue)} delta={stats?.revenueDelta ?? 0} icon={IndianRupee} tint="primary" />
-        <StatCard label="Orders" value={formatNumber(ordersCount)} delta={stats?.ordersDelta ?? 0} icon={ShoppingCart} tint="accent" />
-        <StatCard label="Customers" value={formatNumber(customersCount)} delta={stats?.customersDelta ?? 0} icon={Users} tint="brass" />
-        <StatCard label="Products" value={formatNumber(productsCount)} delta={stats?.productsDelta ?? 0} icon={Package} tint="muted" />
+        <StatCard
+          label="Revenue"
+          value={formatINR(revenue)}
+          delta={stats?.revenueDelta ?? 0}
+          icon={IndianRupee}
+          tint="primary"
+        />
+        <StatCard
+          label="Orders"
+          value={formatNumber(ordersCount)}
+          delta={stats?.ordersDelta ?? 0}
+          icon={ShoppingCart}
+          tint="accent"
+        />
+        <StatCard
+          label="Customers"
+          value={formatNumber(customersCount)}
+          delta={stats?.customersDelta ?? 0}
+          icon={Users}
+          tint="brass"
+        />
+        <StatCard
+          label="Products"
+          value={formatNumber(productsCount)}
+          delta={stats?.productsDelta ?? 0}
+          icon={Package}
+          tint="muted"
+        />
       </div>
 
       {/* Active Processing Funnel */}
       <div className="bg-card border border-border rounded-xl p-6 shadow-sm">
         <div className="flex justify-between items-center mb-1">
-          <h3 className="font-serif font-bold text-lg text-foreground">Order Fulfillment Pipeline</h3>
-          <span className="text-[10px] text-muted-foreground uppercase tracking-widest font-semibold">Real-time Queues</span>
+          <h3 className="font-serif font-bold text-lg text-foreground">
+            Order Fulfillment Pipeline
+          </h3>
+          <span className="text-[10px] text-muted-foreground uppercase tracking-widest font-semibold">
+            Real-time Queues
+          </span>
         </div>
-        <p className="text-xs text-muted-foreground mb-6">Active order queues waiting for processing actions</p>
+        <p className="text-xs text-muted-foreground mb-6">
+          Active order queues waiting for processing actions
+        </p>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div className="bg-muted/40 p-4 rounded-xl border border-border/50 flex justify-between items-center hover:shadow-inner transition-all">
             <div>
-              <span className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">Pending Confirmation</span>
-              <p className="text-2xl font-bold font-serif text-cognac mt-1">{stats?.placedQueue ?? 0} Orders</p>
+              <span className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">
+                Pending Confirmation
+              </span>
+              <p className="text-2xl font-bold font-serif text-cognac mt-1">
+                {stats?.placedQueue ?? 0} Orders
+              </p>
             </div>
-            <span className="text-xs font-bold bg-cognac/10 text-cognac px-2.5 py-1 rounded-full">Placed</span>
+            <span className="text-xs font-bold bg-cognac/10 text-cognac px-2.5 py-1 rounded-full">
+              Placed
+            </span>
           </div>
           <div className="bg-muted/40 p-4 rounded-xl border border-border/50 flex justify-between items-center hover:shadow-inner transition-all">
             <div>
-              <span className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">Ready to Dispatch</span>
-              <p className="text-2xl font-bold font-serif text-brass mt-1">{stats?.readyToShipQueue ?? 0} Orders</p>
+              <span className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">
+                Ready to Dispatch
+              </span>
+              <p className="text-2xl font-bold font-serif text-brass mt-1">
+                {stats?.readyToShipQueue ?? 0} Orders
+              </p>
             </div>
-            <span className="text-xs font-bold bg-brass/10 text-brass px-2.5 py-1 rounded-full">Confirmed/Packed</span>
+            <span className="text-xs font-bold bg-brass/10 text-brass px-2.5 py-1 rounded-full">
+              Confirmed/Packed
+            </span>
           </div>
           <div className="bg-muted/40 p-4 rounded-xl border border-border/50 flex justify-between items-center hover:shadow-inner transition-all">
             <div>
-              <span className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">In Transit</span>
-              <p className="text-2xl font-bold font-serif text-primary mt-1">{stats?.inTransitQueue ?? 0} Orders</p>
+              <span className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">
+                In Transit
+              </span>
+              <p className="text-2xl font-bold font-serif text-primary mt-1">
+                {stats?.inTransitQueue ?? 0} Orders
+              </p>
             </div>
-            <span className="text-xs font-bold bg-primary/10 text-primary px-2.5 py-1 rounded-full">Shipped/Delivery</span>
+            <span className="text-xs font-bold bg-primary/10 text-primary px-2.5 py-1 rounded-full">
+              Shipped/Delivery
+            </span>
           </div>
         </div>
       </div>
@@ -113,7 +178,7 @@ export default function AdminPage() {
             <h3 className="font-serif font-bold text-lg mb-4">Top products</h3>
             <TopProductsList products={topProducts} />
           </div>
-          
+
           {lowStockAlerts.length > 0 && (
             <div className="mt-6 pt-4 border-t border-border">
               <div className="flex items-center gap-2 text-red-600 mb-3">
@@ -122,12 +187,17 @@ export default function AdminPage() {
               </div>
               <div className="space-y-2 max-h-40 overflow-y-auto pr-1 scrollbar-thin">
                 {lowStockAlerts.map((item: any) => (
-                  <div key={item.id} className="flex justify-between items-center text-xs bg-red-50/50 hover:bg-red-50 p-2.5 rounded-lg border border-red-100/50 transition-colors">
-                    <span className="font-semibold text-foreground/80 truncate max-w-[180px]">{item.name}</span>
+                  <div
+                    key={item.id}
+                    className="flex justify-between items-center text-xs bg-red-50/50 hover:bg-red-50 p-2.5 rounded-lg border border-red-100/50 transition-colors"
+                  >
+                    <span className="font-semibold text-foreground/80 truncate max-w-[180px]">
+                      {item.name}
+                    </span>
                     <div className="flex items-center gap-2">
                       <span className="font-bold text-red-600">{item.stock} left</span>
-                      <a 
-                        href={`/admin/inventory/products/${item.id}/edit`} 
+                      <a
+                        href={`/admin/inventory/products/${item.id}/edit`}
                         className="text-[10px] font-bold text-primary hover:text-cognac underline shrink-0 cursor-pointer"
                       >
                         Refill
@@ -150,4 +220,3 @@ export default function AdminPage() {
     </DashboardPage>
   );
 }
-

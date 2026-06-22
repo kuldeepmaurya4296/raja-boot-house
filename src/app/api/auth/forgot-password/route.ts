@@ -78,7 +78,10 @@ export async function POST(request: Request) {
     return successResponse;
   } catch (error: any) {
     console.error("Forgot password API error:", error);
-    return NextResponse.json({ error: error.message || "Failed to process forgot password request" }, { status: 500 });
+    return NextResponse.json(
+      { error: error.message || "Failed to process forgot password request" },
+      { status: 500 },
+    );
   }
 }
 

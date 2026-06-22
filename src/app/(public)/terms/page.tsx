@@ -16,7 +16,7 @@ export const metadata: Metadata = {
     title: "Terms & Conditions — Raja Boot House",
     description: "Read the Terms of Service and agreements for using the Raja Boot House portal.",
     type: "website",
-  }
+  },
 };
 
 async function getPolicyContent() {
@@ -32,7 +32,10 @@ export default async function TermsConditionsPage() {
     <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-10 md:py-16 max-w-[850px]">
       {/* Back button */}
       <div className="mb-6">
-        <Link href="/" className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-muted-foreground hover:text-foreground transition-colors">
+        <Link
+          href="/"
+          className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-muted-foreground hover:text-foreground transition-colors"
+        >
           <ArrowLeft className="h-4 w-4" /> Back to Home
         </Link>
       </div>
@@ -42,7 +45,8 @@ export default async function TermsConditionsPage() {
           <Scale className="h-48 w-48 text-primary" />
         </div>
 
-        <article className="prose prose-stone dark:prose-invert max-w-none 
+        <article
+          className="prose prose-stone dark:prose-invert max-w-none 
           prose-headings:font-serif prose-headings:font-bold prose-headings:text-charcoal dark:prose-headings:text-cream/90
           prose-h2:text-2xl prose-h2:border-b prose-h2:border-border/60 prose-h2:pb-2 prose-h2:mt-8
           prose-h3:text-lg prose-h3:mt-6

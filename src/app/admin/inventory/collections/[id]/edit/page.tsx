@@ -11,20 +11,25 @@ export const dynamic = "force-dynamic";
 export default async function EditCollectionPage({ params }: { params: Promise<{ id: string }> }) {
   await dbConnect();
   const { id } = await params;
-  
+
   const [collectionRaw, productsRaw] = await Promise.all([
     Collection.findById(id).lean(),
-    Product.find({ isActive: true }).populate({ path: "brand", model: Brand }).select("name brand price images").sort({ name: 1 }).lean()
+    Product.find({ isActive: true })
+      .populate({ path: "brand", model: Brand })
+      .select("name brand price images")
+      .sort({ name: 1 })
+      .lean(),
   ]);
-  
+
   if (!collectionRaw) {
     notFound();
   }
 
   const productsList = productsRaw.map((p: any) => {
-    const brandName = (p.brand && typeof p.brand === "object" && "name" in p.brand) 
-      ? p.brand.name 
-      : (p.brand || "Raja Boot House");
+    const brandName =
+      p.brand && typeof p.brand === "object" && "name" in p.brand
+        ? p.brand.name
+        : p.brand || "Raja Boot House";
 
     return {
       id: p._id.toString(),

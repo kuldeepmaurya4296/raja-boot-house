@@ -28,7 +28,9 @@ export default function CartPage() {
     <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-10 md:py-16 lg:py-20">
       {/* Page Header */}
       <div className="mb-8 md:mb-10">
-        <p className="text-[10px] uppercase tracking-[0.3em] text-cognac font-bold mb-2">Review &amp; Checkout</p>
+        <p className="text-[10px] uppercase tracking-[0.3em] text-cognac font-bold mb-2">
+          Review &amp; Checkout
+        </p>
         <h1 className="font-serif text-3xl md:text-5xl font-bold flex items-center gap-3">
           <ShoppingBag className="h-8 w-8 md:h-10 md:w-10 text-primary" />
           Your Bag
@@ -44,13 +46,7 @@ export default function CartPage() {
           {lines.map((l) => {
             const k = lineKey(l);
             return (
-              <CartItemRow
-                key={k}
-                item={l}
-                lineKey={k}
-                onRemove={remove}
-                onQtyChange={setQty}
-              />
+              <CartItemRow key={k} item={l} lineKey={k} onRemove={remove} onQtyChange={setQty} />
             );
           })}
 
@@ -74,7 +70,9 @@ export default function CartPage() {
               >
                 <Icon className="h-4 w-4 text-cognac" />
                 <span className="text-[11px] font-bold text-foreground/80">{label}</span>
-                <span className="text-[10px] text-muted-foreground leading-tight hidden md:block">{sub}</span>
+                <span className="text-[10px] text-muted-foreground leading-tight hidden md:block">
+                  {sub}
+                </span>
               </div>
             ))}
           </div>

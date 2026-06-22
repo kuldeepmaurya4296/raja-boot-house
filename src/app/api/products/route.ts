@@ -5,6 +5,7 @@ import Product from "@/lib/models/Product";
 import Category from "@/lib/models/Category";
 import Brand from "@/lib/models/Brand";
 import { ensureDbReady, normalizeProduct } from "@/lib/db-utils";
+import { applyFlashSales } from "@/lib/flash-sale-utils";
 
 function escapeRegExp(string: string) {
   return string.replace(/[\\^$*+?.()|[\]{}]/g, "\\$&");
@@ -63,11 +64,7 @@ export async function GET(request: Request) {
       const matchedBrands = await Brand.find({ name: regex }).select("_id").lean();
       const brandIds = matchedBrands.map((b: any) => b._id);
 
-      query.$or = [
-        { name: regex },
-        { description: regex },
-        { tags: regex }
-      ];
+      query.$or = [{ name: regex }, { description: regex }, { tags: regex }];
       if (brandIds.length > 0) {
         query.$or.push({ brand: { $in: brandIds } });
       }
@@ -90,10 +87,14 @@ export async function GET(request: Request) {
 
     const rawProducts = await mongooseQuery.exec();
     const normalized = rawProducts.map((p: any) => normalizeProduct(p));
-    return NextResponse.json(normalized);
+    const withFlashSales = await applyFlashSales(normalized);
+    return NextResponse.json(withFlashSales);
   } catch (error: any) {
     console.error("Failed to fetch products:", error);
-    return NextResponse.json({ error: error.message || "Failed to fetch products" }, { status: 500 });
+    return NextResponse.json(
+      { error: error.message || "Failed to fetch products" },
+      { status: 500 },
+    );
   }
 }
 

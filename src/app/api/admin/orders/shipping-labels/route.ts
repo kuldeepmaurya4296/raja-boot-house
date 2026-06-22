@@ -17,7 +17,10 @@ export async function GET(request: Request) {
       return new Response("Error: Missing order ids in parameters", { status: 400 });
     }
 
-    const orderIds = idsString.split(",").map(id => id.trim()).filter(Boolean);
+    const orderIds = idsString
+      .split(",")
+      .map((id) => id.trim())
+      .filter(Boolean);
 
     await connectToDatabase();
     const orders = await Order.find({ orderId: { $in: orderIds } })
@@ -28,11 +31,12 @@ export async function GET(request: Request) {
       return new Response("Error: No matching orders found in database.", { status: 404 });
     }
 
-    const labelsHtml = orders.map((order: any) => {
-      const isCod = order.payment?.method === "COD";
-      const totalAmount = order.pricing?.total || 0;
-      
-      return `
+    const labelsHtml = orders
+      .map((order: any) => {
+        const isCod = order.payment?.method === "COD";
+        const totalAmount = order.pricing?.total || 0;
+
+        return `
         <div class="label-page">
           <!-- Header -->
           <div class="header">
@@ -85,28 +89,34 @@ export async function GET(request: Request) {
                 </tr>
               </thead>
               <tbody>
-                ${order.items.map((item: any) => `
+                ${order.items
+                  .map(
+                    (item: any) => `
                   <tr>
                     <td>${item.name}</td>
                     <td class="text-center">${item.size}</td>
                     <td class="text-center">${item.color}</td>
                     <td class="text-center">x${item.qty || item.quantity}</td>
                   </tr>
-                `).join("")}
+                `,
+                  )
+                  .join("")}
               </tbody>
             </table>
           </div>
           
           <!-- COD/Prepaid Badge Banner -->
-          <div class="payment-banner ${isCod ? 'cod-banner' : 'prepaid-banner'}">
-            ${isCod 
-              ? `CASH ON DELIVERY (COD)<br/><span class="collect-amount">COLLECT CASH: ₹${totalAmount}</span>` 
-              : `PREPAID ORDER<br/><span class="collect-amount">DO NOT COLLECT CASH</span>`
+          <div class="payment-banner ${isCod ? "cod-banner" : "prepaid-banner"}">
+            ${
+              isCod
+                ? `CASH ON DELIVERY (COD)<br/><span class="collect-amount">COLLECT CASH: ₹${totalAmount}</span>`
+                : `PREPAID ORDER<br/><span class="collect-amount">DO NOT COLLECT CASH</span>`
             }
           </div>
         </div>
       `;
-    }).join("\n");
+      })
+      .join("\n");
 
     const fullHtml = `
       <!DOCTYPE html>

@@ -35,6 +35,7 @@ export interface IOrder extends Document {
     subtotal: number;
     shipping: number;
     couponDiscount: number;
+    pointsDiscount?: number;
     total: number;
   };
   coupon?: {
@@ -47,7 +48,18 @@ export interface IOrder extends Document {
     razorpayPaymentId?: string;
     status: "PENDING" | "PAID" | "FAILED" | "REFUND_PENDING" | "REFUNDED";
   };
-  status: "PLACED" | "CONFIRMED" | "PACKED" | "SHIPPED" | "OUT_FOR_DELIVERY" | "DELIVERED" | "CANCELLED" | "RETURN_REQUESTED" | "RETURN_APPROVED" | "RETURNED" | "REFUNDED";
+  status:
+    | "PLACED"
+    | "CONFIRMED"
+    | "PACKED"
+    | "SHIPPED"
+    | "OUT_FOR_DELIVERY"
+    | "DELIVERED"
+    | "CANCELLED"
+    | "RETURN_REQUESTED"
+    | "RETURN_APPROVED"
+    | "RETURNED"
+    | "REFUNDED";
   statusHistory: IOrderHistory[];
   refundDetails?: {
     preference?: "ORIGINAL" | "BANK" | "UPI";
@@ -119,6 +131,7 @@ const OrderSchema: Schema = new Schema(
       subtotal: { type: Number, required: true },
       shipping: { type: Number, required: true, default: 0 },
       couponDiscount: { type: Number, required: true, default: 0 },
+      pointsDiscount: { type: Number, default: 0 },
       total: { type: Number, required: true },
     },
     coupon: {
@@ -126,14 +139,35 @@ const OrderSchema: Schema = new Schema(
       discountAmount: { type: Number, default: 0 },
     },
     payment: {
-      method: { type: String, enum: ["UPI", "Card", "Net Banking", "Wallet", "COD"], required: true },
+      method: {
+        type: String,
+        enum: ["UPI", "Card", "Net Banking", "Wallet", "COD"],
+        required: true,
+      },
       razorpayOrderId: { type: String, index: true },
       razorpayPaymentId: { type: String },
-      status: { type: String, enum: ["PENDING", "PAID", "FAILED", "REFUND_PENDING", "REFUNDED"], default: "PENDING", index: true },
+      status: {
+        type: String,
+        enum: ["PENDING", "PAID", "FAILED", "REFUND_PENDING", "REFUNDED"],
+        default: "PENDING",
+        index: true,
+      },
     },
     status: {
       type: String,
-      enum: ["PLACED", "CONFIRMED", "PACKED", "SHIPPED", "OUT_FOR_DELIVERY", "DELIVERED", "CANCELLED", "RETURN_REQUESTED", "RETURN_APPROVED", "RETURNED", "REFUNDED"],
+      enum: [
+        "PLACED",
+        "CONFIRMED",
+        "PACKED",
+        "SHIPPED",
+        "OUT_FOR_DELIVERY",
+        "DELIVERED",
+        "CANCELLED",
+        "RETURN_REQUESTED",
+        "RETURN_APPROVED",
+        "RETURNED",
+        "REFUNDED",
+      ],
       default: "PLACED",
       index: true,
     },
@@ -160,19 +194,18 @@ const OrderSchema: Schema = new Schema(
       trackingNumber: { type: String, index: true },
       trackingUrl: { type: String },
     },
-    auditLogs: [{
-      action: { type: String, required: true },
-      performedBy: { type: Schema.Types.ObjectId, ref: "User", required: true },
-      timestamp: { type: Date, default: Date.now },
-      ipAddress: { type: String },
-      userAgent: { type: String },
-      details: { type: String }
-    }],
+    auditLogs: [
+      {
+        action: { type: String, required: true },
+        performedBy: { type: Schema.Types.ObjectId, ref: "User", required: true },
+        timestamp: { type: Date, default: Date.now },
+        ipAddress: { type: String },
+        userAgent: { type: String },
+        details: { type: String },
+      },
+    ],
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
-if (mongoose.models.Order) {
-  delete mongoose.models.Order;
-}
-export default mongoose.model<IOrder>("Order", OrderSchema);
+export default mongoose.models.Order || mongoose.model<IOrder>("Order", OrderSchema);

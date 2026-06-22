@@ -100,16 +100,16 @@ export async function sendNewsletterBlast(subject: string, htmlContent: string) 
       return { success: false, error: "No subscribers found to send to." };
     }
 
-    const emailPromises = subscribers.map((sub: any) => 
-      sendNewsletterEmail(sub.email, subject, htmlContent)
+    const emailPromises = subscribers.map((sub: any) =>
+      sendNewsletterEmail(sub.email, subject, htmlContent),
     );
 
     const results = await Promise.allSettled(emailPromises);
-    const sentCount = results.filter(r => r.status === "fulfilled" && r.value === true).length;
+    const sentCount = results.filter((r) => r.status === "fulfilled" && r.value === true).length;
 
-    return { 
-      success: true, 
-      message: `Newsletter blast completed: successfully sent to ${sentCount}/${subscribers.length} subscribers.` 
+    return {
+      success: true,
+      message: `Newsletter blast completed: successfully sent to ${sentCount}/${subscribers.length} subscribers.`,
     };
   } catch (err: any) {
     return { success: false, error: err.message };

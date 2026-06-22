@@ -61,7 +61,10 @@ export function NewsletterFormClient() {
   };
 
   return (
-    <form className="mt-8 max-w-xl mx-auto text-left space-y-4 relative z-10" onSubmit={handleSubmit}>
+    <form
+      className="mt-8 max-w-xl mx-auto text-left space-y-4 relative z-10"
+      onSubmit={handleSubmit}
+    >
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div className="space-y-1">
           <label className="text-xs font-semibold text-charcoal/80 block px-1">Full Name *</label>
@@ -76,7 +79,9 @@ export function NewsletterFormClient() {
           />
         </div>
         <div className="space-y-1">
-          <label className="text-xs font-semibold text-charcoal/80 block px-1">Email Address *</label>
+          <label className="text-xs font-semibold text-charcoal/80 block px-1">
+            Email Address *
+          </label>
           <input
             type="email"
             placeholder="e.g. rahul@example.com"
@@ -103,7 +108,9 @@ export function NewsletterFormClient() {
       </div>
 
       <div className="space-y-1">
-        <label className="text-xs font-semibold text-charcoal/80 block px-1">Message (Optional)</label>
+        <label className="text-xs font-semibold text-charcoal/80 block px-1">
+          Message (Optional)
+        </label>
         <textarea
           placeholder="How can we help you? e.g. Interested in custom bridal footwear sizing, store visits..."
           value={message}

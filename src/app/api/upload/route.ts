@@ -4,10 +4,9 @@ import { auth } from "@/lib/auth";
 
 export async function POST(request: Request): Promise<NextResponse> {
   try {
-    // 1. Authorize
     const session = await auth();
-    if (!session?.user?.id || (session.user.role !== "admin" && session.user.role !== "vendor")) {
-      return NextResponse.json({ error: "Unauthorized. Administrative privileges required." }, { status: 401 });
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: "Unauthorized. Please log in first." }, { status: 401 });
     }
 
     const { searchParams } = new URL(request.url);
@@ -42,7 +41,13 @@ export async function POST(request: Request): Promise<NextResponse> {
     }
 
     // 3. Validate Mime Type (Images only)
-    const allowedMimeTypes = ["image/jpeg", "image/png", "image/gif", "image/webp", "image/svg+xml"];
+    const allowedMimeTypes = [
+      "image/jpeg",
+      "image/png",
+      "image/gif",
+      "image/webp",
+      "image/svg+xml",
+    ];
     const fileType = fileToUpload.type;
     const ext = filename.split(".").pop()?.toLowerCase();
     const allowedExtensions = ["jpg", "jpeg", "png", "gif", "webp", "svg"];
@@ -51,7 +56,10 @@ export async function POST(request: Request): Promise<NextResponse> {
     const isValidExt = ext && allowedExtensions.includes(ext);
 
     if (!isValidMime && !isValidExt) {
-      return NextResponse.json({ error: "Only image files (JPEG, PNG, WEBP, GIF, SVG) are allowed." }, { status: 400 });
+      return NextResponse.json(
+        { error: "Only image files (JPEG, PNG, WEBP, GIF, SVG) are allowed." },
+        { status: 400 },
+      );
     }
 
     // 4. Handle Upload
@@ -79,7 +87,7 @@ export async function POST(request: Request): Promise<NextResponse> {
         console.error("Local filesystem upload error:", err);
         return NextResponse.json(
           { error: err.message || "Failed to upload to local filesystem" },
-          { status: 500 }
+          { status: 500 },
         );
       }
     }
@@ -97,13 +105,9 @@ export async function POST(request: Request): Promise<NextResponse> {
       pathname: blob.pathname,
       size: fileToUpload.size,
     });
-
   } catch (error: any) {
     console.error("Upload error:", error);
-    return NextResponse.json(
-      { error: error.message || "Upload failed" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: error.message || "Upload failed" }, { status: 500 });
   }
 }
 

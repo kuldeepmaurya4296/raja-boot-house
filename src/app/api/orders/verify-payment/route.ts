@@ -1,10 +1,7 @@
 import { NextResponse } from "next/server";
 import crypto from "crypto";
-import { connectToDatabase } from "@/lib/db";
 import Order from "@/lib/models/Order";
 import Product from "@/lib/models/Product";
-
-import mongoose from "mongoose";
 import { ensureDbReady } from "@/lib/db-utils";
 
 export async function POST(request: Request) {
@@ -18,16 +15,23 @@ export async function POST(request: Request) {
     } = body;
 
     if (!razorpay_order_id || !razorpay_payment_id || !razorpay_signature || !orderId) {
-      return NextResponse.json(
-        { error: "Missing verification parameters" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "Missing verification parameters" }, { status: 400 });
     }
 
     const keySecret = process.env.RAZORPAY_KEY_SECRET;
 
     if (!keySecret) {
-      console.warn("RAZORPAY_KEY_SECRET not set. Proceeding with simulated validation.");
+      if (process.env.DEMO_MODE === "true") {
+        console.warn(
+          "RAZORPAY_KEY_SECRET not set. Proceeding with simulated validation (DEMO_MODE=true).",
+        );
+      } else {
+        console.error("RAZORPAY_KEY_SECRET not set. Rejecting payment verification.");
+        return NextResponse.json(
+          { error: "Payment verification service is not configured. Please contact support." },
+          { status: 503 },
+        );
+      }
     } else {
       // Verify signature
       const generatedSignature = crypto
@@ -36,7 +40,10 @@ export async function POST(request: Request) {
         .digest("hex");
 
       if (generatedSignature !== razorpay_signature) {
-        return NextResponse.json({ error: "Payment verification failed: Invalid signature" }, { status: 400 });
+        return NextResponse.json(
+          { error: "Payment verification failed: Invalid signature" },
+          { status: 400 },
+        );
       }
     }
 
@@ -45,7 +52,9 @@ export async function POST(request: Request) {
     // If database is offline, only simulate success if in DEMO_MODE
     if (!isReady) {
       if (process.env.DEMO_MODE === "true") {
-        console.warn("Database offline during verification. Simulating payment verification success (DEMO_MODE=true).");
+        console.warn(
+          "Database offline during verification. Simulating payment verification success (DEMO_MODE=true).",
+        );
         return NextResponse.json({
           success: true,
           message: "Payment verified successfully (Simulated - Database Offline)",
@@ -60,9 +69,13 @@ export async function POST(request: Request) {
       }
 
       console.error("Database offline during verification and DEMO_MODE is not enabled.");
-      return NextResponse.json({
-        error: "Payment verification service is temporarily unavailable. Please contact support if your payment was deducted."
-      }, { status: 503 });
+      return NextResponse.json(
+        {
+          error:
+            "Payment verification service is temporarily unavailable. Please contact support if your payment was deducted.",
+        },
+        { status: 503 },
+      );
     }
 
     // Update order status in database
@@ -95,7 +108,7 @@ export async function POST(request: Request) {
       if (customer?.email) {
         const { sendOrderConfirmationEmail } = await import("@/lib/email");
         sendOrderConfirmationEmail(customer.email, order).catch((err) =>
-          console.error("Order confirmation email error:", err)
+          console.error("Order confirmation email error:", err),
         );
       }
     } catch (emailErr) {
@@ -111,7 +124,7 @@ export async function POST(request: Request) {
     console.error("Payment verification failed:", error);
     return NextResponse.json(
       { error: error.message || "An error occurred during payment verification" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

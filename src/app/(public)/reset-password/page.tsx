@@ -70,7 +70,10 @@ function ResetPasswordForm() {
         <p className="text-sm text-muted-foreground leading-relaxed">
           The password reset link is invalid or is missing a secure token parameters.
         </p>
-        <Link href="/forgot-password" className="inline-block bg-primary text-primary-foreground rounded-full px-6 py-2.5 font-semibold text-xs cursor-pointer hover:bg-primary/95 transition">
+        <Link
+          href="/forgot-password"
+          className="inline-block bg-primary text-primary-foreground rounded-full px-6 py-2.5 font-semibold text-xs cursor-pointer hover:bg-primary/95 transition"
+        >
           Request new reset link
         </Link>
       </div>
@@ -84,10 +87,12 @@ function ResetPasswordForm() {
       <p className="text-sm text-muted-foreground text-center mt-2">
         Enter and confirm your new password below.
       </p>
-      
+
       <form className="mt-6 space-y-4 relative" onSubmit={handleSubmit}>
         <label className="block">
-          <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">New Password</span>
+          <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+            New Password
+          </span>
           <div className="relative mt-1.5">
             <input
               type={showPassword ? "text" : "password"}
@@ -109,7 +114,9 @@ function ResetPasswordForm() {
         </label>
 
         <label className="block">
-          <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Confirm Password</span>
+          <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+            Confirm Password
+          </span>
           <div className="relative mt-1.5">
             <input
               type={showConfirmPassword ? "text" : "password"}
@@ -144,7 +151,10 @@ function ResetPasswordForm() {
       </div>
 
       <div className="text-center relative">
-        <Link href="/login" className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground hover:underline transition">
+        <Link
+          href="/login"
+          className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground hover:underline transition"
+        >
           <ArrowLeft className="h-3 w-3" /> Back to Sign In
         </Link>
       </div>
@@ -158,11 +168,13 @@ export default function ResetPasswordPage() {
       <div className="text-center mb-8">
         <Logo size={56} />
       </div>
-      <Suspense fallback={
-        <div className="bg-card border border-border rounded-2xl p-8 shadow-card text-center py-20 relative">
-          <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary mx-auto"></div>
-        </div>
-      }>
+      <Suspense
+        fallback={
+          <div className="bg-card border border-border rounded-2xl p-8 shadow-card text-center py-20 relative">
+            <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary mx-auto"></div>
+          </div>
+        }
+      >
         <ResetPasswordForm />
       </Suspense>
     </div>

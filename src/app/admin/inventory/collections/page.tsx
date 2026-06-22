@@ -5,22 +5,23 @@ import { CollectionsClient } from "./CollectionsClient";
 
 export const dynamic = "force-dynamic";
 
-export default async function AdminCollectionsPage({ searchParams }: { searchParams: Promise<{ [key: string]: string | undefined }> }) {
+export default async function AdminCollectionsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ [key: string]: string | undefined }>;
+}) {
   await dbConnect();
   const params = await searchParams;
-  
+
   const q = params.q || "";
   const page = parseInt(params.page || "1", 10);
   const limit = 10;
   const sortKey = params.sort || "createdAt";
   const sortOrder = params.order === "asc" ? 1 : -1;
-  
+
   const query: any = {};
   if (q) {
-    query.$or = [
-      { name: { $regex: q, $options: "i" } },
-      { slug: { $regex: q, $options: "i" } }
-    ];
+    query.$or = [{ name: { $regex: q, $options: "i" } }, { slug: { $regex: q, $options: "i" } }];
   }
 
   const sortObj: any = {};
@@ -32,9 +33,9 @@ export default async function AdminCollectionsPage({ searchParams }: { searchPar
       .skip((page - 1) * limit)
       .limit(limit)
       .lean(),
-    Collection.countDocuments(query)
+    Collection.countDocuments(query),
   ]);
-  
+
   const collections = collectionsRaw.map((c: any) => ({
     id: c._id.toString(),
     name: c.name,

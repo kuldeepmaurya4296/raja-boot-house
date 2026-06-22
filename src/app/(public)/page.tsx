@@ -11,7 +11,11 @@ import { OCCASIONS } from "@/data/occasions";
 import { Hero } from "@/components/public/Hero";
 import { CategoryGrid } from "@/modules/products/components/CategoryGrid";
 import { ProductCard } from "@/modules/products/components/ProductCard";
-import { BrandMarquee, OccasionGrid, EditorialBanner } from "@/modules/products/components/HomeAnimations";
+import {
+  BrandMarquee,
+  OccasionGrid,
+  EditorialBanner,
+} from "@/modules/products/components/HomeAnimations";
 import { NewsletterFormClient } from "@/modules/products/components/NewsletterFormClient";
 import { Award, ShieldCheck, Truck, RotateCcw, ArrowRight, HelpCircle } from "lucide-react";
 
@@ -32,15 +36,16 @@ const DEFAULT_TRUST_BADGES = [
 
 export const metadata: Metadata = {
   title: "Raja Boot House — Leather Boots & Premium Footwear",
-  description: "Luxury footwear and premium Indian leather craftsmanship. Explore men's, women's, sports, and bridal collections.",
+  description:
+    "Luxury footwear and premium Indian leather craftsmanship. Explore men's, women's, sports, and bridal collections.",
   alternates: {
     canonical: "/",
   },
   openGraph: {
     title: "Raja Boot House — Premium Footwear",
     description: "Explore Luxury footwear and leather designs.",
-    images: [{ url: "/assets/hero-boots.jpg" }]
-  }
+    images: [{ url: "/assets/hero-boots.jpg" }],
+  },
 };
 
 async function getFeaturedProducts() {
@@ -110,42 +115,33 @@ export default async function Home() {
   const storeJsonLd = {
     "@context": "https://schema.org",
     "@type": "ShoeStore",
-    "name": "Raja Boot House",
-    "image": "https://rbh.maurya-tech.com/rbh-logo.png",
-    "description": "Footwear retail brand. Offers a wide range of premium footwear for men, women, and children from Lakhani, Touch, Paragon, Goldstar, and more.",
-    "url": "https://rbh.maurya-tech.com",
-    "telephone": "+916263638053",
-    "priceRange": "₹₹",
-    "address": {
+    name: "Raja Boot House",
+    image: "https://rbh.maurya-tech.com/rbh-logo.png",
+    description:
+      "Footwear retail brand. Offers a wide range of premium footwear for men, women, and children from Lakhani, Touch, Paragon, Goldstar, and more.",
+    url: "https://rbh.maurya-tech.com",
+    telephone: "+916263638053",
+    priceRange: "₹₹",
+    address: {
       "@type": "PostalAddress",
-      "streetAddress": "Main Footwear Market",
-      "addressLocality": "Gorakhpur",
-      "addressRegion": "Uttar Pradesh",
-      "postalCode": "273001",
-      "addressCountry": "IN"
+      streetAddress: "Main Footwear Market",
+      addressLocality: "Gorakhpur",
+      addressRegion: "Uttar Pradesh",
+      postalCode: "273001",
+      addressCountry: "IN",
     },
-    "geo": {
+    geo: {
       "@type": "GeoCoordinates",
-      "latitude": 26.7606,
-      "longitude": 83.3731
+      latitude: 26.7606,
+      longitude: 83.3731,
     },
-    "openingHoursSpecification": {
+    openingHoursSpecification: {
       "@type": "OpeningHoursSpecification",
-      "dayOfWeek": [
-        "Monday",
-        "Tuesday",
-        "Wednesday",
-        "Thursday",
-        "Friday",
-        "Saturday",
-        "Sunday"
-      ],
-      "opens": "09:00",
-      "closes": "21:00"
+      dayOfWeek: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"],
+      opens: "09:00",
+      closes: "21:00",
     },
-    "sameAs": [
-      "https://wa.me/916263638053"
-    ]
+    sameAs: ["https://wa.me/916263638053"],
   };
 
   return (
@@ -163,13 +159,20 @@ export default async function Home() {
             {trustBadges.map((badge, index) => {
               const IconComponent = ICON_MAP[badge.icon] || HelpCircle;
               return (
-                <div key={index} className="flex flex-col sm:flex-row items-center sm:items-start gap-3 px-4 md:px-6 py-4 text-center sm:text-left group">
+                <div
+                  key={index}
+                  className="flex flex-col sm:flex-row items-center sm:items-start gap-3 px-4 md:px-6 py-4 text-center sm:text-left group"
+                >
                   <div className="h-10 w-10 rounded-xl bg-cognac/10 border border-cognac/20 flex items-center justify-center shrink-0 group-hover:bg-cognac/15 transition-colors">
                     <IconComponent className="h-5 w-5 text-cognac" />
                   </div>
                   <div>
-                    <div className="text-xs font-bold text-charcoal tracking-wide">{badge.title}</div>
-                    <div className="text-[10px] text-muted-foreground mt-0.5 leading-relaxed">{badge.subtitle}</div>
+                    <div className="text-xs font-bold text-charcoal tracking-wide">
+                      {badge.title}
+                    </div>
+                    <div className="text-[10px] text-muted-foreground mt-0.5 leading-relaxed">
+                      {badge.subtitle}
+                    </div>
                   </div>
                 </div>
               );
@@ -188,10 +191,15 @@ export default async function Home() {
       <section className="container mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-16 lg:py-24">
         <div className="flex items-end justify-between mb-8">
           <div>
-            <p className="text-[11px] uppercase tracking-[0.3em] text-cognac font-semibold mb-2">The Atelier</p>
+            <p className="text-[11px] uppercase tracking-[0.3em] text-cognac font-semibold mb-2">
+              The Atelier
+            </p>
             <h2 className="font-serif text-3xl md:text-5xl font-bold text-charcoal">Bestsellers</h2>
           </div>
-          <Link href="/shop" className="hidden md:inline text-sm font-semibold underline underline-offset-4 hover:text-primary transition">
+          <Link
+            href="/shop"
+            className="hidden md:inline text-sm font-semibold underline underline-offset-4 hover:text-primary transition"
+          >
             Shop all
           </Link>
         </div>
@@ -219,10 +227,17 @@ export default async function Home() {
       <section className="container mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-16 lg:py-24">
         <div className="flex items-end justify-between mb-8">
           <div>
-            <p className="text-[11px] uppercase tracking-[0.3em] text-cognac font-semibold mb-2">Fresh from the bench</p>
-            <h2 className="font-serif text-3xl md:text-5xl font-bold text-charcoal">New arrivals</h2>
+            <p className="text-[11px] uppercase tracking-[0.3em] text-cognac font-semibold mb-2">
+              Fresh from the bench
+            </p>
+            <h2 className="font-serif text-3xl md:text-5xl font-bold text-charcoal">
+              New arrivals
+            </h2>
           </div>
-          <Link href="/shop" className="hidden md:inline text-sm font-semibold underline underline-offset-4 hover:text-primary transition">
+          <Link
+            href="/shop"
+            className="hidden md:inline text-sm font-semibold underline underline-offset-4 hover:text-primary transition"
+          >
             Shop all
           </Link>
         </div>
@@ -257,14 +272,20 @@ export default async function Home() {
               Members Get Exclusive Benefits
             </h3>
             <p className="text-sm text-cream/60 mt-3 max-w-md mx-auto leading-relaxed">
-              Join to receive early access to bridal collection drops, premium leather arrivals, and festive discount alerts across Gorakhpur and Central India.
+              Join to receive early access to bridal collection drops, premium leather arrivals, and
+              festive discount alerts across Gorakhpur and Central India.
             </p>
             <div className="flex flex-wrap justify-center gap-3 mt-5 mb-6">
-              {["Early Access", "10% Festive Discount", "New Arrivals", "Size Notifications"].map(perk => (
-                <span key={perk} className="text-[10px] font-bold px-3 py-1 rounded-full bg-cream/10 border border-cream/20 text-cream/70">
-                  ✦ {perk}
-                </span>
-              ))}
+              {["Early Access", "10% Festive Discount", "New Arrivals", "Size Notifications"].map(
+                (perk) => (
+                  <span
+                    key={perk}
+                    className="text-[10px] font-bold px-3 py-1 rounded-full bg-cream/10 border border-cream/20 text-cream/70"
+                  >
+                    ✦ {perk}
+                  </span>
+                ),
+              )}
             </div>
             <NewsletterFormClient />
           </div>
@@ -273,4 +294,3 @@ export default async function Home() {
     </>
   );
 }
-

@@ -31,7 +31,7 @@ export function SearchModal({ onClose, categoriesList }: SearchModalProps) {
     try {
       const stored = localStorage.getItem("rbh-recent-searches");
       if (stored) setRecentSearches(JSON.parse(stored));
-    } catch { }
+    } catch {}
   }, []);
 
   useEffect(() => {
@@ -64,7 +64,7 @@ export function SearchModal({ onClose, categoriesList }: SearchModalProps) {
     setRecentSearches(updated);
     try {
       localStorage.setItem("rbh-recent-searches", JSON.stringify(updated));
-    } catch { }
+    } catch {}
 
     onClose();
     setSearchQuery("");
@@ -72,13 +72,7 @@ export function SearchModal({ onClose, categoriesList }: SearchModalProps) {
   };
 
   const matchedBrands = useMemo(() => {
-    return Array.from(
-      new Set(
-        searchResults
-          .map((p) => p.brand)
-          .filter(Boolean)
-      )
-    ).slice(0, 3);
+    return Array.from(new Set(searchResults.map((p) => p.brand).filter(Boolean))).slice(0, 3);
   }, [searchResults]);
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -160,11 +154,10 @@ export function SearchModal({ onClose, categoriesList }: SearchModalProps) {
                 <X className="h-4 w-4 text-muted-foreground" />
               </button>
             )}
-            <button
-              onClick={onClose}
-              className="p-1 hover:bg-muted rounded-lg transition"
-            >
-              <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground/60 bg-muted px-2 py-1 rounded">ESC</span>
+            <button onClick={onClose} className="p-1 hover:bg-muted rounded-lg transition">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground/60 bg-muted px-2 py-1 rounded">
+                ESC
+              </span>
             </button>
           </div>
 
@@ -224,8 +217,12 @@ export function SearchModal({ onClose, categoriesList }: SearchModalProps) {
             {!searching && searchQuery.trim() && searchResults.length === 0 && (
               <div className="py-12 text-center">
                 <Sparkles className="h-8 w-8 text-muted-foreground/30 mx-auto mb-3" />
-                <p className="text-sm font-semibold text-muted-foreground">No matches for "{searchQuery}"</p>
-                <p className="text-xs text-muted-foreground/60 mt-1">Try a brand name like "Lakhani" or category like "bridal"</p>
+                <p className="text-sm font-semibold text-muted-foreground">
+                  No matches for "{searchQuery}"
+                </p>
+                <p className="text-xs text-muted-foreground/60 mt-1">
+                  Try a brand name like "Lakhani" or category like "bridal"
+                </p>
               </div>
             )}
 

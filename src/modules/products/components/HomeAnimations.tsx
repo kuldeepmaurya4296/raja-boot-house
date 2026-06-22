@@ -39,11 +39,13 @@ export function BrandMarquee() {
     <section className="bg-charcoal text-cream overflow-hidden py-8 lg:py-10 relative">
       <div className="absolute top-0 bottom-0 left-0 w-20 bg-gradient-to-r from-charcoal to-transparent z-10 pointer-events-none" />
       <div className="absolute top-0 bottom-0 right-0 w-20 bg-gradient-to-l from-charcoal to-transparent z-10 pointer-events-none" />
-      
+
       <div className="text-center mb-6">
-        <p className="text-[10px] uppercase tracking-[0.35em] text-brass/80 font-bold">Authorized Distribution</p>
+        <p className="text-[10px] uppercase tracking-[0.35em] text-brass/80 font-bold">
+          Authorized Distribution
+        </p>
       </div>
-      
+
       <div className="flex w-full overflow-hidden">
         <motion.div
           className="flex gap-20 whitespace-nowrap text-xl md:text-2xl font-serif font-semibold italic text-cream/70 shrink-0"
@@ -55,7 +57,10 @@ export function BrandMarquee() {
           }}
         >
           {repeatedBrands.map((b, i) => (
-            <span key={i} className="flex items-center gap-2 select-none hover:text-brass transition">
+            <span
+              key={i}
+              className="flex items-center gap-2 select-none hover:text-brass transition"
+            >
               <Sparkles className="h-4 w-4 text-brass shrink-0" />
               {b}
             </span>
@@ -74,13 +79,18 @@ export function OccasionGrid({ occasions }: OccasionGridProps) {
   return (
     <section className="container mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-16 lg:py-24 bg-cream/40 border-y border-border/80">
       <div className="max-w-2xl mb-10">
-        <p className="text-[11px] uppercase tracking-[0.3em] text-cognac font-bold mb-2">Collections</p>
-        <h2 className="font-serif text-3xl md:text-5xl font-bold text-charcoal">Curated By Occasion</h2>
+        <p className="text-[11px] uppercase tracking-[0.3em] text-cognac font-bold mb-2">
+          Collections
+        </p>
+        <h2 className="font-serif text-3xl md:text-5xl font-bold text-charcoal">
+          Curated By Occasion
+        </h2>
         <p className="text-sm text-muted-foreground mt-2">
-          Footwear designed specifically for special Indian wedding events, corporate environments, daily errands, and school/sports activities.
+          Footwear designed specifically for special Indian wedding events, corporate environments,
+          daily errands, and school/sports activities.
         </p>
       </div>
-      
+
       <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
         {occasions.map((occ, i) => (
           <motion.div
@@ -138,15 +148,23 @@ export function EditorialBanner({ newest }: EditorialBannerProps) {
       >
         <div className="absolute inset-0 grain opacity-20" />
         <div className="relative">
-          <p className="text-[11px] uppercase tracking-[0.3em] text-brass font-bold mb-3">Gupta Brothers Enterprise</p>
+          <p className="text-[11px] uppercase tracking-[0.3em] text-brass font-bold mb-3">
+            Gupta Brothers Enterprise
+          </p>
           <h3 className="font-serif text-3xl md:text-5xl font-bold leading-tight">
-            Quality footwear<br />
+            Quality footwear
+            <br />
             <em className="text-brass not-italic">for all demographics.</em>
           </h3>
           <p className="mt-5 text-cream/70 text-sm leading-relaxed max-w-md">
-            Raja Boot House has been a retail staple since 2025 under the stewardship of Prince and Bipin Gupta. We offer hand-finished design profiles, bridal/groom wedding accessories, and durability guaranteed by India's biggest national brands.
+            Raja Boot House has been a retail staple since 2025 under the stewardship of Prince and
+            Bipin Gupta. We offer hand-finished design profiles, bridal/groom wedding accessories,
+            and durability guaranteed by India's biggest national brands.
           </p>
-          <Link href="/shop" className="mt-7 inline-flex items-center gap-2 bg-cream text-charcoal px-6 py-3.5 rounded-full text-xs font-bold hover:bg-cream/90 transition">
+          <Link
+            href="/shop"
+            className="mt-7 inline-flex items-center gap-2 bg-cream text-charcoal px-6 py-3.5 rounded-full text-xs font-bold hover:bg-cream/90 transition"
+          >
             Explore Catalog <ArrowRight className="h-3.5 w-3.5" />
           </Link>
         </div>

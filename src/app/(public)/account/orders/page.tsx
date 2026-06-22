@@ -5,21 +5,22 @@ import { useSession } from "next-auth/react";
 import { StatusBadge } from "@/modules/admin/shared/components/DataTable";
 import { formatINR, formatDate } from "@/lib/format";
 import Link from "next/link";
-import { 
-  ChevronDown, 
-  ChevronUp, 
-  Clock, 
-  AlertTriangle, 
-  Package, 
-  Calendar, 
-  TrendingUp, 
+import {
+  ChevronDown,
+  ChevronUp,
+  Clock,
+  AlertTriangle,
+  Package,
+  Calendar,
+  TrendingUp,
   RotateCcw,
   CheckCircle2,
   Truck,
   ArrowRight,
   ShieldCheck,
   ShoppingBag,
-  HelpCircle
+  HelpCircle,
+  FileText,
 } from "lucide-react";
 import { ReturnModal } from "./components/ReturnModal";
 import { CancelModal } from "./components/CancelModal";
@@ -27,15 +28,22 @@ import { CancelModal } from "./components/CancelModal";
 const getTimelineSteps = (order: any): string[] => {
   const history = order.statusHistory || [];
   const occurred = history.map((h: any) => h.status);
-  
-  const standardOrder = ["PLACED", "CONFIRMED", "PACKED", "SHIPPED", "OUT_FOR_DELIVERY", "DELIVERED"];
+
+  const standardOrder = [
+    "PLACED",
+    "CONFIRMED",
+    "PACKED",
+    "SHIPPED",
+    "OUT_FOR_DELIVERY",
+    "DELIVERED",
+  ];
   const currentStatus = order.status || "PLACED";
   const curIdx = standardOrder.indexOf(currentStatus);
-  
+
   if (curIdx === -1) {
     return occurred;
   }
-  
+
   const steps = [...occurred];
   for (let i = curIdx + 1; i < standardOrder.length; i++) {
     const futureStep = standardOrder[i];
@@ -43,12 +51,17 @@ const getTimelineSteps = (order: any): string[] => {
       steps.push(futureStep);
     }
   }
-  
+
   return steps;
 };
 
 /** Calculate return eligibility for an order */
-function getReturnEligibility(order: any): { eligible: boolean; daysRemaining: number; maxReturnDays: number; daysElapsed: number } {
+function getReturnEligibility(order: any): {
+  eligible: boolean;
+  daysRemaining: number;
+  maxReturnDays: number;
+  daysElapsed: number;
+} {
   if (order.status !== "DELIVERED") {
     return { eligible: false, daysRemaining: 0, maxReturnDays: 0, daysElapsed: 0 };
   }
@@ -86,8 +99,8 @@ export default function AccountOrdersPage() {
   const fetchOrders = useCallback(() => {
     if (!session?.user?.id) return;
     fetch(`/api/orders?userId=${session.user.id}`)
-      .then(res => res.json())
-      .then(data => {
+      .then((res) => res.json())
+      .then((data) => {
         if (Array.isArray(data)) setOrders(data);
       })
       .catch(console.error)
@@ -99,7 +112,7 @@ export default function AccountOrdersPage() {
   }, [fetchOrders]);
 
   const toggleExpand = (orderId: string) => {
-    setExpandedOrders(prev => ({
+    setExpandedOrders((prev) => ({
       ...prev,
       [orderId]: !prev[orderId],
     }));
@@ -121,19 +134,28 @@ export default function AccountOrdersPage() {
   };
 
   // Categorize orders
-  const activeOrders = orders.filter(o => 
-    !["DELIVERED", "CANCELLED", "RETURN_REQUESTED", "RETURN_APPROVED", "RETURNED", "REFUNDED"].includes(o.status) &&
-    !(o.payment?.method !== "COD" && o.payment?.status === "PENDING")
+  const activeOrders = orders.filter(
+    (o) =>
+      ![
+        "DELIVERED",
+        "CANCELLED",
+        "RETURN_REQUESTED",
+        "RETURN_APPROVED",
+        "RETURNED",
+        "REFUNDED",
+      ].includes(o.status) && !(o.payment?.method !== "COD" && o.payment?.status === "PENDING"),
   );
 
-  const pastPurchases = orders.filter(o => 
-    ["DELIVERED", "CANCELLED"].includes(o.status) &&
-    !(o.payment?.method !== "COD" && o.payment?.status === "PENDING")
+  const pastPurchases = orders.filter(
+    (o) =>
+      ["DELIVERED", "CANCELLED"].includes(o.status) &&
+      !(o.payment?.method !== "COD" && o.payment?.status === "PENDING"),
   );
 
-  const returnedOrRefunded = orders.filter(o => 
-    ["RETURN_REQUESTED", "RETURN_APPROVED", "RETURNED", "REFUNDED"].includes(o.status) &&
-    !(o.payment?.method !== "COD" && o.payment?.status === "PENDING")
+  const returnedOrRefunded = orders.filter(
+    (o) =>
+      ["RETURN_REQUESTED", "RETURN_APPROVED", "RETURNED", "REFUNDED"].includes(o.status) &&
+      !(o.payment?.method !== "COD" && o.payment?.status === "PENDING"),
   );
 
   const getVisibleOrders = () => {
@@ -159,7 +181,7 @@ export default function AccountOrdersPage() {
           <div className="h-8 w-36 bg-muted rounded-lg"></div>
           <div className="h-5 w-24 bg-muted rounded-full"></div>
         </div>
-        
+
         {/* Tabs skeleton */}
         <div className="flex gap-4 border-b border-border/60 pb-3">
           <div className="h-5 w-24 bg-muted rounded"></div>
@@ -167,7 +189,7 @@ export default function AccountOrdersPage() {
           <div className="h-5 w-24 bg-muted rounded"></div>
         </div>
 
-        {[1, 2].map(i => (
+        {[1, 2].map((i) => (
           <div key={i} className="bg-card border border-border rounded-2xl p-6 shadow-sm space-y-5">
             <div className="flex justify-between items-center pb-4 border-b border-border/60">
               <div className="space-y-2">
@@ -195,7 +217,9 @@ export default function AccountOrdersPage() {
       <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-2">
         <div>
           <h2 className="font-serif text-2xl font-bold text-foreground">Order History</h2>
-          <p className="text-xs text-muted-foreground mt-0.5">Track, cancel, or request returns for your purchases</p>
+          <p className="text-xs text-muted-foreground mt-0.5">
+            Track, cancel, or request returns for your purchases
+          </p>
         </div>
         {orders.length > 0 && (
           <span className="text-[11px] font-semibold text-muted-foreground bg-muted px-3 py-1.5 rounded-full w-fit">
@@ -211,9 +235,13 @@ export default function AccountOrdersPage() {
           </div>
           <p className="font-serif text-lg font-bold text-foreground">No orders found</p>
           <p className="text-sm text-muted-foreground mt-1 max-w-sm mx-auto">
-            You haven't placed any orders yet. Discover our premium footwear collections and place your first order.
+            You haven't placed any orders yet. Discover our premium footwear collections and place
+            your first order.
           </p>
-          <Link href="/shop" className="mt-6 inline-flex items-center gap-2 bg-primary hover:bg-cognac text-primary-foreground rounded-full px-6 py-2.5 text-xs font-bold shadow-md transition-all">
+          <Link
+            href="/shop"
+            className="mt-6 inline-flex items-center gap-2 bg-primary hover:bg-cognac text-primary-foreground rounded-full px-6 py-2.5 text-xs font-bold shadow-md transition-all"
+          >
             <ShoppingBag className="h-4 w-4" />
             <span>Start Shopping</span>
           </Link>
@@ -231,9 +259,13 @@ export default function AccountOrdersPage() {
               }`}
             >
               <span>Active Orders</span>
-              <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
-                activeTab === "active" ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"
-              }`}>
+              <span
+                className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                  activeTab === "active"
+                    ? "bg-primary text-primary-foreground"
+                    : "bg-muted text-muted-foreground"
+                }`}
+              >
                 {activeOrders.length}
               </span>
             </button>
@@ -246,9 +278,13 @@ export default function AccountOrdersPage() {
               }`}
             >
               <span>Past Purchases</span>
-              <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
-                activeTab === "past" ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"
-              }`}>
+              <span
+                className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                  activeTab === "past"
+                    ? "bg-primary text-primary-foreground"
+                    : "bg-muted text-muted-foreground"
+                }`}
+              >
                 {pastPurchases.length}
               </span>
             </button>
@@ -261,9 +297,13 @@ export default function AccountOrdersPage() {
               }`}
             >
               <span>Returns & Refunds</span>
-              <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
-                activeTab === "returns" ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"
-              }`}>
+              <span
+                className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                  activeTab === "returns"
+                    ? "bg-primary text-primary-foreground"
+                    : "bg-muted text-muted-foreground"
+                }`}
+              >
                 {returnedOrRefunded.length}
               </span>
             </button>
@@ -274,16 +314,21 @@ export default function AccountOrdersPage() {
             <div className="text-center py-14 bg-card border border-border/50 rounded-2xl">
               <Package className="h-9 w-9 text-muted-foreground/40 mx-auto mb-3" />
               <p className="text-sm font-bold text-muted-foreground">No orders in this tab</p>
-              <p className="text-xs text-muted-foreground mt-0.5">Any orders matching this status will appear here.</p>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                Any orders matching this status will appear here.
+              </p>
             </div>
           ) : (
             <div className="space-y-5">
-              {visibleOrders.map(o => {
+              {visibleOrders.map((o) => {
                 const returnInfo = getReturnEligibility(o);
                 const activeTimelineStep = getActiveTimelineStep(o.status);
 
                 return (
-                  <div key={o._id || o.id} className="bg-card border border-border rounded-2xl overflow-hidden shadow-sm hover:border-brass/25 transition-all">
+                  <div
+                    key={o._id || o.id}
+                    className="bg-card border border-border rounded-2xl overflow-hidden shadow-sm hover:border-brass/25 transition-all"
+                  >
                     {/* Card Header */}
                     <div className="bg-muted/30 border-b border-border/60 px-5 py-4 flex flex-wrap items-center justify-between gap-4">
                       <div className="flex items-center gap-4">
@@ -291,7 +336,9 @@ export default function AccountOrdersPage() {
                           <Package className="h-5 w-5 text-brass" />
                         </div>
                         <div>
-                          <p className="font-semibold text-sm tracking-tight">{o.orderId || o.number}</p>
+                          <p className="font-semibold text-sm tracking-tight">
+                            {o.orderId || o.number}
+                          </p>
                           <div className="flex items-center gap-2 mt-0.5 text-xs text-muted-foreground">
                             <Calendar className="h-3 w-3" />
                             <span>Ordered {formatDate(o.createdAt)}</span>
@@ -312,10 +359,10 @@ export default function AccountOrdersPage() {
                       {o.items.map((it: any, i: number) => (
                         <div key={i} className="flex gap-4 items-center">
                           {it.image ? (
-                            <img 
-                              src={it.image} 
-                              alt={it.name} 
-                              className="h-16 w-16 rounded-xl object-cover border border-border/50 shrink-0" 
+                            <img
+                              src={it.image}
+                              alt={it.name}
+                              className="h-16 w-16 rounded-xl object-cover border border-border/50 shrink-0"
                             />
                           ) : (
                             <div className="h-16 w-16 rounded-xl bg-muted flex items-center justify-center shrink-0 border border-border/50">
@@ -327,12 +374,17 @@ export default function AccountOrdersPage() {
                               {it.name}
                             </p>
                             <p className="text-xs text-muted-foreground mt-0.5">
-                              Size: UK/IND {it.size} · Color: {it.color} · Qty: {it.quantity || it.qty}
+                              Size: UK/IND {it.size} · Color: {it.color} · Qty:{" "}
+                              {it.quantity || it.qty}
                             </p>
                           </div>
                           <div className="text-right shrink-0">
-                            <p className="text-sm font-bold">{formatINR(it.price * (it.quantity || it.qty))}</p>
-                            <p className="text-[10px] text-muted-foreground mt-0.5">{formatINR(it.price)} each</p>
+                            <p className="text-sm font-bold">
+                              {formatINR(it.price * (it.quantity || it.qty))}
+                            </p>
+                            <p className="text-[10px] text-muted-foreground mt-0.5">
+                              {formatINR(it.price)} each
+                            </p>
                           </div>
                         </div>
                       ))}
@@ -346,64 +398,84 @@ export default function AccountOrdersPage() {
                           <div className="hidden sm:block relative">
                             {/* Visual connector line */}
                             <div className="absolute top-4 left-4 right-4 h-1 bg-muted rounded z-0" />
-                            <div 
-                              className="absolute top-4 left-4 h-1 bg-primary rounded z-0 transition-all duration-500" 
-                              style={{ 
+                            <div
+                              className="absolute top-4 left-4 h-1 bg-primary rounded z-0 transition-all duration-500"
+                              style={{
                                 width: `${
-                                  activeTimelineStep === 1 ? 0 : 
-                                  activeTimelineStep === 2 ? 33 : 
-                                  activeTimelineStep === 3 ? 66 : 100
-                                }%` 
+                                  activeTimelineStep === 1
+                                    ? 0
+                                    : activeTimelineStep === 2
+                                      ? 33
+                                      : activeTimelineStep === 3
+                                        ? 66
+                                        : 100
+                                }%`,
                               }}
                             />
 
                             <div className="relative z-10 flex justify-between items-center">
                               {/* Node 1: Placed */}
                               <div className="relative z-10 flex flex-col items-center">
-                                <div className={`h-8 w-8 rounded-full flex items-center justify-center border-2 transition-all ${
-                                  activeTimelineStep >= 1 
-                                    ? "bg-primary border-primary text-cream shadow-sm" 
-                                    : "bg-background border-muted text-muted-foreground"
-                                }`}>
+                                <div
+                                  className={`h-8 w-8 rounded-full flex items-center justify-center border-2 transition-all ${
+                                    activeTimelineStep >= 1
+                                      ? "bg-primary border-primary text-cream shadow-sm"
+                                      : "bg-background border-muted text-muted-foreground"
+                                  }`}
+                                >
                                   <Calendar className="h-3.5 w-3.5" />
                                 </div>
-                                <span className="text-[9px] uppercase font-bold tracking-wider text-muted-foreground mt-1">Placed</span>
+                                <span className="text-[9px] uppercase font-bold tracking-wider text-muted-foreground mt-1">
+                                  Placed
+                                </span>
                               </div>
 
                               {/* Node 2: Confirmed/Packed */}
                               <div className="relative z-10 flex flex-col items-center">
-                                <div className={`h-8 w-8 rounded-full flex items-center justify-center border-2 transition-all ${
-                                  activeTimelineStep >= 2 
-                                    ? "bg-primary border-primary text-cream shadow-sm" 
-                                    : "bg-background border-muted text-muted-foreground"
-                                }`}>
+                                <div
+                                  className={`h-8 w-8 rounded-full flex items-center justify-center border-2 transition-all ${
+                                    activeTimelineStep >= 2
+                                      ? "bg-primary border-primary text-cream shadow-sm"
+                                      : "bg-background border-muted text-muted-foreground"
+                                  }`}
+                                >
                                   <Clock className="h-3.5 w-3.5" />
                                 </div>
-                                <span className="text-[9px] uppercase font-bold tracking-wider text-muted-foreground mt-1">Processing</span>
+                                <span className="text-[9px] uppercase font-bold tracking-wider text-muted-foreground mt-1">
+                                  Processing
+                                </span>
                               </div>
 
                               {/* Node 3: Shipped */}
                               <div className="relative z-10 flex flex-col items-center">
-                                <div className={`h-8 w-8 rounded-full flex items-center justify-center border-2 transition-all ${
-                                  activeTimelineStep >= 3 
-                                    ? "bg-primary border-primary text-cream shadow-sm" 
-                                    : "bg-background border-muted text-muted-foreground"
-                                }`}>
+                                <div
+                                  className={`h-8 w-8 rounded-full flex items-center justify-center border-2 transition-all ${
+                                    activeTimelineStep >= 3
+                                      ? "bg-primary border-primary text-cream shadow-sm"
+                                      : "bg-background border-muted text-muted-foreground"
+                                  }`}
+                                >
                                   <Truck className="h-3.5 w-3.5" />
                                 </div>
-                                <span className="text-[9px] uppercase font-bold tracking-wider text-muted-foreground mt-1">Shipped</span>
+                                <span className="text-[9px] uppercase font-bold tracking-wider text-muted-foreground mt-1">
+                                  Shipped
+                                </span>
                               </div>
 
                               {/* Node 4: Delivered */}
                               <div className="relative z-10 flex flex-col items-center">
-                                <div className={`h-8 w-8 rounded-full flex items-center justify-center border-2 transition-all ${
-                                  activeTimelineStep >= 4 
-                                    ? "bg-primary border-primary text-cream shadow-sm" 
-                                    : "bg-background border-muted text-muted-foreground"
-                                }`}>
+                                <div
+                                  className={`h-8 w-8 rounded-full flex items-center justify-center border-2 transition-all ${
+                                    activeTimelineStep >= 4
+                                      ? "bg-primary border-primary text-cream shadow-sm"
+                                      : "bg-background border-muted text-muted-foreground"
+                                  }`}
+                                >
                                   <CheckCircle2 className="h-3.5 w-3.5" />
                                 </div>
-                                <span className="text-[9px] uppercase font-bold tracking-wider text-muted-foreground mt-1">Delivered</span>
+                                <span className="text-[9px] uppercase font-bold tracking-wider text-muted-foreground mt-1">
+                                  Delivered
+                                </span>
                               </div>
                             </div>
                           </div>
@@ -411,7 +483,9 @@ export default function AccountOrdersPage() {
                           {/* Mobile view: simple progress bar with current status label */}
                           <div className="sm:hidden space-y-3 pt-1">
                             <div className="flex justify-between items-center text-xs">
-                              <span className="font-semibold text-muted-foreground">Order Progress</span>
+                              <span className="font-semibold text-muted-foreground">
+                                Order Progress
+                              </span>
                               <span className="font-bold text-primary uppercase tracking-wider">
                                 {activeTimelineStep === 1 && "Placed"}
                                 {activeTimelineStep === 2 && "Processing"}
@@ -420,14 +494,18 @@ export default function AccountOrdersPage() {
                               </span>
                             </div>
                             <div className="w-full h-2 bg-muted rounded-full overflow-hidden">
-                              <div 
-                                className="h-full bg-primary rounded-full transition-all duration-500" 
-                                style={{ 
+                              <div
+                                className="h-full bg-primary rounded-full transition-all duration-500"
+                                style={{
                                   width: `${
-                                    activeTimelineStep === 1 ? 15 : 
-                                    activeTimelineStep === 2 ? 45 : 
-                                    activeTimelineStep === 3 ? 75 : 100
-                                  }%` 
+                                    activeTimelineStep === 1
+                                      ? 15
+                                      : activeTimelineStep === 2
+                                        ? 45
+                                        : activeTimelineStep === 3
+                                          ? 75
+                                          : 100
+                                  }%`,
                                 }}
                               />
                             </div>
@@ -437,18 +515,24 @@ export default function AccountOrdersPage() {
                     )}
 
                     {/* Return eligibility banner or current requested return status */}
-                    {o.status === "DELIVERED" && returnInfo.maxReturnDays > 0 && (
+                    {o.status === "DELIVERED" &&
+                      returnInfo.maxReturnDays > 0 &&
                       (() => {
-                        const isRejected = o.statusHistory?.some((h: any) => h.status === "RETURN_REQUESTED");
+                        const isRejected = o.statusHistory?.some(
+                          (h: any) => h.status === "RETURN_REQUESTED",
+                        );
                         if (isRejected) {
                           return (
                             <div className="mx-5 p-3.5 bg-red-500/10 border border-red-500/20 rounded-xl mb-4">
                               <div className="flex items-start gap-3">
                                 <AlertTriangle className="h-4.5 w-4.5 text-red-600 mt-0.5 shrink-0" />
                                 <div>
-                                  <p className="text-xs font-bold text-red-800">Return Request Rejected</p>
+                                  <p className="text-xs font-bold text-red-800">
+                                    Return Request Rejected
+                                  </p>
                                   <p className="text-[11px] text-red-700/90 mt-0.5 leading-relaxed font-medium">
-                                    Your return request for this order was rejected by our quality check team. If you have questions, please contact support.
+                                    Your return request for this order was rejected by our quality
+                                    check team. If you have questions, please contact support.
                                   </p>
                                 </div>
                               </div>
@@ -462,7 +546,18 @@ export default function AccountOrdersPage() {
                                 <div className="flex items-center gap-2 text-xs text-muted-foreground font-medium">
                                   <Clock className="h-4 w-4 text-amber-500 shrink-0" />
                                   <span>
-                                    Return window: <strong className="text-foreground">{returnInfo.daysRemaining} day{returnInfo.daysRemaining !== 1 ? "s" : ""} remaining</strong> (expires {formatDate(new Date(Date.now() + returnInfo.daysRemaining * 24 * 60 * 60 * 1000).toISOString())})
+                                    Return window:{" "}
+                                    <strong className="text-foreground">
+                                      {returnInfo.daysRemaining} day
+                                      {returnInfo.daysRemaining !== 1 ? "s" : ""} remaining
+                                    </strong>{" "}
+                                    (expires{" "}
+                                    {formatDate(
+                                      new Date(
+                                        Date.now() + returnInfo.daysRemaining * 24 * 60 * 60 * 1000,
+                                      ).toISOString(),
+                                    )}
+                                    )
                                   </span>
                                 </div>
                                 <button
@@ -476,22 +571,28 @@ export default function AccountOrdersPage() {
                             ) : (
                               <div className="flex items-center gap-2 text-xs text-muted-foreground font-medium">
                                 <AlertTriangle className="h-4 w-4 text-muted-foreground/50 shrink-0" />
-                                <span>Return policy expired ({returnInfo.maxReturnDays}-day window ended {returnInfo.daysElapsed - returnInfo.maxReturnDays} days ago)</span>
+                                <span>
+                                  Return policy expired ({returnInfo.maxReturnDays}-day window ended{" "}
+                                  {returnInfo.daysElapsed - returnInfo.maxReturnDays} days ago)
+                                </span>
                               </div>
                             )}
                           </div>
                         );
-                      })()
-                    )}
+                      })()}
 
                     {o.status === "RETURN_REQUESTED" && (
                       <div className="mx-5 p-3.5 bg-amber-500/10 border border-amber-500/20 rounded-xl mb-4">
                         <div className="flex items-start gap-3">
                           <Clock className="h-4.5 w-4.5 text-amber-600 mt-0.5 shrink-0" />
                           <div>
-                            <p className="text-xs font-bold text-amber-800">Return Request Under Review</p>
+                            <p className="text-xs font-bold text-amber-800">
+                              Return Request Under Review
+                            </p>
                             <p className="text-[11px] text-amber-700/90 mt-0.5 leading-relaxed font-medium">
-                              We have received your return request for this order. Our fulfillment team is processing the request, and we will update you shortly via email.
+                              We have received your return request for this order. Our fulfillment
+                              team is processing the request, and we will update you shortly via
+                              email.
                             </p>
                           </div>
                         </div>
@@ -503,9 +604,13 @@ export default function AccountOrdersPage() {
                         <div className="flex items-start gap-3">
                           <Clock className="h-4.5 w-4.5 text-blue-600 mt-0.5 shrink-0" />
                           <div>
-                            <p className="text-xs font-bold text-blue-800">Return Request Approved (Awaiting Return)</p>
+                            <p className="text-xs font-bold text-blue-800">
+                              Return Request Approved (Awaiting Return)
+                            </p>
                             <p className="text-[11px] text-blue-700/90 mt-0.5 leading-relaxed font-medium">
-                              Your return request has been approved! We are now waiting for the product to be picked up or returned to our warehouse. We will update your refund status once the product is received.
+                              Your return request has been approved! We are now waiting for the
+                              product to be picked up or returned to our warehouse. We will update
+                              your refund status once the product is received.
                             </p>
                           </div>
                         </div>
@@ -517,9 +622,13 @@ export default function AccountOrdersPage() {
                         <div className="flex items-start gap-3">
                           <CheckCircle2 className="h-4.5 w-4.5 text-green-600 mt-0.5 shrink-0" />
                           <div>
-                            <p className="text-xs font-bold text-green-800">Return Request Approved</p>
+                            <p className="text-xs font-bold text-green-800">
+                              Return Request Approved
+                            </p>
                             <p className="text-[11px] text-green-700/90 mt-0.5 leading-relaxed font-medium">
-                              Your return request has been approved! The product has been received at our warehouse. We are initiating your refund, which will be processed shortly.
+                              Your return request has been approved! The product has been received
+                              at our warehouse. We are initiating your refund, which will be
+                              processed shortly.
                             </p>
                           </div>
                         </div>
@@ -533,7 +642,9 @@ export default function AccountOrdersPage() {
                           <div>
                             <p className="text-xs font-bold text-primary">Refund Completed</p>
                             <p className="text-[11px] text-muted-foreground mt-0.5 leading-relaxed font-medium">
-                              A refund of <strong>{formatINR(o.pricing?.total || o.total)}</strong> has been processed for this order. The amount has been credited back to your account.
+                              A refund of <strong>{formatINR(o.pricing?.total || o.total)}</strong>{" "}
+                              has been processed for this order. The amount has been credited back
+                              to your account.
                             </p>
                           </div>
                         </div>
@@ -542,8 +653,10 @@ export default function AccountOrdersPage() {
 
                     {/* Card Footer (Actions) */}
                     <div className="bg-muted/10 border-t border-border/40 px-5 py-3.5 flex justify-between items-center gap-4">
-                      <div>
-                        {(o.status === "PLACED" || o.status === "CONFIRMED" || o.status === "PACKED") && (
+                      <div className="flex items-center gap-2.5">
+                        {(o.status === "PLACED" ||
+                          o.status === "CONFIRMED" ||
+                          o.status === "PACKED") && (
                           <button
                             onClick={() => setCancelModalOrder(o)}
                             className="text-xs font-bold px-4 py-2 rounded-full border border-red-200 text-red-600 hover:bg-red-50 transition-colors cursor-pointer"
@@ -551,13 +664,26 @@ export default function AccountOrdersPage() {
                             Cancel Order
                           </button>
                         )}
+                        <Link
+                          href={`/account/orders/${o._id || o.id}/invoice`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-xs font-bold flex items-center gap-1.5 text-brass hover:text-brass/90 border border-brass/25 hover:border-brass/40 px-4 py-2 rounded-full transition-all cursor-pointer bg-brass/5"
+                        >
+                          <FileText className="h-3.5 w-3.5" />
+                          <span>Invoice PDF</span>
+                        </Link>
                       </div>
 
                       <button
                         onClick={() => toggleExpand(o._id || o.id)}
                         className="text-xs font-bold flex items-center gap-1.5 text-muted-foreground hover:text-foreground border border-border px-4 py-2 rounded-full hover:bg-muted transition-all cursor-pointer bg-card"
                       >
-                        <span>{expandedOrders[o._id || o.id] ? "Hide Status Details" : "Track / View Details"}</span>
+                        <span>
+                          {expandedOrders[o._id || o.id]
+                            ? "Hide Status Details"
+                            : "Track / View Details"}
+                        </span>
                         {expandedOrders[o._id || o.id] ? (
                           <ChevronUp className="h-3.5 w-3.5 text-brass" />
                         ) : (
@@ -570,10 +696,15 @@ export default function AccountOrdersPage() {
                     {expandedOrders[o._id || o.id] && (
                       <div className="bg-muted/20 border-t border-border/40 px-5 py-5 space-y-4">
                         <div className="flex justify-between items-center border-b border-border/40 pb-2.5">
-                          <h4 className="text-[10px] uppercase font-bold tracking-wider text-cognac">Fulfillment Timeline</h4>
+                          <h4 className="text-[10px] uppercase font-bold tracking-wider text-cognac">
+                            Fulfillment Timeline
+                          </h4>
                           {o.shipping?.courier && (
                             <span className="text-[10px] font-bold text-muted-foreground">
-                              Courier: <strong className="text-foreground">{o.shipping.courier} ({o.shipping.trackingNumber})</strong>
+                              Courier:{" "}
+                              <strong className="text-foreground">
+                                {o.shipping.courier} ({o.shipping.trackingNumber})
+                              </strong>
                             </span>
                           )}
                         </div>
@@ -585,27 +716,32 @@ export default function AccountOrdersPage() {
                               const h = o.statusHistory?.find((x: any) => x.status === step);
                               const isCompleted = !!h;
                               const lastCompletedIdx = steps.reduce(
-                                (acc: number, s: string, i: number) => o.statusHistory?.some((x: any) => x.status === s) ? i : acc,
-                                0
+                                (acc: number, s: string, i: number) =>
+                                  o.statusHistory?.some((x: any) => x.status === s) ? i : acc,
+                                0,
                               );
                               const isActive = idx === lastCompletedIdx;
 
                               return (
                                 <div key={idx} className="relative">
                                   {/* Node dot indicator */}
-                                  <span className={`absolute -left-[32px] top-0.5 flex h-5 w-5 items-center justify-center rounded-full text-[9px] font-bold shadow-sm transition-all ${
-                                    isCompleted
-                                      ? isActive 
-                                        ? "bg-primary text-primary-foreground ring-4 ring-primary/10" 
-                                        : "bg-muted border border-border text-muted-foreground"
-                                      : "bg-background border border-border text-muted-foreground/30"
-                                  }`}>
+                                  <span
+                                    className={`absolute -left-[32px] top-0.5 flex h-5 w-5 items-center justify-center rounded-full text-[9px] font-bold shadow-sm transition-all ${
+                                      isCompleted
+                                        ? isActive
+                                          ? "bg-primary text-primary-foreground ring-4 ring-primary/10"
+                                          : "bg-muted border border-border text-muted-foreground"
+                                        : "bg-background border border-border text-muted-foreground/30"
+                                    }`}
+                                  >
                                     {isCompleted ? "✓" : idx + 1}
                                   </span>
 
                                   <div className={isCompleted ? "" : "opacity-40"}>
                                     <div className="flex items-center gap-2 flex-wrap">
-                                      <p className={`text-xs font-bold uppercase tracking-wider ${isCompleted ? "text-foreground" : "text-muted-foreground"}`}>
+                                      <p
+                                        className={`text-xs font-bold uppercase tracking-wider ${isCompleted ? "text-foreground" : "text-muted-foreground"}`}
+                                      >
                                         {step.replace(/_/g, " ")}
                                       </p>
                                       {isActive && (
@@ -624,7 +760,7 @@ export default function AccountOrdersPage() {
                                             year: "numeric",
                                             hour: "2-digit",
                                             minute: "2-digit",
-                                            hour12: true
+                                            hour12: true,
                                           })}
                                         </p>
                                         {h.note && (
@@ -639,18 +775,26 @@ export default function AccountOrdersPage() {
                                               <span>Refund Disbursed</span>
                                             </p>
                                             <p className="text-muted-foreground">
-                                              <span className="font-medium">Refund Mode:</span> {o.refundDetails.method === "ONLINE" ? "Razorpay Gateway / Original Payment Method" : "Manual Transfer / Cash"}
+                                              <span className="font-medium">Refund Mode:</span>{" "}
+                                              {o.refundDetails.method === "ONLINE"
+                                                ? "Razorpay Gateway / Original Payment Method"
+                                                : "Manual Transfer / Cash"}
                                             </p>
                                             {o.refundDetails.transactionId && (
                                               <p className="text-muted-foreground">
-                                                <span className="font-medium">Txn Reference:</span> <code className="bg-muted px-1.5 py-0.5 rounded text-[11px] select-all font-mono font-semibold">{o.refundDetails.transactionId}</code>
+                                                <span className="font-medium">Txn Reference:</span>{" "}
+                                                <code className="bg-muted px-1.5 py-0.5 rounded text-[11px] select-all font-mono font-semibold">
+                                                  {o.refundDetails.transactionId}
+                                                </code>
                                               </p>
                                             )}
                                           </div>
                                         )}
                                       </div>
                                     ) : (
-                                      <p className="text-[10px] text-muted-foreground/60 mt-0.5 italic">Awaiting this phase...</p>
+                                      <p className="text-[10px] text-muted-foreground/60 mt-0.5 italic">
+                                        Awaiting this phase...
+                                      </p>
                                     )}
                                   </div>
                                 </div>

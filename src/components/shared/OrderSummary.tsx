@@ -6,17 +6,28 @@ interface OrderSummaryProps {
   tax: number;
   couponDiscount?: number;
   couponCode?: string;
+  pointsDiscount?: number;
   actionButton?: React.ReactNode;
 }
 
-export function OrderSummary({ subtotal, shipping, tax, couponDiscount = 0, couponCode, actionButton }: OrderSummaryProps) {
+export function OrderSummary({
+  subtotal,
+  shipping,
+  tax,
+  couponDiscount = 0,
+  couponCode,
+  pointsDiscount = 0,
+  actionButton,
+}: OrderSummaryProps) {
   const cgst = Math.round(tax / 2);
   const sgst = tax - cgst;
-  const finalTotal = Math.max(0, subtotal + shipping + tax - couponDiscount);
+  const finalTotal = Math.max(0, subtotal + shipping + tax - couponDiscount - pointsDiscount);
 
   return (
     <div className="bg-card/70 backdrop-blur-md border border-border/80 rounded-2xl p-6 space-y-5 shadow-md sticky top-28">
-      <h2 className="font-serif text-xl font-bold text-charcoal border-b border-border/40 pb-3">Order Summary</h2>
+      <h2 className="font-serif text-xl font-bold text-charcoal border-b border-border/40 pb-3">
+        Order Summary
+      </h2>
       <div className="space-y-3 text-xs md:text-sm">
         <div className="flex justify-between">
           <span className="text-muted-foreground font-medium">Subtotal</span>
@@ -24,7 +35,9 @@ export function OrderSummary({ subtotal, shipping, tax, couponDiscount = 0, coup
         </div>
         <div className="flex justify-between">
           <span className="text-muted-foreground font-medium">Shipping</span>
-          <span className="font-semibold text-charcoal">{shipping === 0 ? "Free" : formatINR(shipping)}</span>
+          <span className="font-semibold text-charcoal">
+            {shipping === 0 ? "Free" : formatINR(shipping)}
+          </span>
         </div>
         <div className="flex justify-between">
           <span className="text-muted-foreground font-medium">CGST (4%)</span>
@@ -38,6 +51,12 @@ export function OrderSummary({ subtotal, shipping, tax, couponDiscount = 0, coup
           <div className="flex justify-between text-green-600 font-bold bg-green-50/50 px-2.5 py-1.5 rounded-xl border border-green-200/50">
             <span>Discount {couponCode ? `(${couponCode})` : ""}</span>
             <span>-{formatINR(couponDiscount)}</span>
+          </div>
+        )}
+        {pointsDiscount > 0 && (
+          <div className="flex justify-between text-amber-600 font-bold bg-amber-50/50 px-2.5 py-1.5 rounded-xl border border-amber-200/50">
+            <span>Loyalty Points Discount</span>
+            <span>-{formatINR(pointsDiscount)}</span>
           </div>
         )}
       </div>

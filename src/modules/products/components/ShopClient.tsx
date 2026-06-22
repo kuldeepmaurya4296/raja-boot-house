@@ -6,6 +6,7 @@ import { SlidersHorizontal, RotateCcw, X, ArrowRight, ChevronDown } from "lucide
 import { ProductCard } from "@/modules/products/components/ProductCard";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
+import { RecentlyViewed } from "@/components/public/RecentlyViewed";
 
 interface ShopClientProps {
   categories: any[];
@@ -62,7 +63,12 @@ function AccordionItem({ title, isOpen, onToggle, children }: AccordionItemProps
   );
 }
 
-export default function ShopClient({ categories, initialProducts, totalProducts, filterMetadata }: ShopClientProps) {
+export default function ShopClient({
+  categories,
+  initialProducts,
+  totalProducts,
+  filterMetadata,
+}: ShopClientProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -110,19 +116,39 @@ export default function ShopClient({ categories, initialProducts, totalProducts,
 
   // Parse comma-separated lists for brands, sizes, genders, colors
   const activeBrands = useMemo(() => {
-    return activeBrand ? activeBrand.split(",").map((b) => b.trim()).filter(Boolean) : [];
+    return activeBrand
+      ? activeBrand
+          .split(",")
+          .map((b) => b.trim())
+          .filter(Boolean)
+      : [];
   }, [activeBrand]);
 
   const activeSizes = useMemo(() => {
-    return activeSize ? activeSize.split(",").map((s) => s.trim()).filter(Boolean) : [];
+    return activeSize
+      ? activeSize
+          .split(",")
+          .map((s) => s.trim())
+          .filter(Boolean)
+      : [];
   }, [activeSize]);
 
   const activeGenders = useMemo(() => {
-    return activeGender ? activeGender.split(",").map((g) => g.trim()).filter(Boolean) : [];
+    return activeGender
+      ? activeGender
+          .split(",")
+          .map((g) => g.trim())
+          .filter(Boolean)
+      : [];
   }, [activeGender]);
 
   const activeColors = useMemo(() => {
-    return activeColor ? activeColor.split(",").map((c) => c.trim()).filter(Boolean) : [];
+    return activeColor
+      ? activeColor
+          .split(",")
+          .map((c) => c.trim())
+          .filter(Boolean)
+      : [];
   }, [activeColor]);
 
   // Local state for price inputs
@@ -138,9 +164,12 @@ export default function ShopClient({ categories, initialProducts, totalProducts,
     setMaxInput(activeMaxPrice);
   }, [activeMaxPrice]);
 
-  const updateFilters = (newParams: Record<string, string | null>, options?: { scroll?: boolean }) => {
+  const updateFilters = (
+    newParams: Record<string, string | null>,
+    options?: { scroll?: boolean },
+  ) => {
     const params = new URLSearchParams(searchParams.toString());
-    
+
     // Reset limit if we are changing other filters
     if (!("limit" in newParams)) {
       params.delete("limit");
@@ -216,9 +245,12 @@ export default function ShopClient({ categories, initialProducts, totalProducts,
 
   const handleLoadMore = () => {
     setLoadingMore(true);
-    updateFilters({
-      limit: String(activeLimit + 8),
-    }, { scroll: false });
+    updateFilters(
+      {
+        limit: String(activeLimit + 8),
+      },
+      { scroll: false },
+    );
   };
 
   const hasActiveFilters =
@@ -244,7 +276,17 @@ export default function ShopClient({ categories, initialProducts, totalProducts,
     count += activeGenders.length;
     count += activeColors.length;
     return count;
-  }, [activeCategory, activeBrands, activeOccasion, activeSearch, activeMinPrice, activeMaxPrice, activeSizes, activeGenders, activeColors]);
+  }, [
+    activeCategory,
+    activeBrands,
+    activeOccasion,
+    activeSearch,
+    activeMinPrice,
+    activeMaxPrice,
+    activeSizes,
+    activeGenders,
+    activeColors,
+  ]);
 
   return (
     <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-16 lg:py-20">
@@ -258,10 +300,12 @@ export default function ShopClient({ categories, initialProducts, totalProducts,
           <span className="text-charcoal font-semibold">Shop</span>
         ) : (
           <>
-            <Link href="/shop" className="hover:text-cognac transition-colors">Shop</Link>
+            <Link href="/shop" className="hover:text-cognac transition-colors">
+              Shop
+            </Link>
             <span className="text-muted-foreground/50">/</span>
             <span className="text-charcoal font-semibold capitalize">
-              {categories.find(c => c.slug === activeCategory)?.name || activeCategory}
+              {categories.find((c) => c.slug === activeCategory)?.name || activeCategory}
             </span>
           </>
         )}
@@ -271,82 +315,155 @@ export default function ShopClient({ categories, initialProducts, totalProducts,
       <div className="relative mb-10 pb-8 border-b border-border/40">
         <div className="absolute right-0 top-1/2 -translate-y-1/2 hidden md:flex items-center gap-4 bg-muted/20 py-2.5 px-5 rounded-2xl border border-border/40">
           <div className="text-right">
-            <span className="block text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">Total Styles</span>
+            <span className="block text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">
+              Total Styles
+            </span>
             <span className="text-xl font-serif font-extrabold text-charcoal">{totalProducts}</span>
           </div>
           <div className="h-6 w-px bg-border/80" />
           <div className="text-right">
-            <span className="block text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">Showing</span>
-            <span className="text-xl font-serif font-extrabold text-cognac">{initialProducts.length}</span>
+            <span className="block text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">
+              Showing
+            </span>
+            <span className="text-xl font-serif font-extrabold text-cognac">
+              {initialProducts.length}
+            </span>
           </div>
         </div>
-        <p className="text-[11px] uppercase tracking-[0.35em] text-cognac font-extrabold mb-1.5">The Collection</p>
-        <h1 className="font-serif text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight text-charcoal">Footwear Catalog</h1>
+        <p className="text-[11px] uppercase tracking-[0.35em] text-cognac font-extrabold mb-1.5">
+          The Collection
+        </p>
+        <h1 className="font-serif text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight text-charcoal">
+          Footwear Catalog
+        </h1>
         <p className="text-muted-foreground text-sm mt-3 max-w-2xl leading-relaxed">
-          Step into craftsmanship with our premium range of hand-finished leather shoes, formal dress boots, and elegant casual styles.
+          Step into craftsmanship with our premium range of hand-finished leather shoes, formal
+          dress boots, and elegant casual styles.
         </p>
       </div>
 
       {/* Filter Chips Bar */}
       {hasActiveFilters && (
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
           className="flex flex-wrap items-center gap-2 mb-8 bg-brass/5 p-4 rounded-2xl border border-brass/15"
         >
-          <span className="text-xs text-cognac font-bold mr-2 uppercase tracking-wider">Active Filters:</span>
+          <span className="text-xs text-cognac font-bold mr-2 uppercase tracking-wider">
+            Active Filters:
+          </span>
           {activeCategory !== "all" && (
             <span className="inline-flex items-center gap-2 px-3 py-1.5 bg-cream border border-brass/25 text-cognac rounded-xl text-xs font-semibold shadow-xs">
-              <span>Category: {categories.find(c => c.slug === activeCategory)?.name || activeCategory}</span>
-              <button onClick={() => updateFilters({ category: "all" })} className="hover:text-destructive cursor-pointer transition-colors"><X className="h-3.5 w-3.5" /></button>
+              <span>
+                Category:{" "}
+                {categories.find((c) => c.slug === activeCategory)?.name || activeCategory}
+              </span>
+              <button
+                onClick={() => updateFilters({ category: "all" })}
+                className="hover:text-destructive cursor-pointer transition-colors"
+              >
+                <X className="h-3.5 w-3.5" />
+              </button>
             </span>
           )}
           {activeBrands.map((b) => (
-            <span key={b} className="inline-flex items-center gap-2 px-3 py-1.5 bg-cream border border-brass/25 text-cognac rounded-xl text-xs font-semibold shadow-xs">
+            <span
+              key={b}
+              className="inline-flex items-center gap-2 px-3 py-1.5 bg-cream border border-brass/25 text-cognac rounded-xl text-xs font-semibold shadow-xs"
+            >
               <span>Brand: {b}</span>
-              <button onClick={() => handleToggleBrand(b)} className="hover:text-destructive cursor-pointer transition-colors"><X className="h-3.5 w-3.5" /></button>
+              <button
+                onClick={() => handleToggleBrand(b)}
+                className="hover:text-destructive cursor-pointer transition-colors"
+              >
+                <X className="h-3.5 w-3.5" />
+              </button>
             </span>
           ))}
           {activeOccasion && (
             <span className="inline-flex items-center gap-2 px-3 py-1.5 bg-cream border border-brass/25 text-cognac rounded-xl text-xs font-semibold shadow-xs">
               <span>Occasion: {activeOccasion}</span>
-              <button onClick={() => updateFilters({ occasion: null })} className="hover:text-destructive cursor-pointer transition-colors"><X className="h-3.5 w-3.5" /></button>
+              <button
+                onClick={() => updateFilters({ occasion: null })}
+                className="hover:text-destructive cursor-pointer transition-colors"
+              >
+                <X className="h-3.5 w-3.5" />
+              </button>
             </span>
           )}
           {activeSearch && (
             <span className="inline-flex items-center gap-2 px-3 py-1.5 bg-cream border border-brass/25 text-cognac rounded-xl text-xs font-semibold shadow-xs">
               <span>Query: "{activeSearch}"</span>
-              <button onClick={() => updateFilters({ search: null })} className="hover:text-destructive cursor-pointer transition-colors"><X className="h-3.5 w-3.5" /></button>
+              <button
+                onClick={() => updateFilters({ search: null })}
+                className="hover:text-destructive cursor-pointer transition-colors"
+              >
+                <X className="h-3.5 w-3.5" />
+              </button>
             </span>
           )}
           {activeMinPrice && (
             <span className="inline-flex items-center gap-2 px-3 py-1.5 bg-cream border border-brass/25 text-cognac rounded-xl text-xs font-semibold shadow-xs">
               <span>Min: ₹{activeMinPrice}</span>
-              <button onClick={() => updateFilters({ minPrice: null })} className="hover:text-destructive cursor-pointer transition-colors"><X className="h-3.5 w-3.5" /></button>
+              <button
+                onClick={() => updateFilters({ minPrice: null })}
+                className="hover:text-destructive cursor-pointer transition-colors"
+              >
+                <X className="h-3.5 w-3.5" />
+              </button>
             </span>
           )}
           {activeMaxPrice && (
             <span className="inline-flex items-center gap-2 px-3 py-1.5 bg-cream border border-brass/25 text-cognac rounded-xl text-xs font-semibold shadow-xs">
               <span>Max: ₹{activeMaxPrice}</span>
-              <button onClick={() => updateFilters({ maxPrice: null })} className="hover:text-destructive cursor-pointer transition-colors"><X className="h-3.5 w-3.5" /></button>
+              <button
+                onClick={() => updateFilters({ maxPrice: null })}
+                className="hover:text-destructive cursor-pointer transition-colors"
+              >
+                <X className="h-3.5 w-3.5" />
+              </button>
             </span>
           )}
           {activeSizes.map((sStr) => (
-            <span key={sStr} className="inline-flex items-center gap-2 px-3 py-1.5 bg-cream border border-brass/25 text-cognac rounded-xl text-xs font-semibold shadow-xs">
+            <span
+              key={sStr}
+              className="inline-flex items-center gap-2 px-3 py-1.5 bg-cream border border-brass/25 text-cognac rounded-xl text-xs font-semibold shadow-xs"
+            >
               <span>Size: UK {sStr}</span>
-              <button onClick={() => handleToggleSize(sStr)} className="hover:text-destructive cursor-pointer transition-colors"><X className="h-3.5 w-3.5" /></button>
+              <button
+                onClick={() => handleToggleSize(sStr)}
+                className="hover:text-destructive cursor-pointer transition-colors"
+              >
+                <X className="h-3.5 w-3.5" />
+              </button>
             </span>
           ))}
           {activeGenders.map((g) => (
-            <span key={g} className="inline-flex items-center gap-2 px-3 py-1.5 bg-cream border border-brass/25 text-cognac rounded-xl text-xs font-semibold shadow-xs">
+            <span
+              key={g}
+              className="inline-flex items-center gap-2 px-3 py-1.5 bg-cream border border-brass/25 text-cognac rounded-xl text-xs font-semibold shadow-xs"
+            >
               <span>Gender: {g}</span>
-              <button onClick={() => handleToggleGender(g)} className="hover:text-destructive cursor-pointer transition-colors"><X className="h-3.5 w-3.5" /></button>
+              <button
+                onClick={() => handleToggleGender(g)}
+                className="hover:text-destructive cursor-pointer transition-colors"
+              >
+                <X className="h-3.5 w-3.5" />
+              </button>
             </span>
           ))}
           {activeColors.map((c) => (
-            <span key={c} className="inline-flex items-center gap-2 px-3 py-1.5 bg-cream border border-brass/25 text-cognac rounded-xl text-xs font-semibold shadow-xs">
+            <span
+              key={c}
+              className="inline-flex items-center gap-2 px-3 py-1.5 bg-cream border border-brass/25 text-cognac rounded-xl text-xs font-semibold shadow-xs"
+            >
               <span>Color: {c}</span>
-              <button onClick={() => handleToggleColor(c)} className="hover:text-destructive cursor-pointer transition-colors"><X className="h-3.5 w-3.5" /></button>
+              <button
+                onClick={() => handleToggleColor(c)}
+                className="hover:text-destructive cursor-pointer transition-colors"
+              >
+                <X className="h-3.5 w-3.5" />
+              </button>
             </span>
           ))}
           <button
@@ -364,10 +481,11 @@ export default function ShopClient({ categories, initialProducts, totalProducts,
         <div className="flex items-center gap-2.5 overflow-x-auto scrollbar-hide pb-2 lg:pb-0 px-1 sm:px-0">
           <button
             onClick={() => updateFilters({ category: "all" })}
-            className={`px-4.5 py-2 rounded-full text-xs font-bold whitespace-nowrap cursor-pointer transition-all duration-300 shadow-xs ${activeCategory === "all"
-              ? "bg-charcoal text-cream shadow-md scale-102"
-              : "bg-cream/60 text-muted-foreground hover:bg-cream hover:text-charcoal border border-border/50"
-              }`}
+            className={`px-4.5 py-2 rounded-full text-xs font-bold whitespace-nowrap cursor-pointer transition-all duration-300 shadow-xs ${
+              activeCategory === "all"
+                ? "bg-charcoal text-cream shadow-md scale-102"
+                : "bg-cream/60 text-muted-foreground hover:bg-cream hover:text-charcoal border border-border/50"
+            }`}
           >
             All Styles
           </button>
@@ -375,10 +493,11 @@ export default function ShopClient({ categories, initialProducts, totalProducts,
             <button
               key={c.id || c._id}
               onClick={() => updateFilters({ category: c.slug })}
-              className={`px-4.5 py-2 rounded-full text-xs font-bold whitespace-nowrap cursor-pointer transition-all duration-300 shadow-xs ${activeCategory === c.slug
-                ? "bg-charcoal text-cream shadow-md scale-102"
-                : "bg-cream/60 text-muted-foreground hover:bg-cream hover:text-charcoal border border-border/50"
-                }`}
+              className={`px-4.5 py-2 rounded-full text-xs font-bold whitespace-nowrap cursor-pointer transition-all duration-300 shadow-xs ${
+                activeCategory === c.slug
+                  ? "bg-charcoal text-cream shadow-md scale-102"
+                  : "bg-cream/60 text-muted-foreground hover:bg-cream hover:text-charcoal border border-border/50"
+              }`}
             >
               {c.name}
             </button>
@@ -424,9 +543,12 @@ export default function ShopClient({ categories, initialProducts, totalProducts,
           <div className="h-16 w-16 bg-brass/10 rounded-full flex items-center justify-center mb-6 text-cognac">
             <SlidersHorizontal className="h-8 w-8" />
           </div>
-          <h3 className="font-serif text-xl font-bold text-charcoal mb-2">No Matching Styles Found</h3>
+          <h3 className="font-serif text-xl font-bold text-charcoal mb-2">
+            No Matching Styles Found
+          </h3>
           <p className="text-sm text-muted-foreground max-w-sm mb-6">
-            We couldn't find any footwear in our current catalog matching your filters. Try clearing some filters or searching for something else.
+            We couldn't find any footwear in our current catalog matching your filters. Try clearing
+            some filters or searching for something else.
           </p>
           <button
             onClick={handleClearAll}
@@ -450,8 +572,8 @@ export default function ShopClient({ categories, initialProducts, totalProducts,
             Showing {initialProducts.length} of {totalProducts} footwear styles
           </p>
           <div className="w-48 h-1 bg-border/40 rounded-full overflow-hidden mb-2.5">
-            <div 
-              className="h-full bg-cognac rounded-full transition-all duration-500" 
+            <div
+              className="h-full bg-cognac rounded-full transition-all duration-500"
               style={{ width: `${(initialProducts.length / totalProducts) * 100}%` }}
             />
           </div>
@@ -549,7 +671,9 @@ export default function ShopClient({ categories, initialProducts, totalProducts,
                   >
                     <div className="flex flex-col gap-1.5">
                       {filterMetadata.genders.map((g) => {
-                        const isSelected = activeGenders.some((ag) => ag.toLowerCase() === g.toLowerCase());
+                        const isSelected = activeGenders.some(
+                          (ag) => ag.toLowerCase() === g.toLowerCase(),
+                        );
                         return (
                           <button
                             key={g}
@@ -585,7 +709,9 @@ export default function ShopClient({ categories, initialProducts, totalProducts,
                   >
                     <div className="flex flex-col gap-1.5 max-h-48 overflow-y-auto pr-1">
                       {brands.map((b) => {
-                        const isSelected = activeBrands.some((ab) => ab.toLowerCase() === b.toLowerCase());
+                        const isSelected = activeBrands.some(
+                          (ab) => ab.toLowerCase() === b.toLowerCase(),
+                        );
                         return (
                           <button
                             key={b}
@@ -650,7 +776,9 @@ export default function ShopClient({ categories, initialProducts, totalProducts,
                   >
                     <div className="grid grid-cols-2 gap-1.5">
                       {filterMetadata.colors.map((c) => {
-                        const isSelected = activeColors.some((ac) => ac.toLowerCase() === c.name.toLowerCase());
+                        const isSelected = activeColors.some(
+                          (ac) => ac.toLowerCase() === c.name.toLowerCase(),
+                        );
                         return (
                           <button
                             key={c.name}
@@ -710,7 +838,9 @@ export default function ShopClient({ categories, initialProducts, totalProducts,
                   <form onSubmit={handleApplyPrice} className="space-y-2.5">
                     <div className="flex items-center gap-2">
                       <div className="relative flex-1">
-                        <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-[10px] text-muted-foreground">₹</span>
+                        <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-[10px] text-muted-foreground">
+                          ₹
+                        </span>
                         <input
                           type="number"
                           placeholder="Min"
@@ -721,7 +851,9 @@ export default function ShopClient({ categories, initialProducts, totalProducts,
                       </div>
                       <span className="text-xs text-muted-foreground">-</span>
                       <div className="relative flex-1">
-                        <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-[10px] text-muted-foreground">₹</span>
+                        <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-[10px] text-muted-foreground">
+                          ₹
+                        </span>
                         <input
                           type="number"
                           placeholder={`Max (${Math.ceil(filterMetadata.maxPrice)})`}
@@ -760,6 +892,7 @@ export default function ShopClient({ categories, initialProducts, totalProducts,
           </>
         )}
       </AnimatePresence>
+      <RecentlyViewed />
     </div>
   );
 }

@@ -26,7 +26,7 @@ const ReviewSchema: Schema = new Schema(
     isVerifiedPurchase: { type: Boolean, default: false, index: true },
     helpfulVotes: { type: Number, default: 0 },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
 // Compound index (non-unique) to support fast query performance for product reviews

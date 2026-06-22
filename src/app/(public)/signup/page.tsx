@@ -17,7 +17,7 @@ export default function SignupPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     // Client-side validations
     if (!name.trim() || !email.trim() || !password) {
       toast.error("All fields are required.");
@@ -71,7 +71,9 @@ export default function SignupPage() {
         <p className="text-sm text-muted-foreground text-center mt-1">Create your account</p>
         <form className="mt-6 space-y-4" onSubmit={handleSubmit}>
           <label className="block">
-            <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Full name</span>
+            <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+              Full name
+            </span>
             <input
               type="text"
               value={name}
@@ -82,7 +84,9 @@ export default function SignupPage() {
             />
           </label>
           <label className="block">
-            <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Email</span>
+            <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+              Email
+            </span>
             <input
               type="email"
               value={email}
@@ -93,7 +97,9 @@ export default function SignupPage() {
             />
           </label>
           <label className="block">
-            <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Password</span>
+            <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+              Password
+            </span>
             <div className="relative mt-1.5">
               <input
                 type={showPassword ? "text" : "password"}
@@ -108,11 +114,7 @@ export default function SignupPage() {
                 onClick={() => setShowPassword(!showPassword)}
                 className="absolute inset-y-0 right-0 pr-3 flex items-center text-muted-foreground hover:text-foreground cursor-pointer"
               >
-                {showPassword ? (
-                  <EyeOff className="h-4 w-4" />
-                ) : (
-                  <Eye className="h-4 w-4" />
-                )}
+                {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
               </button>
             </div>
           </label>
@@ -125,10 +127,12 @@ export default function SignupPage() {
           </button>
         </form>
         <p className="text-xs text-center mt-5 text-muted-foreground">
-          Already a member? <Link href="/login" className="text-primary font-semibold underline">Sign in</Link>
+          Already a member?{" "}
+          <Link href="/login" className="text-primary font-semibold underline">
+            Sign in
+          </Link>
         </p>
       </div>
     </div>
   );
 }
-

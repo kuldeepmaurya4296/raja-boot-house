@@ -21,7 +21,10 @@ export async function GET() {
     return NextResponse.json(coupons);
   } catch (error: any) {
     console.error("Failed to fetch coupons:", error);
-    return NextResponse.json({ error: error.message || "Failed to fetch coupons" }, { status: 500 });
+    return NextResponse.json(
+      { error: error.message || "Failed to fetch coupons" },
+      { status: 500 },
+    );
   }
 }
 
@@ -49,7 +52,10 @@ export async function POST(request: Request) {
     // Check if code already exists
     const existing = await Coupon.findOne({ code: uppercaseCode });
     if (existing) {
-      return NextResponse.json({ error: "A coupon with this code already exists" }, { status: 400 });
+      return NextResponse.json(
+        { error: "A coupon with this code already exists" },
+        { status: 400 },
+      );
     }
 
     const newCoupon = await Coupon.create({
@@ -66,7 +72,10 @@ export async function POST(request: Request) {
     return NextResponse.json({ success: true, coupon: newCoupon });
   } catch (error: any) {
     console.error("Failed to create coupon:", error);
-    return NextResponse.json({ error: error.message || "Failed to create coupon" }, { status: 500 });
+    return NextResponse.json(
+      { error: error.message || "Failed to create coupon" },
+      { status: 500 },
+    );
   }
 }
 
@@ -83,7 +92,8 @@ export async function PUT(request: Request) {
     }
 
     const body = await request.json();
-    const { id, code, type, value, minCartValue, validFrom, validTill, usageLimit, isActive } = body;
+    const { id, code, type, value, minCartValue, validFrom, validTill, usageLimit, isActive } =
+      body;
 
     if (!id) {
       return NextResponse.json({ error: "Coupon ID is required" }, { status: 400 });
@@ -99,7 +109,10 @@ export async function PUT(request: Request) {
       if (uppercaseCode !== coupon.code) {
         const existing = await Coupon.findOne({ code: uppercaseCode });
         if (existing) {
-          return NextResponse.json({ error: "A coupon with this code already exists" }, { status: 400 });
+          return NextResponse.json(
+            { error: "A coupon with this code already exists" },
+            { status: 400 },
+          );
         }
         coupon.code = uppercaseCode;
       }
@@ -110,14 +123,18 @@ export async function PUT(request: Request) {
     if (minCartValue !== undefined) coupon.minCartValue = Number(minCartValue);
     if (validFrom) coupon.validFrom = new Date(validFrom);
     if (validTill) coupon.validTill = new Date(validTill);
-    if (usageLimit !== undefined) coupon.usageLimit = usageLimit !== "" && usageLimit !== null ? Number(usageLimit) : undefined;
+    if (usageLimit !== undefined)
+      coupon.usageLimit = usageLimit !== "" && usageLimit !== null ? Number(usageLimit) : undefined;
     if (isActive !== undefined) coupon.isActive = Boolean(isActive);
 
     await coupon.save();
     return NextResponse.json({ success: true, coupon });
   } catch (error: any) {
     console.error("Failed to update coupon:", error);
-    return NextResponse.json({ error: error.message || "Failed to update coupon" }, { status: 500 });
+    return NextResponse.json(
+      { error: error.message || "Failed to update coupon" },
+      { status: 500 },
+    );
   }
 }
 
@@ -148,7 +165,10 @@ export async function DELETE(request: Request) {
     return NextResponse.json({ success: true, message: "Coupon deleted successfully" });
   } catch (error: any) {
     console.error("Failed to delete coupon:", error);
-    return NextResponse.json({ error: error.message || "Failed to delete coupon" }, { status: 500 });
+    return NextResponse.json(
+      { error: error.message || "Failed to delete coupon" },
+      { status: 500 },
+    );
   }
 }
 

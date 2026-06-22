@@ -22,7 +22,10 @@ export async function GET() {
     return NextResponse.json(products);
   } catch (error: any) {
     console.error("Wishlist GET error:", error);
-    return NextResponse.json({ error: error.message || "Failed to fetch wishlist" }, { status: 500 });
+    return NextResponse.json(
+      { error: error.message || "Failed to fetch wishlist" },
+      { status: 500 },
+    );
   }
 }
 
@@ -72,7 +75,10 @@ export async function POST(request: Request) {
     return NextResponse.json(updatedProducts);
   } catch (error: any) {
     console.error("Wishlist POST error:", error);
-    return NextResponse.json({ error: error.message || "Failed to update wishlist" }, { status: 500 });
+    return NextResponse.json(
+      { error: error.message || "Failed to update wishlist" },
+      { status: 500 },
+    );
   }
 }
 

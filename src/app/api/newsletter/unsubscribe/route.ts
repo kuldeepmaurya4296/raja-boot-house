@@ -28,7 +28,7 @@ export async function GET(request: Request) {
             </div>
           </body>
         </html>`,
-        { headers: { "Content-Type": "text/html" } }
+        { headers: { "Content-Type": "text/html" } },
       );
     }
 
@@ -60,7 +60,7 @@ export async function GET(request: Request) {
           </div>
         </body>
       </html>`,
-      { headers: { "Content-Type": "text/html" } }
+      { headers: { "Content-Type": "text/html" } },
     );
   } catch (error: any) {
     console.error("Unsubscribe error:", error);
@@ -84,7 +84,7 @@ export async function GET(request: Request) {
           </div>
         </body>
       </html>`,
-      { headers: { "Content-Type": "text/html" } }
+      { headers: { "Content-Type": "text/html" } },
     );
   }
 }

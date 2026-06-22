@@ -9,9 +9,9 @@ export const dynamic = "force-dynamic";
 export default async function EditBrandPage({ params }: { params: Promise<{ id: string }> }) {
   await dbConnect();
   const { id } = await params;
-  
+
   const brand = await Brand.findById(id).lean();
-  
+
   if (!brand) {
     notFound();
   }

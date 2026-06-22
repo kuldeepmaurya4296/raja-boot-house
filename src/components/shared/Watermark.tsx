@@ -6,7 +6,7 @@ import { ExternalLink } from "lucide-react";
 export function Watermark() {
   return (
     <div className="fixed bottom-24 md:bottom-20 left-6 z-[999] print:hidden">
-      <a
+      {/* <a
         href="https://maurya-tech.com/"
         target="_blank"
         rel="noopener noreferrer"
@@ -15,7 +15,7 @@ export function Watermark() {
       >
         <span>Built by Maurya Tech</span>
         <ExternalLink className="h-2.5 w-2.5 shrink-0" />
-      </a>
+      </a> */}
     </div>
   );
 }

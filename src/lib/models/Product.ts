@@ -14,6 +14,7 @@ export interface IProduct extends Document {
   slug: string;
   description: string;
   brand: mongoose.Types.ObjectId | string;
+  vendorId?: mongoose.Types.ObjectId;
   category: mongoose.Types.ObjectId;
   gender: "Men" | "Women" | "Children" | "Unisex";
   occasion: ("Daily" | "Wedding" | "Bridal" | "Party" | "Function" | "Sports")[];
@@ -59,8 +60,19 @@ const ProductSchema: Schema = new Schema(
     brand: { type: Schema.Types.ObjectId, ref: "Brand", required: true, index: true },
     vendorId: { type: Schema.Types.ObjectId, ref: "User", index: true },
     category: { type: Schema.Types.ObjectId, ref: "Category", required: true, index: true },
-    gender: { type: String, enum: ["Men", "Women", "Children", "Unisex"], required: true, index: true },
-    occasion: [{ type: String, enum: ["Daily", "Wedding", "Bridal", "Party", "Function", "Sports"], index: true }],
+    gender: {
+      type: String,
+      enum: ["Men", "Women", "Children", "Unisex"],
+      required: true,
+      index: true,
+    },
+    occasion: [
+      {
+        type: String,
+        enum: ["Daily", "Wedding", "Bridal", "Party", "Function", "Sports"],
+        index: true,
+      },
+    ],
     images: [
       {
         url: { type: String, required: true },
@@ -83,7 +95,7 @@ const ProductSchema: Schema = new Schema(
     metaTitle: { type: String },
     metaDescription: { type: String },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
 // Pre-save hook to calculate discount percentage

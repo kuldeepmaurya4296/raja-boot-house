@@ -9,7 +9,7 @@ export function CheckoutStepsHeader({ step }: CheckoutStepsHeaderProps) {
       {steps.map((s, i) => {
         const isCompleted = i + 1 < step;
         const isActive = i + 1 === step;
-        
+
         return (
           <div key={s} className="flex-1 flex items-center gap-3">
             <div
@@ -24,19 +24,23 @@ export function CheckoutStepsHeader({ step }: CheckoutStepsHeaderProps) {
               {isCompleted ? "✓" : i + 1}
             </div>
             <div className="flex flex-col min-w-0">
-              <span className={`text-[9px] font-extrabold uppercase tracking-widest ${isActive ? "text-cognac" : "text-muted-foreground"}`}>
+              <span
+                className={`text-[9px] font-extrabold uppercase tracking-widest ${isActive ? "text-cognac" : "text-muted-foreground"}`}
+              >
                 Step 0{i + 1}
               </span>
-              <span className={`text-xs md:text-sm font-serif truncate ${isActive ? "font-bold text-charcoal" : isCompleted ? "text-charcoal/80 font-medium" : "text-muted-foreground"}`}>
+              <span
+                className={`text-xs md:text-sm font-serif truncate ${isActive ? "font-bold text-charcoal" : isCompleted ? "text-charcoal/80 font-medium" : "text-muted-foreground"}`}
+              >
                 {s}
               </span>
             </div>
             {i < steps.length - 1 && (
               <div className="hidden md:block flex-1 h-[2px] bg-border/40 mx-4 relative overflow-hidden">
-                <div 
+                <div
                   className={`absolute inset-0 bg-cognac transition-all duration-500 ${
                     isCompleted ? "w-full" : "w-0"
-                  }`} 
+                  }`}
                 />
               </div>
             )}

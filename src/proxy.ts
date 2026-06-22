@@ -4,13 +4,18 @@ import { getToken } from "next-auth/jwt";
 
 export async function proxy(req: NextRequest) {
   const { nextUrl } = req;
-  const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET, secureCookie: process.env.NODE_ENV === "production" });
+  const token = await getToken({
+    req,
+    secret: process.env.NEXTAUTH_SECRET,
+    secureCookie: process.env.NODE_ENV === "production",
+  });
   const isLoggedIn = !!token;
   const role = token?.role as string | undefined;
 
   const isAuthRoute = ["/login", "/signup", "/register"].includes(nextUrl.pathname);
   const isAdminRoute = nextUrl.pathname.startsWith("/admin");
-  const isCustomerRoute = nextUrl.pathname.startsWith("/checkout") || nextUrl.pathname.startsWith("/account");
+  const isCustomerRoute =
+    nextUrl.pathname.startsWith("/checkout") || nextUrl.pathname.startsWith("/account");
 
   if (isAuthRoute) {
     if (isLoggedIn) {
@@ -53,11 +58,5 @@ export async function proxy(req: NextRequest) {
 }
 
 export const config = {
-  matcher: [
-    "/admin/:path*",
-    "/checkout/:path*",
-    "/account/:path*",
-    "/login",
-    "/signup"
-  ],
+  matcher: ["/admin/:path*", "/checkout/:path*", "/account/:path*", "/login", "/signup"],
 };

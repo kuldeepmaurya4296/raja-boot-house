@@ -9,7 +9,15 @@ import { Suspense } from "react";
 import { useDragScroll } from "@/lib/useDragScroll";
 import { UpdateStatusModal } from "./components/UpdateStatusModal";
 
-export function OrdersClient({ orders, totalItems, statusCounts = {} }: { orders: any[]; totalItems: number; statusCounts?: Record<string, number> }) {
+export function OrdersClient({
+  orders,
+  totalItems,
+  statusCounts = {},
+}: {
+  orders: any[];
+  totalItems: number;
+  statusCounts?: Record<string, number>;
+}) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -54,17 +62,19 @@ export function OrdersClient({ orders, totalItems, statusCounts = {} }: { orders
 
   // Selection State
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
-  
-  const allSelectedOnPage = orders.length > 0 && orders.every(o => selectedIds.includes(o.orderId));
-  const someSelectedOnPage = orders.length > 0 && orders.some(o => selectedIds.includes(o.orderId));
+
+  const allSelectedOnPage =
+    orders.length > 0 && orders.every((o) => selectedIds.includes(o.orderId));
+  const someSelectedOnPage =
+    orders.length > 0 && orders.some((o) => selectedIds.includes(o.orderId));
 
   const toggleAll = () => {
     if (allSelectedOnPage) {
-      setSelectedIds(prev => prev.filter(id => !orders.some(o => o.orderId === id)));
+      setSelectedIds((prev) => prev.filter((id) => !orders.some((o) => o.orderId === id)));
     } else {
-      setSelectedIds(prev => {
+      setSelectedIds((prev) => {
         const next = [...prev];
-        orders.forEach(o => {
+        orders.forEach((o) => {
           if (!next.includes(o.orderId)) {
             next.push(o.orderId);
           }
@@ -81,7 +91,7 @@ export function OrdersClient({ orders, totalItems, statusCounts = {} }: { orders
         <input
           type="checkbox"
           checked={allSelectedOnPage}
-          ref={input => {
+          ref={(input) => {
             if (input) {
               input.indeterminate = someSelectedOnPage && !allSelectedOnPage;
             }
@@ -90,45 +100,77 @@ export function OrdersClient({ orders, totalItems, statusCounts = {} }: { orders
           className="h-4 w-4 rounded border-input text-primary focus:ring-primary cursor-pointer accent-primary"
         />
       ),
-      render: o => (
+      render: (o) => (
         <input
           type="checkbox"
           checked={selectedIds.includes(o.orderId)}
-          onChange={e => {
+          onChange={(e) => {
             if (e.target.checked) {
-              setSelectedIds(prev => [...prev, o.orderId]);
+              setSelectedIds((prev) => [...prev, o.orderId]);
             } else {
-              setSelectedIds(prev => prev.filter(id => id !== o.orderId));
+              setSelectedIds((prev) => prev.filter((id) => id !== o.orderId));
             }
           }}
           className="h-4 w-4 rounded border-input text-primary focus:ring-primary cursor-pointer accent-primary"
         />
-      )
+      ),
     },
-    { key: "n", header: "Order", sortKey: "orderId", render: o => <span className="font-semibold text-sm">{o.orderId}</span> },
-    { key: "c", header: "Customer", render: o => <span className="text-sm">{o.customerName}</span> },
-    { key: "i", header: "Items", render: o => <span className="text-sm">{o.itemCount}</span> },
-    { key: "p", header: "Payment", sortKey: "payment", render: o => <span className="text-sm uppercase text-xs">{o.paymentMethod}</span> },
-    { key: "d", header: "Date", sortKey: "createdAt", render: o => <span className="text-sm text-muted-foreground">{formatDate(o.createdAt)}</span> },
-    { key: "s", header: "Status", sortKey: "status", render: o => <StatusBadge status={o.status} /> },
-    { key: "t", header: "Total", sortKey: "total", render: o => <span className="font-semibold">{formatINR(o.total)}</span>, className: "text-right" },
+    {
+      key: "n",
+      header: "Order",
+      sortKey: "orderId",
+      render: (o) => <span className="font-semibold text-sm">{o.orderId}</span>,
+    },
+    {
+      key: "c",
+      header: "Customer",
+      render: (o) => <span className="text-sm">{o.customerName}</span>,
+    },
+    { key: "i", header: "Items", render: (o) => <span className="text-sm">{o.itemCount}</span> },
+    {
+      key: "p",
+      header: "Payment",
+      sortKey: "payment",
+      render: (o) => <span className="text-sm uppercase text-xs">{o.paymentMethod}</span>,
+    },
+    {
+      key: "d",
+      header: "Date",
+      sortKey: "createdAt",
+      render: (o) => (
+        <span className="text-sm text-muted-foreground">{formatDate(o.createdAt)}</span>
+      ),
+    },
+    {
+      key: "s",
+      header: "Status",
+      sortKey: "status",
+      render: (o) => <StatusBadge status={o.status} />,
+    },
+    {
+      key: "t",
+      header: "Total",
+      sortKey: "total",
+      render: (o) => <span className="font-semibold">{formatINR(o.total)}</span>,
+      className: "text-right",
+    },
     {
       key: "actions",
       header: "Actions",
-      render: o => (
+      render: (o) => (
         <button
           onClick={() => handleOpenUpdateModal(o)}
           className="text-xs bg-primary text-primary-foreground hover:bg-primary/95 px-3 py-1.5 rounded-full font-semibold cursor-pointer transition shadow-sm"
         >
           Update Status
         </button>
-      )
-    }
+      ),
+    },
   ];
 
   return (
     <div className="space-y-4 relative">
-      <div 
+      <div
         ref={dragScroll.ref}
         onMouseDown={dragScroll.onMouseDown}
         onMouseLeave={dragScroll.onMouseLeave}
@@ -157,11 +199,11 @@ export function OrdersClient({ orders, totalItems, statusCounts = {} }: { orders
               }`}
             >
               <span>{tab.label}</span>
-              <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-bold ${
-                isActive
-                  ? "bg-primary text-primary-foreground"
-                  : "bg-muted text-muted-foreground"
-              }`}>
+              <span
+                className={`text-[10px] px-1.5 py-0.5 rounded-full font-bold ${
+                  isActive ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"
+                }`}
+              >
                 {count}
               </span>
             </button>
@@ -181,7 +223,10 @@ export function OrdersClient({ orders, totalItems, statusCounts = {} }: { orders
             </span>
             <button
               onClick={() => {
-                window.open(`/api/admin/orders/shipping-labels?ids=${selectedIds.join(",")}`, "_blank");
+                window.open(
+                  `/api/admin/orders/shipping-labels?ids=${selectedIds.join(",")}`,
+                  "_blank",
+                );
               }}
               className="text-xs bg-primary text-primary-foreground hover:bg-primary/95 px-4 py-2 rounded-full font-bold cursor-pointer transition shadow-sm flex items-center gap-1.5"
             >
@@ -195,14 +240,25 @@ export function OrdersClient({ orders, totalItems, statusCounts = {} }: { orders
             </button>
           </div>
         ) : (
-          <button
-            onClick={() => {
-              window.open("/api/admin/orders/payouts", "_blank");
-            }}
-            className="text-xs bg-muted hover:bg-muted/80 text-foreground border border-border px-4 py-2 rounded-full font-semibold cursor-pointer transition shadow-sm flex items-center gap-1.5 w-full sm:w-auto justify-center"
-          >
-            <span>📥 Export Pending Payouts CSV</span>
-          </button>
+          <div className="flex flex-wrap items-center gap-2.5 w-full sm:w-auto">
+            <button
+              onClick={() => {
+                const params = new URLSearchParams(searchParams.toString());
+                window.open(`/api/admin/orders/export?${params.toString()}`, "_blank");
+              }}
+              className="text-xs bg-muted hover:bg-muted/80 text-foreground border border-border px-4 py-2 rounded-full font-semibold cursor-pointer transition shadow-sm flex items-center gap-1.5 w-full sm:w-auto justify-center"
+            >
+              <span>📥 Export Orders CSV</span>
+            </button>
+            <button
+              onClick={() => {
+                window.open("/api/admin/orders/payouts", "_blank");
+              }}
+              className="text-xs bg-muted hover:bg-muted/80 text-foreground border border-border px-4 py-2 rounded-full font-semibold cursor-pointer transition shadow-sm flex items-center gap-1.5 w-full sm:w-auto justify-center"
+            >
+              <span>📥 Export Pending Payouts CSV</span>
+            </button>
+          </div>
         )}
       </div>
       <div>

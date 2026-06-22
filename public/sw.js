@@ -7,30 +7,36 @@ const ASSETS_TO_CACHE = [
   "/web-app-manifest-512x512.png",
   "/favicon-96x96.png",
   "/apple-touch-icon.png",
-  "/rbh-logo.png"
+  "/rbh-logo.png",
 ];
 
 // Install Event - cache core shell
 self.addEventListener("install", (event) => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => {
-      return cache.addAll(ASSETS_TO_CACHE);
-    }).then(() => self.skipWaiting())
+    caches
+      .open(CACHE_NAME)
+      .then((cache) => {
+        return cache.addAll(ASSETS_TO_CACHE);
+      })
+      .then(() => self.skipWaiting()),
   );
 });
 
 // Activate Event - clean old caches
 self.addEventListener("activate", (event) => {
   event.waitUntil(
-    caches.keys().then((keys) => {
-      return Promise.all(
-        keys.map((key) => {
-          if (key !== CACHE_NAME) {
-            return caches.delete(key);
-          }
-        })
-      );
-    }).then(() => self.clients.claim())
+    caches
+      .keys()
+      .then((keys) => {
+        return Promise.all(
+          keys.map((key) => {
+            if (key !== CACHE_NAME) {
+              return caches.delete(key);
+            }
+          }),
+        );
+      })
+      .then(() => self.clients.claim()),
   );
 });
 
@@ -56,6 +62,6 @@ self.addEventListener("fetch", (event) => {
       .catch(() => {
         // Fallback to cache if network fails
         return caches.match(event.request);
-      })
+      }),
   );
 });

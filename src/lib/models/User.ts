@@ -56,7 +56,7 @@ const UserSchema: Schema = new Schema(
     resetPasswordToken: { type: String },
     resetPasswordExpire: { type: Date },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
 export default mongoose.models.User || mongoose.model<IUser>("User", UserSchema);

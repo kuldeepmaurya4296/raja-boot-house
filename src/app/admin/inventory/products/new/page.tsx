@@ -8,12 +8,12 @@ export const dynamic = "force-dynamic";
 
 export default async function NewProductPage() {
   await dbConnect();
-  
+
   const [categoriesRaw, brandsRaw] = await Promise.all([
     Category.find({ isActive: true }).select("name _id").lean(),
-    Brand.find({ isActive: true }).select("name _id").sort({ name: 1 }).lean()
+    Brand.find({ isActive: true }).select("name _id").sort({ name: 1 }).lean(),
   ]);
-  
+
   const categories = categoriesRaw.map((c: any) => ({
     id: c._id.toString(),
     name: c.name,

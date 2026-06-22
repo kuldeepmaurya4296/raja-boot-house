@@ -20,7 +20,7 @@ const CategorySchema: Schema = new Schema(
     isActive: { type: Boolean, default: true },
     imageUrl: { type: String },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
 export default mongoose.models.Category || mongoose.model<ICategory>("Category", CategorySchema);

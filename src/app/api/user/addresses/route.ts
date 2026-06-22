@@ -23,7 +23,10 @@ export async function GET() {
     return NextResponse.json(user.addresses || []);
   } catch (error: any) {
     console.error("Addresses GET error:", error);
-    return NextResponse.json({ error: error.message || "Failed to fetch addresses" }, { status: 500 });
+    return NextResponse.json(
+      { error: error.message || "Failed to fetch addresses" },
+      { status: 500 },
+    );
   }
 }
 
@@ -133,7 +136,10 @@ export async function PUT(request: Request) {
     return NextResponse.json(user.addresses);
   } catch (error: any) {
     console.error("Addresses PUT error:", error);
-    return NextResponse.json({ error: error.message || "Failed to update address" }, { status: 500 });
+    return NextResponse.json(
+      { error: error.message || "Failed to update address" },
+      { status: 500 },
+    );
   }
 }
 
@@ -178,7 +184,10 @@ export async function DELETE(request: Request) {
     return NextResponse.json(user.addresses);
   } catch (error: any) {
     console.error("Addresses DELETE error:", error);
-    return NextResponse.json({ error: error.message || "Failed to delete address" }, { status: 500 });
+    return NextResponse.json(
+      { error: error.message || "Failed to delete address" },
+      { status: 500 },
+    );
   }
 }
 
