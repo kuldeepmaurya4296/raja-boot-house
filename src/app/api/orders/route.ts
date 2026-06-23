@@ -30,8 +30,10 @@ export async function GET(request: Request) {
       throw new Error("Database offline");
     }
 
-    // Passively cleanup any expired pending orders
-    await cleanupExpiredPendingOrders();
+    // Passively cleanup any expired pending orders asynchronously (non-blocking)
+    cleanupExpiredPendingOrders().catch((err) =>
+      console.error("[Passive Cleanup Error] Failed to run expired pending orders cleanup:", err),
+    );
 
     let query: any = {
       $or: [{ "payment.method": "COD" }, { "payment.status": { $ne: "PENDING" } }],

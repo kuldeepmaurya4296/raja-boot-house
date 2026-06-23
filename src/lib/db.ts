@@ -121,12 +121,6 @@ export async function connectToDatabase() {
       })
       .then(async (mongooseInstance) => {
         console.log("Successfully connected to MongoDB.");
-        try {
-          await mongooseInstance.connection.collection("reviews").dropIndex("productId_1_userId_1");
-          console.log("Successfully dropped duplicate review index.");
-        } catch (err) {
-          // Ignore if index doesn't exist
-        }
         return mongooseInstance;
       })
       .catch((err) => {

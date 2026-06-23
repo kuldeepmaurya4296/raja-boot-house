@@ -11,16 +11,25 @@ export async function GET() {
     }
 
     const categories = await Category.find({ isActive: true }).sort({ name: 1 }).lean();
-    const categoriesWithCount = await Promise.all(
-      categories.map(async (cat: any) => {
-        const productCount = await Product.countDocuments({ category: cat._id, isActive: true });
-        return {
-          ...cat,
-          id: cat._id.toString(),
-          productCount,
-        };
-      }),
+
+    // Group product counts by category ID in a single aggregation query
+    const counts = await Product.aggregate([
+      { $match: { isActive: true } },
+      { $group: { _id: "$category", count: { $sum: 1 } } },
+    ]);
+
+    const countsMap = new Map<string, number>(
+      counts.map((c: any) => [c._id ? c._id.toString() : "", c.count]),
     );
+
+    const categoriesWithCount = categories.map((cat: any) => {
+      const catIdStr = cat._id.toString();
+      return {
+        ...cat,
+        id: catIdStr,
+        productCount: countsMap.get(catIdStr) || 0,
+      };
+    });
     return NextResponse.json(categoriesWithCount);
   } catch (error: any) {
     console.error("Failed to fetch categories:", error);
