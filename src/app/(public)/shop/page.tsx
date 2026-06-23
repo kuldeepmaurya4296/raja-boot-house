@@ -141,9 +141,8 @@ async function getShopData(filters: any) {
   } = filters;
   const currentLimit = parseInt(limit || "8", 10);
 
-  // 1. Fetch categories with active items
-  const categoryIds = await Product.distinct("category", { isActive: true });
-  const categoriesList = await Category.find({ _id: { $in: categoryIds } }).lean();
+  // 1. Fetch active categories directly (eliminating expensive distinct scan on Product collection)
+  const categoriesList = await Category.find({ isActive: true }).sort({ name: 1 }).lean();
 
   // 2. Fetch products
   let query: any = { isActive: true };
