@@ -31,7 +31,7 @@ export default function DocsLayout({ children }: { children: React.ReactNode }) 
       {/* Title */}
       <div className="flex items-center gap-2 border-b border-border/40 pb-4">
         <BookOpen className="h-5 w-5 text-cognac" />
-        <span className="font-serif font-bold text-lg text-charcoal dark:text-cream tracking-tight">
+        <span className="font-serif font-bold text-lg text-charcoal tracking-tight">
           System Manuals
         </span>
       </div>
@@ -86,12 +86,12 @@ export default function DocsLayout({ children }: { children: React.ReactNode }) 
   );
 
   return (
-    <div className="min-h-screen bg-cream/10 dark:bg-charcoal/20">
+    <div className="min-h-screen bg-cream/10">
       {/* Mobile Top Bar */}
       <div className="lg:hidden border-b border-border/50 bg-card p-4 flex items-center justify-between sticky top-16 z-30">
         <div className="flex items-center gap-2">
           <BookOpen className="h-4.5 w-4.5 text-cognac" />
-          <span className="font-serif font-bold text-sm text-charcoal dark:text-cream">
+          <span className="font-serif font-bold text-sm text-charcoal">
             System Documentation
           </span>
         </div>
@@ -134,7 +134,7 @@ export default function DocsLayout({ children }: { children: React.ReactNode }) 
         <div className="flex justify-between items-center mb-6">
           <div className="flex items-center gap-2">
             <BookOpen className="h-5 w-5 text-cognac" />
-            <span className="font-serif font-bold text-base text-charcoal dark:text-cream">
+            <span className="font-serif font-bold text-base text-charcoal">
               Documentation
             </span>
           </div>

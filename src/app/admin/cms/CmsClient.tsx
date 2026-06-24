@@ -1165,7 +1165,7 @@ function LegalTab({ settings }: { settings: any[] }) {
               <h3 className="font-semibold text-base">{activePolicy?.label}</h3>
               <p className="text-xs text-muted-foreground">
                 This content is displayed publicly at{" "}
-                <code className="bg-muted px-1.5 py-0.5 rounded text-[11px] font-mono text-charcoal dark:text-cream/90">
+                <code className="bg-muted px-1.5 py-0.5 rounded text-[11px] font-mono text-charcoal">
                   /
                   {activeKey === "privacyPolicy"
                     ? "privacy-policy"
@@ -1256,7 +1256,7 @@ function AnnouncementsTab({ settings }: { settings: any[] }) {
         </div>
 
         <form onSubmit={handleSave} className="space-y-4">
-          <div className="flex items-center justify-between p-3.5 bg-cream/40 dark:bg-cream/5 border border-border/80 rounded-lg">
+          <div className="flex items-center justify-between p-3.5 bg-cream/40 border border-border/80 rounded-lg">
             <div>
               <p className="text-sm font-semibold">Enable Announcement Bar</p>
               <p className="text-[11px] text-muted-foreground">

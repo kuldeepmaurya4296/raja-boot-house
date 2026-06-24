@@ -21,6 +21,7 @@ import {
   ShoppingBag,
   HelpCircle,
   FileText,
+  ExternalLink,
 } from "lucide-react";
 import { ReturnModal } from "./components/ReturnModal";
 import { CancelModal } from "./components/CancelModal";
@@ -703,11 +704,26 @@ export default function AccountOrdersPage() {
                             <span className="text-[10px] font-bold text-muted-foreground">
                               Courier:{" "}
                               <strong className="text-foreground">
-                                {o.shipping.courier} ({o.shipping.trackingNumber})
+                                {o.shipping.courier}
+                                {o.shipping.trackingNumber ? ` (${o.shipping.trackingNumber})` : ""}
                               </strong>
                             </span>
                           )}
                         </div>
+
+                        {/* Track shipment — clickable courier tracking link */}
+                        {o.shipping?.trackingUrl && (
+                          <a
+                            href={o.shipping.trackingUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-2 rounded-xl bg-primary px-4 py-2 text-[11px] font-bold text-primary-foreground shadow-sm transition-all hover:opacity-90"
+                          >
+                            <Truck className="h-3.5 w-3.5" />
+                            Track Shipment
+                            <ExternalLink className="h-3 w-3" />
+                          </a>
+                        )}
 
                         <div className="relative border-l border-border/80 pl-6 ml-3 py-1 space-y-5">
                           {(() => {

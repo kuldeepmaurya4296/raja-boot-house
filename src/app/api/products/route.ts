@@ -6,6 +6,7 @@ import Category from "@/lib/models/Category";
 import Brand from "@/lib/models/Brand";
 import { ensureDbReady, normalizeProduct } from "@/lib/db-utils";
 import { applyFlashSales } from "@/lib/flash-sale-utils";
+import { cachedJson } from "@/lib/api-cache";
 
 function escapeRegExp(string: string) {
   return string.replace(/[\\^$*+?.()|[\]{}]/g, "\\$&");
@@ -30,7 +31,7 @@ export async function GET(request: Request) {
 
     // 1. Category filter
     if (categorySlug && categorySlug !== "all") {
-      const categoryDoc = await Category.findOne({ slug: categorySlug });
+      const categoryDoc = await Category.findOne({ slug: categorySlug }).select("_id").lean();
       if (categoryDoc) {
         query.category = categoryDoc._id;
       } else {
@@ -40,7 +41,9 @@ export async function GET(request: Request) {
 
     // 2. Brand filter
     if (brand) {
-      const brandDoc = await Brand.findOne({ name: new RegExp(`^${escapeRegExp(brand)}$`, "i") });
+      const brandDoc = await Brand.findOne({ name: new RegExp(`^${escapeRegExp(brand)}$`, "i") })
+        .select("_id")
+        .lean();
       if (brandDoc) {
         query.brand = brandDoc._id;
       } else {
@@ -85,10 +88,12 @@ export async function GET(request: Request) {
       mongooseQuery = mongooseQuery.sort({ createdAt: -1 });
     }
 
-    const rawProducts = await mongooseQuery.exec();
+    const rawProducts = await mongooseQuery.lean().exec();
     const normalized = rawProducts.map((p: any) => normalizeProduct(p));
     const withFlashSales = await applyFlashSales(normalized);
-    return NextResponse.json(withFlashSales);
+    // CDN-cache listings 60s (5min stale-while-revalidate). Per-URL, so each
+    // filter/sort combo caches independently; repeat browses skip the DB.
+    return cachedJson(withFlashSales, 60, 300);
   } catch (error: any) {
     console.error("Failed to fetch products:", error);
     return NextResponse.json(

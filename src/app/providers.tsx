@@ -7,7 +7,21 @@ import { SettingsProvider } from "@/lib/settings-context";
 import { ThemeProvider } from "@/components/public/ThemeProvider";
 
 export function Providers({ children }: { children: React.ReactNode }) {
-  const [queryClient] = useState(() => new QueryClient());
+  const [queryClient] = useState(
+    () =>
+      new QueryClient({
+        defaultOptions: {
+          queries: {
+            // Reuse fetched data for 60s before refetching; don't refetch on
+            // window focus. Cuts redundant API hits and lets the CDN cache help.
+            staleTime: 60_000,
+            gcTime: 5 * 60_000,
+            refetchOnWindowFocus: false,
+            retry: 1,
+          },
+        },
+      }),
+  );
 
   useEffect(() => {
     if (typeof window !== "undefined" && "serviceWorker" in navigator) {

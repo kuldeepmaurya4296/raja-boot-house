@@ -2,15 +2,49 @@ import { NextResponse } from "next/server";
 import Razorpay from "razorpay";
 import { connectToDatabase } from "@/lib/db";
 import Order from "@/lib/models/Order";
+import { auth } from "@/lib/auth";
 
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { amount, currency = "INR", receipt } = body;
+    const { currency = "INR", receipt } = body;
 
-    if (!amount) {
-      return NextResponse.json({ error: "Amount is required" }, { status: 400 });
+    // receipt is the local orderId (RBH-XXXXX). It must reference a real order.
+    if (!receipt) {
+      return NextResponse.json({ error: "Order reference (receipt) is required" }, { status: 400 });
     }
+
+    // Authenticate caller
+    const session = await auth();
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    await connectToDatabase();
+
+    // Look up the order created server-side with a verified total.
+    // The charge amount is ALWAYS derived from the stored order, never from the client body.
+    const order = await Order.findOne({ orderId: receipt });
+    if (!order) {
+      return NextResponse.json({ error: "Order not found" }, { status: 404 });
+    }
+
+    // Ownership check — only the placing customer may initiate payment for this order.
+    if (order.userId.toString() !== session.user.id) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
+
+    // Already paid — block re-charge.
+    if (order.payment?.status === "PAID") {
+      return NextResponse.json({ error: "Order is already paid" }, { status: 409 });
+    }
+
+    const amount = order.pricing.total;
+    if (!amount || amount <= 0) {
+      return NextResponse.json({ error: "Invalid order amount" }, { status: 400 });
+    }
+    // Razorpay amount is in paise (lowest currency unit)
+    const amountInPaise = Math.round(amount * 100);
 
     const keyId = process.env.RAZORPAY_KEY_ID;
     const keySecret = process.env.RAZORPAY_KEY_SECRET;
@@ -21,7 +55,6 @@ export async function POST(request: Request) {
       );
       const fakeRzpOrderId = `fake_rzp_order_${Date.now()}`;
       try {
-        await connectToDatabase();
         const updateResult = await Order.updateOne(
           { orderId: receipt },
           { "payment.razorpayOrderId": fakeRzpOrderId },
@@ -34,9 +67,9 @@ export async function POST(request: Request) {
       }
       return NextResponse.json({
         id: fakeRzpOrderId,
-        amount: Math.round(amount * 100),
+        amount: amountInPaise,
         currency,
-        receipt: receipt || `receipt_${Date.now()}`,
+        receipt,
         simulated: true,
       });
     }
@@ -46,36 +79,32 @@ export async function POST(request: Request) {
       key_secret: keySecret,
     });
 
-    // Razorpay amount is in paise (lowest currency unit)
-    const amountInPaise = Math.round(amount * 100);
-
     const options = {
       amount: amountInPaise,
       currency,
-      receipt: receipt || `receipt_${Date.now()}`,
+      receipt,
     };
 
-    const order = await razorpay.orders.create(options);
+    const rzpOrder = await razorpay.orders.create(options);
 
     // Save razorpayOrderId to MongoDB Order document
     try {
-      await connectToDatabase();
       const updateResult = await Order.updateOne(
-        { orderId: order.receipt },
-        { "payment.razorpayOrderId": order.id },
+        { orderId: rzpOrder.receipt },
+        { "payment.razorpayOrderId": rzpOrder.id },
       );
       console.log(
-        `Associated Razorpay order ID ${order.id} with local order ${order.receipt}. Modified count: ${updateResult.modifiedCount}`,
+        `Associated Razorpay order ID ${rzpOrder.id} with local order ${rzpOrder.receipt}. Modified count: ${updateResult.modifiedCount}`,
       );
     } catch (dbErr) {
       console.error("Failed to associate razorpayOrderId with local order:", dbErr);
     }
 
     return NextResponse.json({
-      id: order.id,
-      amount: order.amount,
-      currency: order.currency,
-      receipt: order.receipt,
+      id: rzpOrder.id,
+      amount: rzpOrder.amount,
+      currency: rzpOrder.currency,
+      receipt: rzpOrder.receipt,
     });
   } catch (error: any) {
     console.error("Razorpay order creation failed:", error);

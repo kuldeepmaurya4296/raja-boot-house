@@ -114,7 +114,7 @@ const getFilterMetadata = unstable_cache(
   },
 );
 
-async function getShopData(filters: any) {
+async function getShopDataImpl(filters: any) {
   const { isReady } = await ensureDbReady();
   if (!isReady) {
     console.warn("Database connection is not ready. Returning empty shop catalog data.");
@@ -249,7 +249,7 @@ async function getShopData(filters: any) {
     mongooseQuery = mongooseQuery.sort({ createdAt: -1 });
   }
 
-  const rawProducts = await mongooseQuery.limit(currentLimit).exec();
+  const rawProducts = await mongooseQuery.limit(currentLimit).lean().exec();
   const products = rawProducts.map((p: any) => normalizeProduct(p));
 
   return {
@@ -257,6 +257,20 @@ async function getShopData(filters: any) {
     products,
     total,
   };
+}
+
+// Cache per filter combination so repeat category/brand/sort views are served
+// from cache instead of re-querying Mongo on every header-tab navigation.
+// Key includes the serialized filters, so each combo caches independently.
+async function getShopData(filters: any) {
+  return unstable_cache(
+    () => getShopDataImpl(filters),
+    ["shop-data", JSON.stringify(filters ?? {})],
+    {
+      revalidate: 120,
+      tags: ["shop-data"],
+    },
+  )();
 }
 
 export async function generateMetadata({ searchParams }: PageProps): Promise<Metadata> {

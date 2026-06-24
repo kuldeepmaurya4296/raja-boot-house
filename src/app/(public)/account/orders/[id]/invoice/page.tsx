@@ -55,10 +55,18 @@ export default async function InvoicePage({ params }: { params: Promise<{ id: st
   const subtotal = order.pricing?.subtotal || 0;
   const shipping = order.pricing?.shipping || 0;
   const discount = order.pricing?.couponDiscount || 0;
+  const pointsDiscount = order.pricing?.pointsDiscount || 0;
   const total = order.pricing?.total || 0;
 
-  // Tax calculation matching BUG-07 / email template
-  const tax = Math.max(0, total - (subtotal - discount) - shipping);
+  // Prefer GST frozen on the order at purchase time (legally correct, never recomputes).
+  // Fallback for legacy orders placed before tax was persisted: back-compute (includes pointsDiscount).
+  const tax =
+    order.pricing?.tax != null
+      ? order.pricing.tax
+      : Math.max(0, total - (subtotal - discount - pointsDiscount) - shipping);
+  const invoiceTaxRate = order.pricing?.taxRate != null ? order.pricing.taxRate : taxRate;
+  const cgst = order.pricing?.cgst != null ? order.pricing.cgst : Math.round((tax / 2) * 100) / 100;
+  const sgst = order.pricing?.sgst != null ? order.pricing.sgst : tax - cgst;
 
   return (
     <div className="min-h-screen bg-neutral-50 py-10 print:bg-white print:py-0">
@@ -229,9 +237,19 @@ export default async function InvoicePage({ params }: { params: Promise<{ id: st
                 <span>-{formatINR(discount)}</span>
               </div>
             )}
+            {pointsDiscount > 0 && (
+              <div className="flex justify-between items-center text-xs text-amber-600 font-medium">
+                <span>Loyalty Points Discount:</span>
+                <span>-{formatINR(pointsDiscount)}</span>
+              </div>
+            )}
             <div className="flex justify-between items-center text-xs text-muted-foreground">
-              <span>GST (Included):</span>
-              <span className="font-semibold text-charcoal">{formatINR(tax)}</span>
+              <span>CGST ({invoiceTaxRate / 2}%):</span>
+              <span className="font-semibold text-charcoal">{formatINR(cgst)}</span>
+            </div>
+            <div className="flex justify-between items-center text-xs text-muted-foreground">
+              <span>SGST ({invoiceTaxRate / 2}%):</span>
+              <span className="font-semibold text-charcoal">{formatINR(sgst)}</span>
             </div>
             <div className="flex justify-between items-center text-xs text-muted-foreground">
               <span>Shipping Fee:</span>

@@ -112,6 +112,13 @@ export async function connectToDatabase() {
     const opts = {
       bufferCommands: false,
       serverSelectionTimeoutMS: 8000,
+      // Serverless tuning: each warm Vercel function instance keeps a tiny pool.
+      // Default maxPoolSize (100) x many concurrent lambdas exhausts Atlas connections.
+      maxPoolSize: 10,
+      minPoolSize: 0,
+      socketTimeoutMS: 45000,
+      // Compress wire traffic to Atlas — cheaper round-trips on cold paths.
+      compressors: ["zlib"] as ("zlib" | "none" | "snappy" | "zstd")[],
     };
 
     cached.promise = resolveMongoSrv(MONGODB_URI)

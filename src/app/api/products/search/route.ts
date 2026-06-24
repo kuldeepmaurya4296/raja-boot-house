@@ -4,6 +4,7 @@ import Product from "@/lib/models/Product";
 import Category from "@/lib/models/Category";
 import { products as fallbackProducts } from "@/data/products";
 import { ensureDbReady, normalizeProduct } from "@/lib/db-utils";
+import { cachedJson } from "@/lib/api-cache";
 
 export async function GET(request: Request) {
   try {
@@ -40,12 +41,14 @@ export async function GET(request: Request) {
     // Fetch categories matching the query to also search by category names/slugs
     const matchingCategories = await Category.find({
       $or: [{ name: regex }, { slug: regex }],
-    });
+    })
+      .select("_id")
+      .lean();
     const categoryIds = matchingCategories.map((c) => c._id);
 
     // Fetch brands matching the query
     const Brand = (await import("@/lib/models/Brand")).default;
-    const matchingBrands = await Brand.find({ name: regex });
+    const matchingBrands = await Brand.find({ name: regex }).select("_id").lean();
     const brandIds = matchingBrands.map((b: any) => b._id);
 
     const products = await Product.find({
@@ -60,11 +63,13 @@ export async function GET(request: Request) {
     })
       .limit(16)
       .populate({ path: "category", model: Category })
-      .populate({ path: "brand", model: Brand });
+      .populate({ path: "brand", model: Brand })
+      .lean();
 
     const normalized = products.map((p: any) => normalizeProduct(p));
 
-    return NextResponse.json(normalized);
+    // Short CDN cache — popular search terms repeat; 30s keeps it snappy.
+    return cachedJson(normalized, 30, 120);
   } catch (error: any) {
     console.error("Search API failed:", error);
     return NextResponse.json(

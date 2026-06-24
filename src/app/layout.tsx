@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Inter, Fraunces } from "next/font/google";
+import Script from "next/script";
 import { Providers } from "./providers";
 import { Toaster } from "sonner";
 import { Watermark } from "@/components/shared/Watermark";
@@ -62,6 +63,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en" className={`${inter.variable} ${fraunces.variable}`} suppressHydrationWarning>
       <body suppressHydrationWarning>
+        {/* Set theme before first paint to avoid a flash of the wrong theme.
+            Mirrors ThemeProvider: saved `rbh-theme` wins, else system preference.
+            beforeInteractive runs before hydration (Next hoists it into <head>). */}
+        <Script id="theme-init" strategy="beforeInteractive">
+          {`(function(){try{var t=localStorage.getItem('rbh-theme');if(t==='dark'||(!t&&window.matchMedia('(prefers-color-scheme: dark)').matches)){document.documentElement.classList.add('dark');}}catch(e){}})();`}
+        </Script>
         <Providers>
           {children}
           <Toaster richColors position="bottom-right" />

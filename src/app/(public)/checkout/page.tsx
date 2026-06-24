@@ -919,6 +919,7 @@ export default function CheckoutPage() {
               subtotal={subtotal}
               shipping={shippingCost}
               tax={tax}
+              taxRate={settings.taxRate}
               couponDiscount={couponDiscount}
               couponCode={couponCode}
               pointsDiscount={pointsDiscount}
@@ -939,6 +940,10 @@ export default function CheckoutPage() {
                           <img
                             src={l.image}
                             alt=""
+                            width={48}
+                            height={48}
+                            loading="lazy"
+                            decoding="async"
                             className="h-12 w-12 rounded-lg object-cover border border-border/40 shadow-2xs"
                           />
                           <div className="flex-1 min-w-0">

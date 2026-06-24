@@ -5,6 +5,7 @@ import Category from "@/lib/models/Category";
 import Brand from "@/lib/models/Brand";
 
 import { ensureDbReady, normalizeProduct } from "@/lib/db-utils";
+import { cachedJson } from "@/lib/api-cache";
 
 export async function GET(request: Request, { params }: { params: Promise<any> }) {
   try {
@@ -18,11 +19,13 @@ export async function GET(request: Request, { params }: { params: Promise<any> }
     // Try finding by slug first, then by ObjectId id
     let product = await Product.findOne({ slug, isActive: true })
       .populate({ path: "category", model: Category })
-      .populate({ path: "brand", model: Brand });
+      .populate({ path: "brand", model: Brand })
+      .lean();
     if (!product && slug.match(/^[0-9a-fA-F]{24}$/)) {
       product = await Product.findOne({ _id: slug, isActive: true })
         .populate({ path: "category", model: Category })
-        .populate({ path: "brand", model: Brand });
+        .populate({ path: "brand", model: Brand })
+        .lean();
     }
 
     if (!product) {
@@ -33,7 +36,8 @@ export async function GET(request: Request, { params }: { params: Promise<any> }
     const norm = normalizeProduct(product);
     const withFlashSale = await applyFlashSaleToSingleProduct(norm);
 
-    return NextResponse.json(withFlashSale);
+    // Detail pages change rarely — cache 5min on CDN, 30min stale-while-revalidate.
+    return cachedJson(withFlashSale, 300, 1800);
   } catch (error: any) {
     console.error("Failed to fetch product details:", error);
     return NextResponse.json(

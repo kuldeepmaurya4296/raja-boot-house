@@ -2,6 +2,9 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   compress: true,
+  // Keep heavy Node-native deps out of the bundle — smaller serverless functions,
+  // faster cold starts, and no mongoose/bcrypt bundling issues on Vercel.
+  serverExternalPackages: ["mongoose", "bcryptjs", "razorpay", "nodemailer"],
   images: {
     remotePatterns: [
       {

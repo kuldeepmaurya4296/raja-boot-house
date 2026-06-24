@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { connectToDatabase } from "@/lib/db";
 import Settings from "@/lib/models/Settings";
 import { auth } from "@/lib/auth";
+import { cachedJson } from "@/lib/api-cache";
 
 const defaultGeneral = {
   storeName: "Raja Boot House",
@@ -35,10 +36,9 @@ export async function GET() {
     const general = generalDoc ? { ...defaultGeneral, ...generalDoc.value } : defaultGeneral;
     const shippingMethods = shippingDoc ? shippingDoc.value : defaultShipping;
 
-    return NextResponse.json({
-      ...general,
-      shippingMethods,
-    });
+    // Store config changes rarely — cache 60s on CDN (5min stale-while-revalidate).
+    // Fetched by the settings-context on every client session, so this is high-traffic.
+    return cachedJson({ ...general, shippingMethods }, 60, 300);
   } catch (error: any) {
     console.error("Failed to fetch settings:", error);
     return NextResponse.json(

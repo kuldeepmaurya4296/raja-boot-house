@@ -4,6 +4,7 @@ interface OrderSummaryProps {
   subtotal: number;
   shipping: number;
   tax: number;
+  taxRate?: number;
   couponDiscount?: number;
   couponCode?: string;
   pointsDiscount?: number;
@@ -14,6 +15,7 @@ export function OrderSummary({
   subtotal,
   shipping,
   tax,
+  taxRate = 8,
   couponDiscount = 0,
   couponCode,
   pointsDiscount = 0,
@@ -21,6 +23,7 @@ export function OrderSummary({
 }: OrderSummaryProps) {
   const cgst = Math.round(tax / 2);
   const sgst = tax - cgst;
+  const halfRate = taxRate / 2;
   const finalTotal = Math.max(0, subtotal + shipping + tax - couponDiscount - pointsDiscount);
 
   return (
@@ -40,11 +43,11 @@ export function OrderSummary({
           </span>
         </div>
         <div className="flex justify-between">
-          <span className="text-muted-foreground font-medium">CGST (4%)</span>
+          <span className="text-muted-foreground font-medium">CGST ({halfRate}%)</span>
           <span className="font-semibold text-charcoal">{formatINR(cgst)}</span>
         </div>
         <div className="flex justify-between">
-          <span className="text-muted-foreground font-medium">SGST (4%)</span>
+          <span className="text-muted-foreground font-medium">SGST ({halfRate}%)</span>
           <span className="font-semibold text-charcoal">{formatINR(sgst)}</span>
         </div>
         {couponDiscount > 0 && (

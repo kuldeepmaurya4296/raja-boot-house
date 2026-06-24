@@ -44,7 +44,7 @@ export async function GET(request: Request) {
       query.userId = userId;
     }
 
-    const orders = await Order.find(query).sort({ createdAt: -1 });
+    const orders = await Order.find(query).sort({ createdAt: -1 }).lean();
     return NextResponse.json(orders);
   } catch (error: any) {
     console.error("Failed to fetch orders:", error);
@@ -106,11 +106,36 @@ export async function POST(request: Request) {
     const general = generalDoc ? { ...defaultGeneral, ...generalDoc.value } : defaultGeneral;
     const shippingMethods = shippingDoc ? shippingDoc.value : defaultShipping;
 
-    // Validate prices and check stock first (without updating)
+    // Validate prices and check stock first (without updating).
+    // Batch all DB reads up front to avoid a 2N sequential-query N+1
+    // (previously one findById + one FlashSale.findOne per item).
+    const now = new Date();
+    const productIds = items.map((i: any) => i.productId);
+    const [products, activeFlashSales] = await Promise.all([
+      Product.find({ _id: { $in: productIds } }).lean(),
+      FlashSale.find({
+        isActive: true,
+        startTime: { $lte: now },
+        endTime: { $gte: now },
+      })
+        .select("discountType discountValue products")
+        .lean(),
+    ]);
+
+    const productById = new Map(products.map((p: any) => [p._id.toString(), p]));
+    // Map each product id to the flash sale covering it (first match wins).
+    const flashSaleByProduct = new Map<string, any>();
+    for (const fs of activeFlashSales as any[]) {
+      for (const pid of fs.products || []) {
+        const key = pid.toString();
+        if (!flashSaleByProduct.has(key)) flashSaleByProduct.set(key, fs);
+      }
+    }
+
     const enrichedItems = [];
     let computedSubtotal = 0;
     for (const item of items) {
-      const prod = await Product.findById(item.productId);
+      const prod = productById.get(item.productId?.toString());
       if (!prod) {
         return NextResponse.json({ error: `Product not found: ${item.name}` }, { status: 400 });
       }
@@ -136,14 +161,8 @@ export async function POST(request: Request) {
         );
       }
 
-      // Validate price against any active flash sale
-      const now = new Date();
-      const activeFlashSale = await FlashSale.findOne({
-        isActive: true,
-        startTime: { $lte: now },
-        endTime: { $gte: now },
-        products: prod._id,
-      }).lean();
+      // Apply any active flash sale for this product (looked up from the batched map)
+      const activeFlashSale = flashSaleByProduct.get(prod._id.toString());
 
       let itemPrice = prod.salePrice;
       if (activeFlashSale) {
@@ -350,6 +369,12 @@ export async function POST(request: Request) {
           shipping: computedShippingCost,
           couponDiscount: computedCouponDiscount,
           pointsDiscount: pointsDiscount,
+          // Freeze GST at purchase time — invoices must never recompute from live settings
+          taxRate: general.taxRate,
+          taxableAmount: taxableAmount,
+          cgst: Math.round((computedTax / 2) * 100) / 100,
+          sgst: computedTax - Math.round((computedTax / 2) * 100) / 100,
+          tax: computedTax,
           total: finalComputedTotal,
         },
         coupon: coupon?.code

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { connectToDatabase } from "@/lib/db";
 import FlashSale from "@/lib/models/FlashSale";
+import { cachedJson } from "@/lib/api-cache";
 
 export async function GET() {
   try {
@@ -16,7 +17,8 @@ export async function GET() {
       .populate("products")
       .lean();
 
-    return NextResponse.json(activeSales);
+    // Time-sensitive but tolerant of brief staleness — 30s CDN cache.
+    return cachedJson(activeSales, 30, 120);
   } catch (error: any) {
     console.error("Failed to fetch active flash sales:", error);
     return NextResponse.json({ error: "Failed to fetch active flash sales" }, { status: 500 });

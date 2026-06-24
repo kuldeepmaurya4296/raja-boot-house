@@ -84,6 +84,7 @@ export default function CartPage() {
             subtotal={subtotal}
             shipping={shipping}
             tax={tax}
+            taxRate={settings.taxRate}
             actionButton={
               <div className="space-y-3">
                 <Link

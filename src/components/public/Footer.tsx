@@ -34,7 +34,7 @@ export function Footer() {
   const { theme, toggleTheme } = useTheme();
 
   return (
-    <footer className="bg-cream dark:bg-charcoal text-charcoal dark:text-cream/90 border-t border-border/50 mt-12 md:mt-16 lg:mt-24">
+    <footer className="bg-cream text-charcoal border-t border-border/50 mt-12 md:mt-16 lg:mt-24">
       {/* Main Links Grid */}
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-10 lg:py-16 grid grid-cols-1 md:grid-cols-5 gap-8 md:gap-10">
         <div className="md:col-span-2">
@@ -52,7 +52,7 @@ export function Footer() {
               {["UPI", "Razorpay", "Visa", "Mastercard", "COD"].map((badge) => (
                 <span
                   key={badge}
-                  className="text-[9px] font-bold uppercase tracking-wider px-2.5 py-1 bg-cream/40 dark:bg-cream/5 border border-border/60 dark:border-cream/15 rounded text-muted-foreground dark:text-cream/60"
+                  className="text-[9px] font-bold uppercase tracking-wider px-2.5 py-1 bg-cream/40 border border-border/60 rounded text-muted-foreground"
                 >
                   {badge}
                 </span>
@@ -70,7 +70,7 @@ export function Footer() {
               <li key={l.label}>
                 <Link
                   href={l.href}
-                  className="text-sm text-muted-foreground hover:text-charcoal dark:hover:text-cream transition-colors"
+                  className="text-sm text-muted-foreground hover:text-charcoal transition-colors"
                 >
                   {l.label}
                 </Link>
@@ -88,7 +88,7 @@ export function Footer() {
               <li key={l.label}>
                 <Link
                   href={l.href}
-                  className="text-sm text-muted-foreground hover:text-charcoal dark:hover:text-cream transition-colors"
+                  className="text-sm text-muted-foreground hover:text-charcoal transition-colors"
                 >
                   {l.label}
                 </Link>
@@ -106,7 +106,7 @@ export function Footer() {
               <li key={l.label}>
                 <Link
                   href={l.href}
-                  className="text-sm text-muted-foreground hover:text-charcoal dark:hover:text-cream transition-colors"
+                  className="text-sm text-muted-foreground hover:text-charcoal transition-colors"
                 >
                   {l.label}
                 </Link>
@@ -117,7 +117,7 @@ export function Footer() {
       </div>
 
       {/* Bottom Bar */}
-      {/* <div className="border-t border-border/40 pb-20 md:pb-0">
+      <div className="border-t border-border/40 pb-20 md:pb-0">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-5 flex flex-col sm:flex-row justify-between items-center gap-4">
           <div className="flex flex-col sm:flex-row gap-1 sm:gap-2 text-xs text-muted-foreground/80 text-center sm:text-left items-center flex-wrap">
             <span>© 2025–2026 Raja Boot House. All rights reserved.</span>
@@ -167,7 +167,7 @@ export function Footer() {
             </div>
             <button
               onClick={toggleTheme}
-              className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full border border-border/80 dark:border-cream/20 hover:border-charcoal/40 dark:hover:border-cream/40 text-muted-foreground dark:text-cream/60 hover:text-charcoal dark:hover:text-cream transition cursor-pointer text-[10px] uppercase font-bold tracking-wider"
+              className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full border border-border/80 hover:border-charcoal/40 text-muted-foreground hover:text-charcoal transition cursor-pointer text-[10px] uppercase font-bold tracking-wider"
               aria-label="Toggle theme"
             >
               {theme === "dark" ? (
@@ -184,7 +184,7 @@ export function Footer() {
             </button>
           </div>
         </div>
-      </div> */}
+      </div>
     </footer>
   );
 }

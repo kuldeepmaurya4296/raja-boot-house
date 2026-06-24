@@ -36,6 +36,12 @@ export interface IOrder extends Document {
     shipping: number;
     couponDiscount: number;
     pointsDiscount?: number;
+    // GST frozen at purchase time (India legal requirement — invoices must not recompute)
+    taxRate?: number;
+    taxableAmount?: number;
+    cgst?: number;
+    sgst?: number;
+    tax?: number;
     total: number;
   };
   coupon?: {
@@ -132,6 +138,12 @@ const OrderSchema: Schema = new Schema(
       shipping: { type: Number, required: true, default: 0 },
       couponDiscount: { type: Number, required: true, default: 0 },
       pointsDiscount: { type: Number, default: 0 },
+      // GST frozen at purchase time (India legal requirement — invoices must not recompute)
+      taxRate: { type: Number, default: 0 },
+      taxableAmount: { type: Number, default: 0 },
+      cgst: { type: Number, default: 0 },
+      sgst: { type: Number, default: 0 },
+      tax: { type: Number, default: 0 },
       total: { type: Number, required: true },
     },
     coupon: {

@@ -10,7 +10,7 @@ export function Watermark() {
         href="https://maurya-tech.com/"
         target="_blank"
         rel="noopener noreferrer"
-        className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-cream/70 dark:bg-charcoal/70 backdrop-blur-md border border-border/50 shadow-sm text-[9px] font-extrabold uppercase tracking-wider text-muted-foreground hover:text-cognac dark:hover:text-brass hover:border-cognac/35 dark:hover:border-brass/35 transition-all duration-300 opacity-40 hover:opacity-100 hover:scale-102 cursor-pointer select-none"
+        className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-cream/70 backdrop-blur-md border border-border/50 shadow-sm text-[9px] font-extrabold uppercase tracking-wider text-muted-foreground hover:text-cognac dark:hover:text-brass hover:border-cognac/35 dark:hover:border-brass/35 transition-all duration-300 opacity-40 hover:opacity-100 hover:scale-102 cursor-pointer select-none"
         title="Maurya Technologies & Services"
       >
         <span>Built by Maurya Tech</span>
