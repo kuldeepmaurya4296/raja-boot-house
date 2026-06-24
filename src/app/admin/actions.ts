@@ -1,6 +1,6 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
 import { connectToDatabase as dbConnect } from "@/lib/db";
 import Category from "@/lib/models/Category";
 import Product from "@/lib/models/Product";
@@ -40,6 +40,8 @@ export async function createCategory(data: z.infer<typeof categorySchema>) {
     });
     revalidatePath("/admin/inventory/categories");
     revalidatePath("/shop");
+    revalidateTag("shop-data", "max");
+    revalidateTag("filter-metadata", "max");
     return { success: true };
   } catch (error: any) {
     console.error("Create Category Error:", error);
@@ -59,6 +61,8 @@ export async function updateCategory(id: string, data: z.infer<typeof categorySc
     });
     revalidatePath("/admin/inventory/categories");
     revalidatePath("/shop");
+    revalidateTag("shop-data", "max");
+    revalidateTag("filter-metadata", "max");
     return { success: true };
   } catch (error: any) {
     console.error("Update Category Error:", error);
@@ -81,6 +85,8 @@ export async function deleteCategory(id: string) {
     await logAdminActivity({ action: "DELETE_CATEGORY", details: `Deleted category ID: ${id}` });
     revalidatePath("/admin/inventory/categories");
     revalidatePath("/shop");
+    revalidateTag("shop-data", "max");
+    revalidateTag("filter-metadata", "max");
     return { success: true };
   } catch (error: any) {
     return { success: false, error: error.message };
@@ -105,6 +111,8 @@ export async function createBrand(data: z.infer<typeof brandSchema>) {
     await logAdminActivity({ action: "CREATE_BRAND", details: `Created brand "${parsed.name}"` });
     revalidatePath("/admin/inventory/brands");
     revalidatePath("/shop");
+    revalidateTag("shop-data", "max");
+    revalidateTag("filter-metadata", "max");
     return { success: true };
   } catch (error: any) {
     console.error("Create Brand Error:", error);
@@ -124,6 +132,8 @@ export async function updateBrand(id: string, data: z.infer<typeof brandSchema>)
     });
     revalidatePath("/admin/inventory/brands");
     revalidatePath("/shop");
+    revalidateTag("shop-data", "max");
+    revalidateTag("filter-metadata", "max");
     return { success: true };
   } catch (error: any) {
     console.error("Update Brand Error:", error);
@@ -146,6 +156,8 @@ export async function deleteBrand(id: string) {
     await logAdminActivity({ action: "DELETE_BRAND", details: `Deleted brand ID: ${id}` });
     revalidatePath("/admin/inventory/brands");
     revalidatePath("/shop");
+    revalidateTag("shop-data", "max");
+    revalidateTag("filter-metadata", "max");
     return { success: true };
   } catch (error: any) {
     return { success: false, error: error.message };
@@ -177,6 +189,8 @@ export async function createCollection(data: z.infer<typeof collectionSchema>) {
     revalidatePath("/admin/inventory/collections");
     revalidatePath("/collections/" + parsed.slug);
     revalidatePath("/shop");
+    revalidateTag("shop-data", "max");
+    revalidateTag("filter-metadata", "max");
     return { success: true };
   } catch (error: any) {
     console.error("Create Collection Error:", error);
@@ -197,6 +211,8 @@ export async function updateCollection(id: string, data: z.infer<typeof collecti
     revalidatePath("/admin/inventory/collections");
     revalidatePath("/collections/" + parsed.slug);
     revalidatePath("/shop");
+    revalidateTag("shop-data", "max");
+    revalidateTag("filter-metadata", "max");
     return { success: true };
   } catch (error: any) {
     console.error("Update Collection Error:", error);
@@ -219,6 +235,8 @@ export async function deleteCollection(id: string) {
       revalidatePath("/collections/" + coll.slug);
     }
     revalidatePath("/shop");
+    revalidateTag("shop-data", "max");
+    revalidateTag("filter-metadata", "max");
     return { success: true };
   } catch (error: any) {
     return { success: false, error: error.message };
@@ -279,6 +297,8 @@ export async function createProduct(data: z.infer<typeof productSchema>) {
     });
     revalidatePath("/admin/inventory/products");
     revalidatePath("/shop");
+    revalidateTag("shop-data", "max");
+    revalidateTag("filter-metadata", "max");
     return { success: true };
   } catch (error: any) {
     console.error("Create Product Error:", error);
@@ -298,6 +318,8 @@ export async function updateProduct(id: string, data: z.infer<typeof productSche
     });
     revalidatePath("/admin/inventory/products");
     revalidatePath("/shop");
+    revalidateTag("shop-data", "max");
+    revalidateTag("filter-metadata", "max");
     return { success: true };
   } catch (error: any) {
     console.error("Update Product Error:", error);
@@ -313,6 +335,8 @@ export async function deleteProduct(id: string) {
     await logAdminActivity({ action: "DELETE_PRODUCT", details: `Deleted product ID: ${id}` });
     revalidatePath("/admin/inventory/products");
     revalidatePath("/shop");
+    revalidateTag("shop-data", "max");
+    revalidateTag("filter-metadata", "max");
     return { success: true };
   } catch (error: any) {
     return { success: false, error: error.message };

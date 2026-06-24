@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { revalidatePath, revalidateTag } from "next/cache";
 import { connectToDatabase } from "@/lib/db";
 import Product from "@/lib/models/Product";
 import Category from "@/lib/models/Category";
@@ -328,6 +329,13 @@ export async function POST(request: Request) {
         console.error(`Error at row ${rowNumber}:`, err);
         errors.push(`Row ${rowNumber}: ${err.message || "Unknown error during creation."}`);
       }
+    }
+
+    // Bust the shop caches so bulk-imported products appear immediately.
+    if (createdProducts.length > 0) {
+      revalidatePath("/shop");
+      revalidateTag("shop-data", "max");
+      revalidateTag("filter-metadata", "max");
     }
 
     return NextResponse.json({
