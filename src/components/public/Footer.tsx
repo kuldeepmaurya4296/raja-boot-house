@@ -121,7 +121,7 @@ export function Footer() {
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-5 flex flex-col sm:flex-row justify-between items-center gap-4">
           <div className="flex flex-col sm:flex-row gap-1 sm:gap-2 text-xs text-muted-foreground/80 text-center sm:text-left items-center flex-wrap">
             <span>© 2025–2026 Raja Boot House. All rights reserved.</span>
-            <span className="hidden sm:inline">·</span>
+            {/* <span className="hidden sm:inline">·</span>
             <span className="flex flex-wrap items-center justify-center gap-1">
               Designed &amp; Developed by{" "}
               <a
@@ -158,7 +158,7 @@ export function Footer() {
                 </svg>
                 <span>WhatsApp</span>
               </a>
-            </span>
+            </span> */}
           </div>
           <div className="flex items-center gap-3">
             <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground/60">
