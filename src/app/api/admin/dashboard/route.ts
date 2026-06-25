@@ -127,7 +127,8 @@ export async function GET() {
     })
       .sort({ createdAt: -1 })
       .limit(6)
-      .populate({ path: "userId", model: User, select: "name" });
+      .populate({ path: "userId", model: User, select: "name" })
+      .lean();
 
     const latestOrders = rawLatestOrders.map((o: any) => {
       let customerName = "—";
@@ -152,7 +153,9 @@ export async function GET() {
     // Fetch top products (e.g. sorted by rating count or featured)
     const rawProducts = await Product.find({ isActive: true })
       .sort({ "rating.count": -1 })
-      .limit(5);
+      .limit(5)
+      .select("name images salePrice rating")
+      .lean();
 
     const topProducts = rawProducts.map((p) => ({
       id: p._id.toString(),
@@ -166,7 +169,10 @@ export async function GET() {
     const rawLowStockProducts = await Product.find({
       isActive: true,
       "variants.stock": { $lt: 5 },
-    }).limit(10);
+    })
+      .limit(10)
+      .select("name variants")
+      .lean();
 
     const lowStockAlerts = rawLowStockProducts.map((p) => {
       const minStock = p.variants.reduce(

@@ -129,7 +129,9 @@ export async function updateProductRating(productId: string) {
   const Review = mongoose.models.Review || (await import("./models/Review")).default;
   const Product = mongoose.models.Product || (await import("./models/Product")).default;
 
-  const allReviews = await Review.find({ productId, isApproved: true });
+  const allReviews = await Review.find({ productId, isApproved: true })
+    .select("userId rating")
+    .lean();
 
   // Group reviews by userId
   const reviewsByUser: Record<string, any[]> = {};

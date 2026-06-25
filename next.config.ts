@@ -5,7 +5,14 @@ const nextConfig: NextConfig = {
   // Keep heavy Node-native deps out of the bundle — smaller serverless functions,
   // faster cold starts, and no mongoose/bcrypt bundling issues on Vercel.
   serverExternalPackages: ["mongoose", "bcryptjs", "razorpay", "nodemailer"],
+  // Tree-shake large icon/animation libs so each page ships only what it uses.
+  experimental: {
+    optimizePackageImports: ["lucide-react", "framer-motion"],
+  },
   images: {
+    // Serve modern formats; cache optimized images longer at the edge.
+    formats: ["image/avif", "image/webp"],
+    minimumCacheTTL: 86400,
     remotePatterns: [
       {
         protocol: "https",

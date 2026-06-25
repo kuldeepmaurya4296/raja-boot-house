@@ -72,7 +72,9 @@ export async function GET(request: Request) {
       const reviews = await Review.find(filter)
         .populate({ path: "userId", model: User, select: "name email avatar" })
         .populate({ path: "productId", model: Product, select: "name slug images" })
-        .sort({ createdAt: -1 });
+        .sort({ createdAt: -1 })
+        .limit(500)
+        .lean();
 
       return NextResponse.json(addReviewNumbers(reviews));
     }
@@ -85,7 +87,9 @@ export async function GET(request: Request) {
 
     const reviews = await Review.find(query)
       .populate({ path: "userId", model: User, select: "name avatar" })
-      .sort({ createdAt: -1 });
+      .sort({ createdAt: -1 })
+      .limit(200)
+      .lean();
 
     return NextResponse.json(addReviewNumbers(reviews));
   } catch (error: any) {
